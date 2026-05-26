@@ -1838,7 +1838,7 @@ async function analyze(tab) {
         model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         stream: true,
-        system: SPORTS[currentSport].sys + '\n\nIMPORTANT: For every section, write the English version first, then immediately follow with the Chinese translation (中文翻译) of the same content. Label each section clearly.',
+        system: SPORTS[currentSport].sys + '\n\nIMPORTANT: Output everything in Chinese (中文) only. Do not include any English.',
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
       })
     });
