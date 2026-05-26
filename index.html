@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sports AI Coach</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" async></script>
 <style>
 /* ─── AUTH WALL ─── */
 #auth-wall {
@@ -1250,22 +1249,27 @@ let tournaments = [];
 let currentSport = 'squash';
 const langSetting = { pre: 'en', btw: 'en', post: 'en' };
 
-// ─── SUPABASE AUTH ───
+// ─── AUTH (direct Supabase REST, no SDK) ───
 const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
-let supabase = null;
-function getSupabase() {
-  if (!supabase && window.supabase) {
-    supabase = window.supabase.createClient(SUPA_URL, SUPA_ANON);
-  }
-  return supabase;
-}
+const SUPA_SESSION_KEY = 'sac_session';
 
 const FREE_LIMIT = 2;
 const FREE_KEY   = 'sac_free_uses';
 
 function getFreeUses() { return parseInt(localStorage.getItem(FREE_KEY) || '0'); }
 function incFreeUses() { localStorage.setItem(FREE_KEY, getFreeUses() + 1); }
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SUPA_SESSION_KEY)); } catch { return null; }
+}
+function setSession(s) { localStorage.setItem(SUPA_SESSION_KEY, JSON.stringify(s)); }
+function clearSession() { localStorage.removeItem(SUPA_SESSION_KEY); }
+
+async function getAuthToken() {
+  const s = getSession();
+  return s ? s.access_token : null;
+}
 
 function showAuthWall() {
   if (document.getElementById('auth-wall')) return;
@@ -1299,12 +1303,6 @@ function showAuthWall() {
     </div>`;
   document.body.appendChild(wall);
 
-  try {
-    const sb = getSupabase();
-    if (sb) sb.auth.onAuthStateChange((_e, session) => {
-      if (session) { const w = document.getElementById('auth-wall'); if (w) w.remove(); }
-    });
-  } catch(_) {}
 }
 
 async function authSendCode() {
@@ -1313,13 +1311,16 @@ async function authSendCode() {
   if (!email) { msg.textContent = 'Please enter your email.'; return; }
   msg.textContent = 'Sending…';
   try {
-    const sb = getSupabase();
-    if (!sb) { msg.textContent = 'Auth not available. Try again.'; return; }
-    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-    if (error) { msg.textContent = error.message; return; }
+    const res = await fetch(`${SUPA_URL}/auth/v1/otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+      body: JSON.stringify({ email, create_user: true })
+    });
+    if (!res.ok) { const e = await res.json(); msg.textContent = e.msg || e.message || 'Error'; return; }
     document.getElementById('aw-step1').style.display = 'none';
     document.getElementById('aw-step2').style.display = '';
     document.getElementById('aw-otp-sub').textContent = `Code sent to ${email}`;
+    msg.textContent = '';
   } catch(e) { msg.textContent = e.message; }
 }
 
@@ -1330,10 +1331,14 @@ async function authVerifyCode() {
   if (!token) { msg.textContent = 'Please enter the code.'; return; }
   msg.textContent = 'Verifying…';
   try {
-    const sb = getSupabase();
-    if (!sb) { msg.textContent = 'Auth not available.'; return; }
-    const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
-    if (error) { msg.textContent = error.message; return; }
+    const res = await fetch(`${SUPA_URL}/auth/v1/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+      body: JSON.stringify({ email, token, type: 'email' })
+    });
+    if (!res.ok) { const e = await res.json(); msg.textContent = e.msg || e.message || 'Invalid code'; return; }
+    const data = await res.json();
+    setSession(data);
     const w = document.getElementById('auth-wall'); if (w) w.remove();
   } catch(e) { msg.textContent = e.message; }
 }
@@ -1342,15 +1347,6 @@ function authBack() {
   document.getElementById('aw-step2').style.display = 'none';
   document.getElementById('aw-step1').style.display = '';
   document.getElementById('aw-msg').textContent = '';
-}
-
-async function getAuthToken() {
-  try {
-    const sb = getSupabase();
-    if (!sb) return null;
-    const { data: { session } } = await sb.auth.getSession();
-    return session ? session.access_token : null;
-  } catch { return null; }
 }
 
 function setLang(lang, btn, tab) {
@@ -2160,9 +2156,7 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 async function analyze(tab) {
 
   // Check auth / free tier
-  const sb = getSupabase();
-  const _sd = sb ? await sb.auth.getSession() : null;
-  const session = _sd?.data?.session || null;
+  const session = getSession();
   if (!session) {
     const uses = getFreeUses();
     if (uses >= FREE_LIMIT) {
