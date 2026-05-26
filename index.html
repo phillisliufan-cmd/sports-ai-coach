@@ -1299,18 +1299,15 @@ function showAuthWall() {
       </div>
       <div id="aw-step1">
         <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">Create account &amp; subscribe</div>
-        <div style="font-size:14px;color:#666;margin-bottom:16px;">$20/month — we'll send a 6-digit code to verify your email</div>
+        <div style="font-size:14px;color:#666;margin-bottom:16px;">$20/month — enter your email and we'll send a login link</div>
         <input id="aw-email" class="auth-input" type="email" placeholder="your@email.com" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
-        <button onclick="authSendCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Send Code</button>
+        <button onclick="authSendCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Send Login Link</button>
         <div id="aw-msg" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
       </div>
       <div id="aw-step2" style="display:none;">
-        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">Enter code</div>
-        <div id="aw-otp-sub" style="font-size:14px;color:#666;margin-bottom:16px;">Check your email</div>
-        <input id="aw-otp" class="auth-input" type="text" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
-        <button onclick="authVerifyCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Verify</button>
-        <div id="aw-msg2" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
-        <div style="text-align:center;margin-top:12px;font-size:13px;color:#999;cursor:pointer;" onclick="authBack()">← Back</div>
+        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:8px;">Check your email</div>
+        <div id="aw-otp-sub" style="font-size:14px;color:#555;line-height:1.5;">We sent a login link to your email. Click the link in the email to sign in — this page will update automatically.</div>
+        <div style="text-align:center;margin-top:20px;font-size:13px;color:#999;cursor:pointer;" onclick="authBack()">← Use a different email</div>
       </div>
     </div>`;
   document.body.appendChild(wall);
@@ -1336,27 +1333,27 @@ async function authSendCode() {
   } catch(e) { msg.textContent = e.message; }
 }
 
-async function authVerifyCode() {
-  const email = document.getElementById('aw-email').value.trim();
-  const token = document.getElementById('aw-otp').value.trim();
-  const msg   = document.getElementById('aw-msg2');
-  if (!token) { msg.textContent = 'Please enter the code.'; return; }
-  msg.textContent = 'Verifying…';
-  try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
-      body: JSON.stringify({ email, token, type: 'email' })
-    });
-    if (!res.ok) { const e = await res.json(); msg.textContent = e.msg || e.message || 'Invalid code'; return; }
-    const data = await res.json();
-    setSession(data);
-    const w = document.getElementById('auth-wall'); if (w) w.remove();
-    renderFreeBanners();
+// Parse Supabase magic link tokens from URL hash on page load
+(function handleMagicLink() {
+  const hash = window.location.hash;
+  if (!hash || !hash.includes('access_token')) return;
+  const params = new URLSearchParams(hash.replace('#', ''));
+  const accessToken  = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const expiresIn    = params.get('expires_in');
+  if (!accessToken) return;
+  // Fetch user info and store session
+  fetch(`${SUPA_URL}/auth/v1/user`, {
+    headers: { 'Authorization': `Bearer ${accessToken}`, 'apikey': SUPA_ANON }
+  }).then(r => r.json()).then(user => {
+    setSession({ access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, user });
+    // Clean up URL
+    history.replaceState(null, '', window.location.pathname);
     updateAcctBtn();
+    renderFreeBanners();
     toast('Signed in successfully', 'ok');
-  } catch(e) { msg.textContent = e.message; }
-}
+  }).catch(() => {});
+})();
 
 function updateAcctBtn() {
   const s = getSession();
