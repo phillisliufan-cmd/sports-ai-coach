@@ -2103,7 +2103,7 @@ async function analyze(tab) {
           if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
             fullText += evt.delta.text;
             const displayText = fullText.replace(/```diagram[\s\S]*?```/g, '').trim();
-            outBody.innerHTML = postProcess(renderMarkdown(displayText));
+            outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
           }
         } catch(_) {}
       }
@@ -2188,6 +2188,11 @@ function buildVoice(text) {
   const vc = document.getElementById('vc');
   const vi = document.getElementById('vitems');
   vi.innerHTML = '';
+
+  // Update summary header label based on language
+  const summaryLang = langSetting['btw'];
+  vc.querySelector('.summary-hdr').textContent =
+    summaryLang === 'zh' ? '总结' : summaryLang === 'bi' ? '总结 · Summary' : 'Summary';
 
   if (instrs.length === 0) {
     vc.className = 'summary-card';
@@ -2660,12 +2665,15 @@ function extractAndRenderDiagram(fullText, tab, sport) {
   } catch(e) { console.error('Diagram parse error:', e); }
 }
 
-function postProcess(html) {
-  // Wrap ordered lists (the 3 tactics) in a green box — first ol = English, second = Chinese
+function postProcess(html, lang) {
+  // Wrap ordered lists in a green box with language-aware label
   let olCount = 0;
   html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g, (match) => {
     olCount++;
-    const lbl = olCount === 1 ? '3 Key Tactics' : '3种策略';
+    let lbl;
+    if (lang === 'zh') lbl = '3种策略';
+    else if (lang === 'bi') lbl = olCount === 1 ? '3 Key Tactics' : '3种策略';
+    else lbl = '3 Key Tactics';
     return `<div class="tactics-box"><div class="tactics-lbl">${lbl}</div>${match}</div>`;
   });
   // Wrap COACH NOTE paragraph in a yellow box
