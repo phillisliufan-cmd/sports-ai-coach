@@ -888,7 +888,7 @@ input[type="file"] { display: none; }
 <body>
 
 <!-- Auth wall -->
-<div id="auth-wall">
+<div id="auth-wall" style="display:none">
   <div class="auth-box">
     <div class="auth-logo">
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -905,7 +905,10 @@ input[type="file"] { display: none; }
 
     <!-- Step 1: email -->
     <div id="auth-step-email">
-      <div class="auth-title">Sign in</div>
+      <div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px;color:#1a6b2e;font-weight:600;">
+        Free trial used. Sign up for 2 more free analyses — no credit card needed.
+      </div>
+      <div class="auth-title">Create free account</div>
       <div class="auth-sub">We'll send a code to your email</div>
       <br>
       <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="email">
@@ -1299,11 +1302,17 @@ const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
 const supabase  = window.supabase.createClient(SUPA_URL, SUPA_ANON);
 
+const FREE_LIMIT = 2;
+const FREE_KEY   = 'sac_free_uses';
+
+function getFreeUses() { return parseInt(localStorage.getItem(FREE_KEY) || '0'); }
+function incFreeUses() { localStorage.setItem(FREE_KEY, getFreeUses() + 1); }
+
 window.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    document.getElementById('auth-wall').classList.add('hidden');
-  }
+  // Hide auth wall on load — only show when needed
+  document.getElementById('auth-wall').classList.add('hidden');
+
+  // If returning with a session, keep hidden
   supabase.auth.onAuthStateChange((_event, session) => {
     if (session) document.getElementById('auth-wall').classList.add('hidden');
   });
@@ -2159,6 +2168,15 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
 
+  // Check auth / free tier
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    const uses = getFreeUses();
+    if (uses >= FREE_LIMIT) {
+      document.getElementById('auth-wall').classList.remove('hidden');
+      return;
+    }
+  }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
   if (frames.length === 0) {
@@ -2254,6 +2272,9 @@ async function analyze(tab) {
     showVideoReview(tab, toSend);
     toast('Analysis complete ✓', 'ok');
     addHistoryEntry(tab, fullText);
+    // Count free use if not signed in
+    const { data: { session: s } } = await supabase.auth.getSession();
+    if (!s) incFreeUses();
 
   } catch (err) {
     console.error(err);
