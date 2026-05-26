@@ -1246,31 +1246,43 @@ let currentSport = 'squash';
 const langSetting = { pre: 'en', btw: 'en', post: 'en' };
 
 // ─── CLERK AUTH ───
+let clerkInstance = null;
 let clerkSession = null;
 
 async function initAuth() {
-  const clerk = new Clerk('pk_test_dG91Z2gtbXVza294LTQwLmNsZXJrLmFjY291bnRzLmRldiQ');
-  await clerk.load();
+  try {
+    const clerk = new window.Clerk('pk_test_dG91Z2gtbXVza294LTQwLmNsZXJrLmFjY291bnRzLmRldiQ');
+    await clerk.load();
+    clerkInstance = clerk;
 
-  if (clerk.user) {
-    clerkSession = clerk.session;
+    const showApp = () => {
+      clerkSession = clerk.session;
+      document.getElementById('auth-wall').classList.add('hidden');
+    };
+
+    if (clerk.user) {
+      showApp();
+    } else {
+      clerk.mountSignIn(document.getElementById('clerk-mount'), {
+        routing: 'virtual',
+        afterSignInUrl: window.location.href,
+      });
+      clerk.addListener(({ user, session }) => {
+        if (user && session) showApp();
+      });
+    }
+  } catch(e) {
+    console.error('Clerk init error:', e);
+    // Fallback: hide auth wall so app still works during development
     document.getElementById('auth-wall').classList.add('hidden');
-  } else {
-    clerk.mountSignIn(document.getElementById('clerk-mount'));
-    clerk.addListener(({ user, session }) => {
-      if (user && session) {
-        clerkSession = session;
-        document.getElementById('auth-wall').classList.add('hidden');
-      }
-    });
   }
 }
 
-initAuth();
+window.addEventListener('DOMContentLoaded', initAuth);
 
 async function getAuthToken() {
-  if (!clerkSession) return null;
-  return await clerkSession.getToken();
+  if (!clerkInstance || !clerkInstance.session) return null;
+  return await clerkInstance.session.getToken();
 }
 
 function setLang(lang, btn, tab) {
