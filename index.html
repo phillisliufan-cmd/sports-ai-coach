@@ -973,7 +973,8 @@ window.onerror = function(msg, src, line) {
 // ═══════════════════════════════════════════════
 const frameStore = { pre: [], btw: [], post: [] };
 let voiceLines = [];
-const apiKey = '__ANTHROPIC_API_KEY__';
+let apiKey = '';
+fetch('/api/key').then(r => r.json()).then(d => { apiKey = d.key || ''; }).catch(() => {});
 const HIST_KEY = 'squash_history';
 let history = [];
 let currentModalId = null;
@@ -1772,6 +1773,11 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 //  ANALYZE (streaming)
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
+
+  if (!apiKey) {
+    toast('API key not loaded yet, please wait and try again', 'err');
+    return;
+  }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
   if (frames.length === 0) {
