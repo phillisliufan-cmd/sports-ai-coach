@@ -887,53 +887,6 @@ input[type="file"] { display: none; }
 </head>
 <body>
 
-<!-- Auth wall -->
-<div id="auth-wall" style="display:none">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.6"/>
-        <circle cx="14" cy="14" r="5" stroke="#0a0a0a" stroke-width="1.6"/>
-        <line x1="14" y1="2" x2="14" y2="7" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-        <line x1="14" y1="21" x2="14" y2="26" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-        <line x1="2" y1="14" x2="7" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-        <line x1="21" y1="14" x2="26" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-        <circle cx="14" cy="14" r="1.8" fill="#00b341"/>
-      </svg>
-      Sports AI Coach
-    </div>
-
-    <!-- Step 1: email -->
-    <div id="auth-step-email">
-      <div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:14px;color:#1a6b2e;font-weight:600;">
-        Free trial used. Sign up for 2 more free analyses — no credit card needed.
-      </div>
-      <div class="auth-title">Create free account</div>
-      <div class="auth-sub">We'll send a code to your email</div>
-      <br>
-      <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="email">
-      <br><br>
-      <button class="auth-btn" id="auth-send-btn" onclick="authSendCode()">Send Code</button>
-      <br><br>
-      <div class="auth-msg" id="auth-msg"></div>
-    </div>
-
-    <!-- Step 2: OTP code -->
-    <div id="auth-step-otp" style="display:none">
-      <div class="auth-title">Enter code</div>
-      <div class="auth-sub" id="auth-otp-sub">Check your email</div>
-      <br>
-      <input class="auth-input" id="auth-otp" type="text" placeholder="6-digit code" maxlength="6" inputmode="numeric">
-      <br><br>
-      <button class="auth-btn" id="auth-verify-btn" onclick="authVerifyCode()">Verify</button>
-      <br><br>
-      <div class="auth-msg" id="auth-msg2"></div>
-      <div style="text-align:center;margin-top:8px">
-        <span style="font-size:13px;color:#999;cursor:pointer" onclick="authBack()">← Back</span>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Hidden radio inputs for CSS-only tab control -->
 <input type="radio" name="tab" id="r-pre" checked hidden>
@@ -1314,53 +1267,81 @@ const FREE_KEY   = 'sac_free_uses';
 function getFreeUses() { return parseInt(localStorage.getItem(FREE_KEY) || '0'); }
 function incFreeUses() { localStorage.setItem(FREE_KEY, getFreeUses() + 1); }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  // Hide auth wall on load — only show when needed
-  document.getElementById('auth-wall').classList.add('hidden');
+function showAuthWall() {
+  if (document.getElementById('auth-wall')) return;
+  const wall = document.createElement('div');
+  wall.id = 'auth-wall';
+  wall.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;';
+  wall.innerHTML = `
+    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:#0a0a0a;">
+        <svg width="26" height="26" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.6"/><circle cx="14" cy="14" r="5" stroke="#0a0a0a" stroke-width="1.6"/><line x1="14" y1="2" x2="14" y2="7" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/><line x1="14" y1="21" x2="14" y2="26" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/><line x1="2" y1="14" x2="7" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/><line x1="21" y1="14" x2="26" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/><circle cx="14" cy="14" r="1.8" fill="#00b341"/></svg>
+        Sports AI Coach
+      </div>
+      <div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a6b2e;font-weight:600;">
+        You've used your 2 free analyses. Sign up free — no credit card needed.
+      </div>
+      <div id="aw-step1">
+        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">Create free account</div>
+        <div style="font-size:14px;color:#666;margin-bottom:16px;">We'll send a 6-digit code to your email</div>
+        <input id="aw-email" class="auth-input" type="email" placeholder="your@email.com" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+        <button onclick="authSendCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Send Code</button>
+        <div id="aw-msg" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
+      </div>
+      <div id="aw-step2" style="display:none;">
+        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">Enter code</div>
+        <div id="aw-otp-sub" style="font-size:14px;color:#666;margin-bottom:16px;">Check your email</div>
+        <input id="aw-otp" class="auth-input" type="text" placeholder="6-digit code" maxlength="6" inputmode="numeric" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
+        <button onclick="authVerifyCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Verify</button>
+        <div id="aw-msg2" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
+        <div style="text-align:center;margin-top:12px;font-size:13px;color:#999;cursor:pointer;" onclick="authBack()">← Back</div>
+      </div>
+    </div>`;
+  document.body.appendChild(wall);
 
-  // If returning with a session, keep hidden
-  getSupabase()?.auth.onAuthStateChange((_event, session) => {
-    if (session) document.getElementById('auth-wall').classList.add('hidden');
-  });
-});
+  try {
+    const sb = getSupabase();
+    if (sb) sb.auth.onAuthStateChange((_e, session) => {
+      if (session) { const w = document.getElementById('auth-wall'); if (w) w.remove(); }
+    });
+  } catch(_) {}
+}
 
 async function authSendCode() {
-  const email = document.getElementById('auth-email').value.trim();
-  const btn   = document.getElementById('auth-send-btn');
-  const msg   = document.getElementById('auth-msg');
+  const email = document.getElementById('aw-email').value.trim();
+  const msg   = document.getElementById('aw-msg');
   if (!email) { msg.textContent = 'Please enter your email.'; return; }
-  btn.disabled = true; btn.textContent = 'Sending…';
-  const { error } = await getSupabase()?.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
-  if (error) {
-    msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Send Code';
-  } else {
-    document.getElementById('auth-step-email').style.display = 'none';
-    document.getElementById('auth-step-otp').style.display = '';
-    document.getElementById('auth-otp-sub').textContent = `Code sent to ${email}`;
-  }
+  msg.textContent = 'Sending…';
+  try {
+    const sb = getSupabase();
+    if (!sb) { msg.textContent = 'Auth not available. Try again.'; return; }
+    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+    if (error) { msg.textContent = error.message; return; }
+    document.getElementById('aw-step1').style.display = 'none';
+    document.getElementById('aw-step2').style.display = '';
+    document.getElementById('aw-otp-sub').textContent = `Code sent to ${email}`;
+  } catch(e) { msg.textContent = e.message; }
 }
 
 async function authVerifyCode() {
-  const email = document.getElementById('auth-email').value.trim();
-  const token = document.getElementById('auth-otp').value.trim();
-  const btn   = document.getElementById('auth-verify-btn');
-  const msg   = document.getElementById('auth-msg2');
+  const email = document.getElementById('aw-email').value.trim();
+  const token = document.getElementById('aw-otp').value.trim();
+  const msg   = document.getElementById('aw-msg2');
   if (!token) { msg.textContent = 'Please enter the code.'; return; }
-  btn.disabled = true; btn.textContent = 'Verifying…';
-  const { error } = await getSupabase()?.auth.verifyOtp({ email, token, type: 'email' });
-  if (error) {
-    msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Verify';
-  }
+  msg.textContent = 'Verifying…';
+  try {
+    const sb = getSupabase();
+    if (!sb) { msg.textContent = 'Auth not available.'; return; }
+    const { error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+    if (error) { msg.textContent = error.message; return; }
+    const w = document.getElementById('auth-wall'); if (w) w.remove();
+  } catch(e) { msg.textContent = e.message; }
 }
 
 function authBack() {
-  document.getElementById('auth-step-otp').style.display = 'none';
-  document.getElementById('auth-step-email').style.display = '';
-  document.getElementById('auth-msg').textContent = '';
-  document.getElementById('auth-send-btn').disabled = false;
-  document.getElementById('auth-send-btn').textContent = 'Send Code';
+  document.getElementById('aw-step2').style.display = 'none';
+  document.getElementById('aw-step1').style.display = '';
+  document.getElementById('aw-msg').textContent = '';
 }
 
 async function getAuthToken() {
@@ -2185,7 +2166,7 @@ async function analyze(tab) {
   if (!session) {
     const uses = getFreeUses();
     if (uses >= FREE_LIMIT) {
-      document.getElementById('auth-wall').classList.remove('hidden');
+      showAuthWall();
       return;
     }
   }
