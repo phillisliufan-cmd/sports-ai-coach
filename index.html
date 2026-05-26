@@ -1063,7 +1063,6 @@ input[type="file"] { display: none; }
     <div class="lang-bar" id="lang-bar-pre">
       <button class="lang-btn active" onclick="setLang('en',this,'pre')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'pre')">中文</button>
-      <button class="lang-btn" onclick="setLang('bi',this,'pre')">EN + 中文</button>
     </div>
     <button class="btn-go" id="go-pre" onclick="analyze('pre')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyze Opponent</span>
@@ -1104,7 +1103,6 @@ input[type="file"] { display: none; }
     <div class="lang-bar" id="lang-bar-btw">
       <button class="lang-btn active" onclick="setLang('en',this,'btw')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'btw')">中文</button>
-      <button class="lang-btn" onclick="setLang('bi',this,'btw')">EN + 中文</button>
     </div>
     <button class="btn-go" id="go-btw" onclick="analyze('btw')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Get Courtside Instructions</span>
@@ -1137,7 +1135,6 @@ input[type="file"] { display: none; }
     <div class="lang-bar" id="lang-bar-post">
       <button class="lang-btn active" onclick="setLang('en',this,'post')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'post')">中文</button>
-      <button class="lang-btn" onclick="setLang('bi',this,'post')">EN + 中文</button>
     </div>
     <button class="btn-go" id="go-post" onclick="analyze('post')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>Generate Match Review</span>
@@ -2059,11 +2056,14 @@ function buildPrompt(tab) {
   if (tab === 'pre') {
     const desc  = document.getElementById('opp-name').value.trim();
     const notes = document.getElementById('pre-notes').value.trim();
+    const toSendPre = frameStore['pre'].slice(0, 20);
+    const frameIndexPre = toSendPre.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from a ${sp.name} match. Scout my OPPONENT so I can beat them.
+Frame timestamps: ${frameIndexPre}
 ${desc ? 'Opponent: ' + desc : 'Focus on one player as the opponent.'}
 ${notes ? 'My observations: ' + notes : ''}
 
-Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
+When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
 
 **1. KEY WEAKNESSES**
 Top 3 technical or tactical weaknesses. One sentence each.
@@ -2106,6 +2106,7 @@ Match scores so far: ${scoreSummary}
 ${desc ? 'The opponent can be identified by: ' + desc : ''}
 ${myErrors ? 'Errors I felt I was making: ' + myErrors : ''}
 
+When referencing observations, cite the specific frame number (e.g. "Frame 3").
 Analyze the OPPONENT in these frames. Give EXACTLY 3 tactical instructions for Game ${nextGame}.
 
 FORMAT (strictly follow):
@@ -2141,13 +2142,17 @@ Show the 3 tactics as arrows. Mark where the opponent is stuck as a zone.`;
   const scores = document.getElementById('g-scores').value.trim() || 'not provided';
   const desc2  = document.getElementById('pm-player').value.trim();
   const notes  = document.getElementById('pm-notes').value.trim();
+  const toSendPost = frameStore['btw'].slice(0, 20);
+  const frameIndexPost = toSendPost.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
   return `I have uploaded ${active} frames from a ${sp.name} match I just played. I want to understand how to beat this opponent better next time.
 
+Frame timestamps: ${frameIndexPost}
 Game scores: ${scores}
 ${desc2 ? 'The opponent can be identified by: ' + desc2 : ''}
 ${notes ? 'My observations: ' + notes : ''}
 
 Do NOT use any emoji or special symbols. Plain text only.
+When referencing observations, cite the specific frame number (e.g. "Frame 3").
 
 Analyze the OPPONENT ONLY in these frames. Focus on what I can learn to beat them.
 
