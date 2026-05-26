@@ -4,7 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sports AI Coach</title>
+<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
 <style>
+/* ─── AUTH WALL ─── */
+#auth-wall {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #fff;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 24px;
+}
+#auth-wall.hidden { display: none; }
+#clerk-mount { min-width: 320px; }
+.auth-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #0a0a0a;
+}
+
 :root {
   --accent: #00b341;
   --accent-light: #e6f9ed;
@@ -850,6 +866,23 @@ input[type="file"] { display: none; }
 </head>
 <body>
 
+<!-- Auth wall -->
+<div id="auth-wall">
+  <div class="auth-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.6"/>
+      <circle cx="14" cy="14" r="5" stroke="#0a0a0a" stroke-width="1.6"/>
+      <line x1="14" y1="2" x2="14" y2="7" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="14" y1="21" x2="14" y2="26" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="2" y1="14" x2="7" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="21" y1="14" x2="26" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="14" cy="14" r="1.8" fill="#00b341"/>
+    </svg>
+    Sports AI Coach
+  </div>
+  <div id="clerk-mount"></div>
+</div>
+
 <!-- Hidden radio inputs for CSS-only tab control -->
 <input type="radio" name="tab" id="r-pre" checked hidden>
 <input type="radio" name="tab" id="r-btw" hidden>
@@ -1203,8 +1236,6 @@ window.onerror = function(msg, src, line) {
 // ═══════════════════════════════════════════════
 const frameStore = { pre: [], btw: [], post: [] };
 let voiceLines = [];
-let apiKey = '';
-fetch('/api/key').then(r => r.json()).then(d => { apiKey = d.key || ''; }).catch(() => {});
 const HIST_KEY = 'squash_history';
 let history = [];
 let currentModalId = null;
@@ -1213,6 +1244,34 @@ const TOURN_KEY = 'squash_tournaments';
 let tournaments = [];
 let currentSport = 'squash';
 const langSetting = { pre: 'en', btw: 'en', post: 'en' };
+
+// ─── CLERK AUTH ───
+let clerkSession = null;
+
+async function initAuth() {
+  const clerk = new Clerk('pk_test_dG91Z2gtbXVza294LTQwLmNsZXJrLmFjY291bnRzLmRldiQ');
+  await clerk.load();
+
+  if (clerk.user) {
+    clerkSession = clerk.session;
+    document.getElementById('auth-wall').classList.add('hidden');
+  } else {
+    clerk.mountSignIn(document.getElementById('clerk-mount'));
+    clerk.addListener(({ user, session }) => {
+      if (user && session) {
+        clerkSession = session;
+        document.getElementById('auth-wall').classList.add('hidden');
+      }
+    });
+  }
+}
+
+initAuth();
+
+async function getAuthToken() {
+  if (!clerkSession) return null;
+  return await clerkSession.getToken();
+}
 
 function setLang(lang, btn, tab) {
   langSetting[tab] = lang;
@@ -2017,10 +2076,6 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
 
-  if (!apiKey) {
-    toast('API key not loaded yet, please wait and try again', 'err');
-    return;
-  }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
   if (frames.length === 0) {
@@ -2049,12 +2104,13 @@ async function analyze(tab) {
       source: { type: 'base64', media_type: 'image/jpeg', data: fr.dataUrl.slice(fr.dataUrl.indexOf(',') + 1) }
     }));
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const authToken = await getAuthToken();
+    if (!authToken) { toast('Please sign in to continue', 'err'); return; }
+
+    const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
+        'Authorization': `Bearer ${authToken}`,
         'content-type': 'application/json'
       },
       body: JSON.stringify({
