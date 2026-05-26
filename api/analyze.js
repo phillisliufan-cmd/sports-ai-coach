@@ -6,10 +6,7 @@ const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function verifySupabaseToken(token) {
   const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPA_ANON,
-    }
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_ANON }
   });
   if (!res.ok) return null;
   return await res.json();
@@ -20,20 +17,16 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
+  // If a token is provided, verify it. Free-tier users may call without a token.
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
-
-  if (!token) {
-    return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-      status: 401, headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
-  const user = await verifySupabaseToken(token);
-  if (!user || !user.id) {
-    return new Response(JSON.stringify({ error: 'Invalid session' }), {
-      status: 401, headers: { 'Content-Type': 'application/json' }
-    });
+  if (token) {
+    const user = await verifySupabaseToken(token);
+    if (!user || !user.id) {
+      return new Response(JSON.stringify({ error: 'Invalid session' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
 
   if (!ANTHROPIC_KEY) {
@@ -43,9 +36,8 @@ export default async function handler(req) {
   }
 
   let body;
-  try {
-    body = await req.json();
-  } catch {
+  try { body = await req.json(); }
+  catch {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {
       status: 400, headers: { 'Content-Type': 'application/json' }
     });

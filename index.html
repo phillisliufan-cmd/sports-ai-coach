@@ -2215,12 +2215,11 @@ async function analyze(tab) {
     }));
 
     const authToken = await getAuthToken();
-    if (!authToken) { toast('Please sign in to continue', 'err'); return; }
 
     const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${authToken}`,
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
         'content-type': 'application/json'
       },
       body: JSON.stringify({
