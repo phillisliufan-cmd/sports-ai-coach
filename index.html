@@ -907,10 +907,22 @@ input[type="file"] { display: none; }
     </div>
     <h1>Sports AI <em>Coach</em></h1>
   </div>
-  <button class="back-btn" id="back-btn" onclick="goHome()" style="display:none">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Change Sport
-  </button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button class="back-btn" id="back-btn" onclick="goHome()" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Change Sport
+    </button>
+    <div id="acct-btn" style="display:none;position:relative;">
+      <button onclick="toggleAcctMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 12px 5px 8px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span id="acct-email-lbl"></span>
+      </button>
+      <div id="acct-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:180px;z-index:200;overflow:hidden;">
+        <div id="acct-menu-email" style="padding:10px 14px;font-size:12px;color:#999;border-bottom:1px solid #f0f0f0;word-break:break-all;"></div>
+        <button onclick="signOut()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#d00;cursor:pointer;font-family:inherit;font-weight:600;">Sign out</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ SPORT HOME ═══ -->
@@ -1341,7 +1353,44 @@ async function authVerifyCode() {
     setSession(data);
     const w = document.getElementById('auth-wall'); if (w) w.remove();
     renderFreeBanners();
+    updateAcctBtn();
+    toast('Signed in successfully', 'ok');
   } catch(e) { msg.textContent = e.message; }
+}
+
+function updateAcctBtn() {
+  const s = getSession();
+  const btn = document.getElementById('acct-btn');
+  if (!btn) return;
+  if (s && s.user && s.user.email) {
+    btn.style.display = '';
+    const short = s.user.email.split('@')[0];
+    document.getElementById('acct-email-lbl').textContent = short;
+    document.getElementById('acct-menu-email').textContent = s.user.email;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function toggleAcctMenu() {
+  const menu = document.getElementById('acct-menu');
+  menu.style.display = menu.style.display === 'none' ? '' : 'none';
+}
+
+// Close menu when clicking outside
+document.addEventListener('click', function(e) {
+  const btn = document.getElementById('acct-btn');
+  if (btn && !btn.contains(e.target)) {
+    const menu = document.getElementById('acct-menu');
+    if (menu) menu.style.display = 'none';
+  }
+});
+
+function signOut() {
+  clearSession();
+  updateAcctBtn();
+  renderFreeBanners();
+  toast('Signed out', 'ok');
 }
 
 function authBack() {
@@ -1715,6 +1764,7 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
     loadHistory();
     loadTournaments();
     renderSidebar();
+    updateAcctBtn();
   } catch(e) {
     // Show init errors visibly on screen
     var d = document.createElement('div');
