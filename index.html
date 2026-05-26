@@ -2624,9 +2624,13 @@ function extractAndRenderDiagram(fullText, tab, sport) {
 }
 
 function postProcess(html) {
-  // Wrap ordered lists (the 3 tactics) in a green box
-  html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g,
-    '<div class="tactics-box"><div class="tactics-lbl">3 Key Tactics</div>$1</div>');
+  // Wrap ordered lists (the 3 tactics) in a green box — first ol = English, second = Chinese
+  let olCount = 0;
+  html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g, (match) => {
+    olCount++;
+    const lbl = olCount === 1 ? '3 Key Tactics' : '3种策略';
+    return `<div class="tactics-box"><div class="tactics-lbl">${lbl}</div>${match}</div>`;
+  });
   // Wrap COACH NOTE paragraph in a yellow box
   html = html.replace(/<p>((?:COACH NOTE|教练提示)[：:])([\s\S]*?)<\/p>/gi,
     '<div class="coach-box"><div class="coach-lbl">教练提示</div><p>$2</p></div>');
