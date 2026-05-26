@@ -2035,7 +2035,7 @@ async function analyze(tab) {
 
     if (!res.ok) {
       let msg = 'API error ' + res.status;
-      try { const e = await res.json(); msg = e.error || e.error?.message || JSON.stringify(e); } catch(_) {}
+      try { const e = await res.json(); msg = e.error?.message || (typeof e.error === 'string' ? e.error : null) || JSON.stringify(e); } catch(_) {}
       throw new Error(msg);
     }
 
