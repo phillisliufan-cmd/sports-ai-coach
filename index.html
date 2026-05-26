@@ -122,7 +122,7 @@ body {
   height: 52px; margin-bottom: -1px;
 }
 .tab:hover { color: var(--text); }
-.tab-ico { font-size: 1.1rem; display: block; }
+.tab-ico { display: flex; align-items: center; justify-content: center; }
 
 /* ─── MAIN CONTENT ─── */
 .wrap { padding: 20px; }
@@ -763,7 +763,9 @@ input[type="file"] { display: none; }
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
   <div class="hdr-top">
-    <div class="hdr-logo">⚡</div>
+    <div class="hdr-logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
     <h1>Sports AI <em>Coach</em></h1>
   </div>
 </div>
@@ -779,13 +781,19 @@ input[type="file"] { display: none; }
 <!-- ═══ TABS ═══ -->
 <div class="tabs">
   <label class="tab" for="r-pre">
-    <span class="tab-ico">🎯</span>Pre-Match
+    <span class="tab-ico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    </span>Pre-Match
   </label>
   <label class="tab" for="r-btw">
-    <span class="tab-ico">🎥</span>Coaching
+    <span class="tab-ico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
+    </span>Coaching
   </label>
   <label class="tab" for="r-post">
-    <span class="tab-ico">📈</span>Post-Match
+    <span class="tab-ico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+    </span>Post-Match
   </label>
 </div>
 
