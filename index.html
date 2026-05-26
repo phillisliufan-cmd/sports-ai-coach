@@ -128,12 +128,12 @@ body {
 .wrap { padding: 20px; }
 .panel { display: none; }
 /* CSS-only tab switching via radio buttons */
-#r-pre:checked ~ .app-body #p-pre,
-#r-btw:checked ~ .app-body #p-btw,
-#r-post:checked ~ .app-body #p-post { display: block; }
-#r-pre:checked ~ .tabs label[for="r-pre"],
-#r-btw:checked ~ .tabs label[for="r-btw"],
-#r-post:checked ~ .tabs label[for="r-post"] {
+#r-pre:checked ~ #analysis-view .app-body #p-pre,
+#r-btw:checked ~ #analysis-view .app-body #p-btw,
+#r-post:checked ~ #analysis-view .app-body #p-post { display: block; }
+#r-pre:checked ~ #analysis-view .tabs label[for="r-pre"],
+#r-btw:checked ~ #analysis-view .tabs label[for="r-btw"],
+#r-post:checked ~ #analysis-view .tabs label[for="r-post"] {
   color: var(--text);
   border-bottom-color: var(--text);
   font-weight: 600;
