@@ -1987,6 +1987,8 @@ Game scores: ${scores}
 ${desc2 ? 'The opponent can be identified by: ' + desc2 : ''}
 ${notes ? 'My observations: ' + notes : ''}
 
+Do NOT use any emoji or special symbols. Plain text only.
+
 Analyze the OPPONENT ONLY in these frames. Focus on what I can learn to beat them.
 
 **1. OPPONENT WEAKNESSES EXPOSED IN THIS MATCH**
@@ -2666,15 +2668,17 @@ function extractAndRenderDiagram(fullText, tab, sport) {
 }
 
 function stripEmoji(str) {
-  // Remove all emoji and pictographic symbols
-  return str
-    .replace(/\p{Extended_Pictographic}/gu, '')
-    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
-    .replace(/[\u{2600}-\u{27BF}]/gu, '')
-    .replace(/[\uFE00-\uFE0F]/g, '')
-    .replace(/\uFE0F/g, '')
-    .replace(/\u200D/g, '')
-    .replace(/\s{2,}/g, ' ');
+  try {
+    // Remove all supplementary plane characters (emoji live above U+FFFF)
+    // and common symbol blocks in BMP
+    str = str.replace(/[\u{1F000}-\u{1FFFF}]/gu, ''); // all supplementary emoji
+    str = str.replace(/[\u{2600}-\u{27BF}]/gu, '');   // misc symbols, dingbats
+    str = str.replace(/[\u{1FA00}-\u{1FAFF}]/gu, ''); // chess, extra symbols
+    str = str.replace(/[\uFE00-\uFE0F\u200D\uFEFF]/g, ''); // variation selectors, ZWJ
+    // Also strip via Extended_Pictographic if supported
+    try { str = str.replace(/\p{Extended_Pictographic}/gu, ''); } catch(_) {}
+  } catch(_) {}
+  return str.replace(/ {2,}/g, ' ');
 }
 
 function postProcess(html, lang) {
