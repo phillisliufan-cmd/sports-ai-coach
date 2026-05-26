@@ -2059,7 +2059,7 @@ async function analyze(tab) {
         model: 'claude-sonnet-4-6',
         max_tokens: tab === 'pre' ? 2000 : 4096,
         stream: true,
-        system: SPORTS[currentSport].sys + '\n\n' + (
+        system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + (
           langSetting[tab] === 'zh'
             ? 'IMPORTANT: Write your entire response in Chinese (中文) only. Do not use any English.'
             : langSetting[tab] === 'bi'
@@ -2666,7 +2666,15 @@ function extractAndRenderDiagram(fullText, tab, sport) {
 }
 
 function stripEmoji(str) {
-  return str.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA9F}\u{1FA70}-\u{1FAFF}]/gu, '').replace(/\s{2,}/g, ' ');
+  // Remove all emoji and pictographic symbols
+  return str
+    .replace(/\p{Extended_Pictographic}/gu, '')
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+    .replace(/[\u{2600}-\u{27BF}]/gu, '')
+    .replace(/[\uFE00-\uFE0F]/g, '')
+    .replace(/\uFE0F/g, '')
+    .replace(/\u200D/g, '')
+    .replace(/\s{2,}/g, ' ');
 }
 
 function postProcess(html, lang) {
