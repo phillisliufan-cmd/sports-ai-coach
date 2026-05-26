@@ -764,9 +764,6 @@ input[type="file"] { display: none; }
       <div class="hdr-sub">Video Analysis · AI Tactics · Multi-Sport</div>
     </div>
   </div>
-  <div class="api-row" style="margin-top:10px">
-    <input class="api-input" id="apiKey" type="password" placeholder="Paste your Anthropic API key (sk-ant-…)" autocomplete="off">
-    <button class="api-btn" onclick="saveKey()"><span class="api-dot" id="apiDot"></span><span id="apiLbl">Save</span></button>
   </div>
 </div>
 
@@ -976,7 +973,7 @@ window.onerror = function(msg, src, line) {
 // ═══════════════════════════════════════════════
 const frameStore = { pre: [], btw: [], post: [] };
 let voiceLines = [];
-let apiKey = localStorage.getItem('sports_coach_key') || '';
+const apiKey = 'managed-by-server';
 const HIST_KEY = 'squash_history';
 let history = [];
 let currentModalId = null;
@@ -1390,25 +1387,6 @@ function updatePostFrameInfo() {
 }
 
 
-// ═══════════════════════════════════════════════
-//  API KEY
-// ═══════════════════════════════════════════════
-function saveKey() {
-  const v = document.getElementById('apiKey').value.trim();
-  if (!v) { toast('Enter your Anthropic API key', 'err'); return; }
-  if (!v.startsWith('sk-ant-')) { toast('Key should start with sk-ant-…', 'err'); return; }
-  apiKey = v;
-  localStorage.setItem('sports_coach_key', v);
-  setKeyUI(true);
-  toast('API key saved ✓', 'ok');
-}
-
-function setKeyUI(saved) {
-  const dot = document.getElementById('apiDot');
-  const lbl = document.getElementById('apiLbl');
-  dot.className = 'api-dot' + (saved ? ' on' : '');
-  lbl.textContent = saved ? 'Saved ✓' : 'Save';
-}
 
 // ═══════════════════════════════════════════════
 //  DRAG & DROP
@@ -1794,10 +1772,6 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 //  ANALYZE (streaming)
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
-  if (!apiKey) {
-    toast('Enter and save your API key first', 'err');
-    return;
-  }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
   if (frames.length === 0) {
@@ -1826,12 +1800,9 @@ async function analyze(tab) {
       source: { type: 'base64', media_type: 'image/jpeg', data: fr.dataUrl.slice(fr.dataUrl.indexOf(',') + 1) }
     }));
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
         'content-type': 'application/json'
       },
       body: JSON.stringify({
