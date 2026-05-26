@@ -2017,7 +2017,7 @@ async function analyze(tab) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: tab === 'pre' ? 1200 : 4096,
+        max_tokens: tab === 'pre' ? 2000 : 4096,
         stream: true,
         system: SPORTS[currentSport].sys + '\n\nIMPORTANT: Structure every section in two clearly separated blocks. First write the complete English content for that section. Then on a new line write "---中文---" as a divider, followed by the complete Chinese translation (中文翻译) of that same section. Do NOT mix Chinese words or phrases into the English block. English block must be entirely in English.',
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
