@@ -1,16 +1,15 @@
 export const config = { runtime: 'edge' };
 
-const CLERK_SECRET = process.env.CLERK_SECRET_KEY;
+const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
+const SUPA_ANON = process.env.SUPABASE_ANON_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
-async function verifyClerkToken(token) {
-  const res = await fetch('https://api.clerk.com/v1/tokens/verify', {
-    method: 'POST',
+async function verifySupabaseToken(token) {
+  const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
     headers: {
-      'Authorization': `Bearer ${CLERK_SECRET}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ token }),
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPA_ANON,
+    }
   });
   if (!res.ok) return null;
   return await res.json();
@@ -21,17 +20,17 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
-  // Verify Clerk session token
   const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.replace('Bearer ', '');
+  const token = authHeader.replace('Bearer ', '').trim();
+
   if (!token) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), {
       status: 401, headers: { 'Content-Type': 'application/json' }
     });
   }
 
-  const session = await verifyClerkToken(token);
-  if (!session || !session.sub) {
+  const user = await verifySupabaseToken(token);
+  if (!user || !user.id) {
     return new Response(JSON.stringify({ error: 'Invalid session' }), {
       status: 401, headers: { 'Content-Type': 'application/json' }
     });
@@ -46,7 +45,7 @@ export default async function handler(req) {
   let body;
   try {
     body = await req.json();
-  } catch (err) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {
       status: 400, headers: { 'Content-Type': 'application/json' }
     });

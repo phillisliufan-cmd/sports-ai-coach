@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Sports AI Coach</title>
-<script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 /* ─── AUTH WALL ─── */
 #auth-wall {
@@ -12,14 +12,35 @@
   background: #fff;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 24px;
+  padding: 24px;
 }
 #auth-wall.hidden { display: none; }
-#clerk-mount { min-width: 320px; }
+.auth-box {
+  width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; gap: 20px;
+}
 .auth-logo {
   display: flex; align-items: center; gap: 10px;
   font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #0a0a0a;
+  margin-bottom: 8px;
 }
+.auth-title { font-size: 22px; font-weight: 800; color: #0a0a0a; }
+.auth-sub { font-size: 14px; color: #666; margin-top: -12px; }
+.auth-input {
+  width: 100%; padding: 13px 14px; border: 1.5px solid #e0e0e0;
+  border-radius: 10px; font-size: 15px; font-family: inherit;
+  outline: none; box-sizing: border-box;
+  transition: border-color .15s;
+}
+.auth-input:focus { border-color: #0a0a0a; }
+.auth-btn {
+  width: 100%; padding: 14px; background: #0a0a0a; color: #fff;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: opacity .15s;
+}
+.auth-btn:hover { opacity: .85; }
+.auth-btn:disabled { opacity: .4; cursor: not-allowed; }
+.auth-msg { font-size: 13px; color: #666; text-align: center; min-height: 18px; }
 
 :root {
   --accent: #00b341;
@@ -868,19 +889,47 @@ input[type="file"] { display: none; }
 
 <!-- Auth wall -->
 <div id="auth-wall">
-  <div class="auth-logo">
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.6"/>
-      <circle cx="14" cy="14" r="5" stroke="#0a0a0a" stroke-width="1.6"/>
-      <line x1="14" y1="2" x2="14" y2="7" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-      <line x1="14" y1="21" x2="14" y2="26" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-      <line x1="2" y1="14" x2="7" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-      <line x1="21" y1="14" x2="26" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
-      <circle cx="14" cy="14" r="1.8" fill="#00b341"/>
-    </svg>
-    Sports AI Coach
+  <div class="auth-box">
+    <div class="auth-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" stroke="#0a0a0a" stroke-width="1.6"/>
+        <circle cx="14" cy="14" r="5" stroke="#0a0a0a" stroke-width="1.6"/>
+        <line x1="14" y1="2" x2="14" y2="7" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="14" y1="21" x2="14" y2="26" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="2" y1="14" x2="7" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+        <line x1="21" y1="14" x2="26" y2="14" stroke="#0a0a0a" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="14" cy="14" r="1.8" fill="#00b341"/>
+      </svg>
+      Sports AI Coach
+    </div>
+
+    <!-- Step 1: email -->
+    <div id="auth-step-email">
+      <div class="auth-title">Sign in</div>
+      <div class="auth-sub">We'll send a code to your email</div>
+      <br>
+      <input class="auth-input" id="auth-email" type="email" placeholder="your@email.com" autocomplete="email">
+      <br><br>
+      <button class="auth-btn" id="auth-send-btn" onclick="authSendCode()">Send Code</button>
+      <br><br>
+      <div class="auth-msg" id="auth-msg"></div>
+    </div>
+
+    <!-- Step 2: OTP code -->
+    <div id="auth-step-otp" style="display:none">
+      <div class="auth-title">Enter code</div>
+      <div class="auth-sub" id="auth-otp-sub">Check your email</div>
+      <br>
+      <input class="auth-input" id="auth-otp" type="text" placeholder="6-digit code" maxlength="6" inputmode="numeric">
+      <br><br>
+      <button class="auth-btn" id="auth-verify-btn" onclick="authVerifyCode()">Verify</button>
+      <br><br>
+      <div class="auth-msg" id="auth-msg2"></div>
+      <div style="text-align:center;margin-top:8px">
+        <span style="font-size:13px;color:#999;cursor:pointer" onclick="authBack()">← Back</span>
+      </div>
+    </div>
   </div>
-  <div id="clerk-mount"></div>
 </div>
 
 <!-- Hidden radio inputs for CSS-only tab control -->
@@ -1245,40 +1294,63 @@ let tournaments = [];
 let currentSport = 'squash';
 const langSetting = { pre: 'en', btw: 'en', post: 'en' };
 
-// ─── CLERK AUTH ───
-let clerkInstance = null;
-let clerkSession = null;
+// ─── SUPABASE AUTH ───
+const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
+const supabase  = window.supabase.createClient(SUPA_URL, SUPA_ANON);
 
-async function initAuth() {
-  try {
-    const clerk = new window.Clerk('pk_test_dG91Z2gtbXVza294LTQwLmNsZXJrLmFjY291bnRzLmRldiQ');
-    await clerk.load();
-    clerkInstance = clerk;
-
-    const showApp = () => {
-      document.getElementById('auth-wall').classList.add('hidden');
-    };
-
-    if (clerk.user) {
-      showApp();
-    } else {
-      // Mount sign-in form inline inside the auth wall
-      clerk.mountSignIn(document.getElementById('clerk-mount'));
-      clerk.addListener(({ user }) => {
-        if (user) showApp();
-      });
-    }
-  } catch(e) {
-    console.error('Clerk init error:', e);
+window.addEventListener('DOMContentLoaded', async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
     document.getElementById('auth-wall').classList.add('hidden');
+  }
+  supabase.auth.onAuthStateChange((_event, session) => {
+    if (session) document.getElementById('auth-wall').classList.add('hidden');
+  });
+});
+
+async function authSendCode() {
+  const email = document.getElementById('auth-email').value.trim();
+  const btn   = document.getElementById('auth-send-btn');
+  const msg   = document.getElementById('auth-msg');
+  if (!email) { msg.textContent = 'Please enter your email.'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  if (error) {
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Send Code';
+  } else {
+    document.getElementById('auth-step-email').style.display = 'none';
+    document.getElementById('auth-step-otp').style.display = '';
+    document.getElementById('auth-otp-sub').textContent = `Code sent to ${email}`;
   }
 }
 
-window.addEventListener('DOMContentLoaded', initAuth);
+async function authVerifyCode() {
+  const email = document.getElementById('auth-email').value.trim();
+  const token = document.getElementById('auth-otp').value.trim();
+  const btn   = document.getElementById('auth-verify-btn');
+  const msg   = document.getElementById('auth-msg2');
+  if (!token) { msg.textContent = 'Please enter the code.'; return; }
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
+  if (error) {
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Verify';
+  }
+}
+
+function authBack() {
+  document.getElementById('auth-step-otp').style.display = 'none';
+  document.getElementById('auth-step-email').style.display = '';
+  document.getElementById('auth-msg').textContent = '';
+  document.getElementById('auth-send-btn').disabled = false;
+  document.getElementById('auth-send-btn').textContent = 'Send Code';
+}
 
 async function getAuthToken() {
-  if (!clerkInstance || !clerkInstance.session) return null;
-  return await clerkInstance.session.getToken();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session ? session.access_token : null;
 }
 
 function setLang(lang, btn, tab) {
