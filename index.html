@@ -335,11 +335,11 @@ body {
   background: var(--accent-light);
 }
 .tactics-lbl {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  font-size: 13px; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #1a6b2e; margin-bottom: 10px;
 }
 .tactics-box ol { margin: 0; padding-left: 20px; }
-.tactics-box li { margin-bottom: 6px; font-weight: 500; }
+.tactics-box li { margin-bottom: 10px; font-weight: 500; font-size: 16px; line-height: 1.6; }
 
 /* ─── COACH NOTE BOX ─── */
 .coach-box {
@@ -411,23 +411,23 @@ body {
 .out-body strong, .m-ai-text strong { font-weight: 700; }
 .out-body em, .m-ai-text em { font-style: italic; color: var(--muted); }
 
-/* ─── VOICE SECTION ─── */
-.voice-card {
-  background: #fffbf0;
-  border: 1px solid #ffe0a0;
+/* ─── SUMMARY SECTION ─── */
+.summary-card {
+  background: #f5f7ff;
+  border: 1px solid #d0d8f0;
   border-radius: 14px; padding: 16px; margin-top: 16px; display: none;
 }
-.voice-card.on { display: block; }
-.voice-hdr { font-size: 13px; font-weight: 700; color: #b06000; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.summary-card.on { display: block; }
+.summary-hdr { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #3a4a8a; margin-bottom: 12px; }
 .v-item {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 12px 14px; background: #fff;
-  border: 1px solid #ffe0a0;
+  border: 1px solid #d0d8f0;
   border-radius: 10px; margin-bottom: 8px;
 }
 .v-num {
   width: 28px; height: 28px; border-radius: 50%;
-  background: var(--yellow); color: #fff;
+  background: #3a4a8a; color: #fff;
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 13px; flex-shrink: 0;
 }
@@ -1046,8 +1046,8 @@ input[type="file"] { display: none; }
     <div class="out-card" id="oc-btw">
       <div class="out-hdr"><span class="out-ttl">Courtside Coaching</span></div>
       <div class="out-body" id="ob-btw"></div>
-      <div class="voice-card" id="vc">
-        <div class="voice-hdr"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg> Read Aloud to Player</div>
+      <div class="summary-card" id="vc">
+        <div class="summary-hdr">总结 · Summary</div>
         <div id="vitems"></div>
       </div>
     </div>
@@ -2028,7 +2028,7 @@ async function analyze(tab) {
         model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         stream: true,
-        system: SPORTS[currentSport].sys + '\n\nIMPORTANT: For every section, write the English version first, then immediately follow with the Chinese translation (中文翻译). English first, Chinese second.',
+        system: SPORTS[currentSport].sys + '\n\nIMPORTANT: Structure every section in two clearly separated blocks. First write the complete English content for that section. Then on a new line write "---中文---" as a divider, followed by the complete Chinese translation (中文翻译) of that same section. Do NOT mix Chinese words or phrases into the English block. English block must be entirely in English.',
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
       })
     });
@@ -2153,7 +2153,7 @@ function buildVoice(text) {
   vi.innerHTML = '';
 
   if (instrs.length === 0) {
-    vc.className = 'voice-card';
+    vc.className = 'summary-card';
     return;
   }
 
@@ -2174,7 +2174,7 @@ function buildVoice(text) {
     vi.appendChild(row);
   });
 
-  vc.className = 'voice-card on';
+  vc.className = 'summary-card on';
 }
 
 function speak(text) {
@@ -2626,7 +2626,7 @@ function extractAndRenderDiagram(fullText, tab, sport) {
 function postProcess(html) {
   // Wrap ordered lists (the 3 tactics) in a green box
   html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g,
-    '<div class="tactics-box"><div class="tactics-lbl">3条策略</div>$1</div>');
+    '<div class="tactics-box"><div class="tactics-lbl">3 Key Tactics</div>$1</div>');
   // Wrap COACH NOTE paragraph in a yellow box
   html = html.replace(/<p>((?:COACH NOTE|教练提示)[：:])([\s\S]*?)<\/p>/gi,
     '<div class="coach-box"><div class="coach-lbl">教练提示</div><p>$2</p></div>');
