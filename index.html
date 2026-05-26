@@ -1340,6 +1340,7 @@ async function authVerifyCode() {
     const data = await res.json();
     setSession(data);
     const w = document.getElementById('auth-wall'); if (w) w.remove();
+    renderFreeBanners();
   } catch(e) { msg.textContent = e.message; }
 }
 
@@ -1725,16 +1726,20 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
 
 function renderFreeBanners() {
   const session = getSession();
-  if (session) return; // signed in, no banner needed
   const used = getFreeUses();
   const left = FREE_LIMIT - used;
-  const isLast = left === 1;
-  const html = left > 0
-    ? `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1a6b2e;display:flex;align-items:center;gap:8px;">
+
+  let html = '';
+  if (session) {
+    // Signed in — no free trial banner needed
+  } else if (left > 0) {
+    const isLast = left === 1;
+    html = `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1a6b2e;display:flex;align-items:center;gap:8px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <span><strong>Free trial</strong> — 1 complete round included (Pre-Match + Coaching + Post-Match).${isLast ? ' <strong>This is your last free analysis.</strong>' : ''}</span>
-      </div>`
-    : '';
+      </div>`;
+  }
+
   ['pre','btw','post'].forEach(tab => {
     const el = document.getElementById('free-banner-' + tab);
     if (el) el.innerHTML = html;
