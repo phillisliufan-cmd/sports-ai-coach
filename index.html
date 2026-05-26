@@ -973,7 +973,7 @@ window.onerror = function(msg, src, line) {
 // ═══════════════════════════════════════════════
 const frameStore = { pre: [], btw: [], post: [] };
 let voiceLines = [];
-const apiKey = 'managed-by-server';
+const apiKey = '__ANTHROPIC_API_KEY__';
 const HIST_KEY = 'squash_history';
 let history = [];
 let currentModalId = null;
@@ -1800,9 +1800,12 @@ async function analyze(tab) {
       source: { type: 'base64', media_type: 'image/jpeg', data: fr.dataUrl.slice(fr.dataUrl.indexOf(',') + 1) }
     }));
 
-    const res = await fetch('/api/analyze', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
         'content-type': 'application/json'
       },
       body: JSON.stringify({
