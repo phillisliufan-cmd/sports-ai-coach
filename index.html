@@ -481,6 +481,84 @@ input[type="file"] { display: none; }
   .fgrid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); }
 }
 
+/* ─── SPORT HOME ─── */
+.sport-home {
+  max-width: 600px; margin: 0 auto;
+  padding: 32px 20px 40px;
+}
+.sport-home-hero { margin-bottom: 32px; }
+.sport-home-hero h2 {
+  font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em;
+  color: var(--text); margin-bottom: 6px;
+}
+.sport-home-hero p { font-size: 0.9rem; color: var(--muted); }
+
+.sport-section { margin-bottom: 28px; }
+.sport-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 12px;
+}
+.sport-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.sport-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all .15s;
+  position: relative;
+}
+.sport-card:hover {
+  border-color: var(--text);
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  transform: translateY(-1px);
+}
+.sport-card.coming-soon {
+  opacity: .45; cursor: default;
+}
+.sport-card.coming-soon:hover {
+  border-color: var(--border); box-shadow: none; transform: none;
+}
+.sport-card-ico {
+  font-size: 1.5rem; line-height: 1; flex-shrink: 0;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border-radius: 10px;
+}
+.sport-card-info { flex: 1; min-width: 0; }
+.sport-card-name {
+  font-size: 14px; font-weight: 600; color: var(--text);
+  margin-bottom: 2px;
+}
+.sport-card-desc { font-size: 11.5px; color: var(--muted); }
+.sport-card-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--muted);
+  background: var(--surface3); padding: 2px 7px;
+  border-radius: 20px; flex-shrink: 0;
+}
+
+/* ─── ANALYSIS VIEW ─── */
+.analysis-view { display: none; }
+.analysis-view.on { display: block; }
+
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none;
+  color: var(--muted); font-size: 13px; font-weight: 500;
+  cursor: pointer; padding: 0; font-family: inherit;
+  transition: color .15s;
+}
+.back-btn:hover { color: var(--text); }
+
 /* ─── LAYOUT (single column, centered) ─── */
 .app-body { display: block; }
 .wrap { max-width: 600px; margin: 0 auto; }
@@ -773,15 +851,118 @@ input[type="file"] { display: none; }
     </div>
     <h1>Sports AI <em>Coach</em></h1>
   </div>
+  <button class="back-btn" id="back-btn" onclick="goHome()" style="display:none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Change Sport
+  </button>
 </div>
 
-<!-- ═══ SPORT SELECTOR ═══ -->
-<div class="sport-bar" id="sport-bar">
-  <button class="sport-btn active" data-sport="squash">Squash</button>
-  <button class="sport-btn" data-sport="tennis">Tennis</button>
-  <button class="sport-btn" data-sport="badminton">Badminton</button>
-  <button class="sport-btn" data-sport="tabletennis">Table Tennis</button>
+<!-- ═══ SPORT HOME ═══ -->
+<div id="sport-home">
+  <div class="sport-home">
+    <div class="sport-home-hero">
+      <h2>Choose your sport</h2>
+      <p>AI-powered video analysis and tactics</p>
+    </div>
+
+    <div class="sport-section">
+      <div class="sport-section-label">Racket Sports</div>
+      <div class="sport-grid">
+        <button class="sport-card" onclick="selectSport('squash')">
+          <div class="sport-card-ico">⚫</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Squash</div>
+            <div class="sport-card-desc">Court positioning & tactics</div>
+          </div>
+        </button>
+        <button class="sport-card" onclick="selectSport('tennis')">
+          <div class="sport-card-ico">🎾</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Tennis</div>
+            <div class="sport-card-desc">Serve, rally & net play</div>
+          </div>
+        </button>
+        <button class="sport-card" onclick="selectSport('badminton')">
+          <div class="sport-card-ico">🏸</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Badminton</div>
+            <div class="sport-card-desc">Attack & defense patterns</div>
+          </div>
+        </button>
+        <button class="sport-card" onclick="selectSport('tabletennis')">
+          <div class="sport-card-ico">🏓</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Table Tennis</div>
+            <div class="sport-card-desc">Spin, speed & placement</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="sport-section">
+      <div class="sport-section-label">Team Sports</div>
+      <div class="sport-grid">
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">🏀</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Basketball</div>
+            <div class="sport-card-desc">Plays & zone defense</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">⚽</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Soccer</div>
+            <div class="sport-card-desc">Formation & pressing</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">🏐</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Volleyball</div>
+            <div class="sport-card-desc">Rotation & attack sets</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">🏒</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Ice Hockey</div>
+            <div class="sport-card-desc">Zone entries & lines</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sport-section">
+      <div class="sport-section-label">Combat Sports</div>
+      <div class="sport-grid">
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">🥊</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Boxing</div>
+            <div class="sport-card-desc">Footwork & combinations</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+        <button class="sport-card coming-soon">
+          <div class="sport-card-ico">🤺</div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Fencing</div>
+            <div class="sport-card-desc">Tempo & blade tactics</div>
+          </div>
+          <span class="sport-card-badge">Soon</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- ═══ ANALYSIS VIEW ═══ -->
+<div id="analysis-view" class="analysis-view">
 
 <!-- ═══ TABS ═══ -->
 <div class="tabs">
@@ -913,6 +1094,7 @@ input[type="file"] { display: none; }
   </div>
 
 </div><!-- /app-body -->
+</div><!-- /analysis-view -->
 
 <!-- MOBILE HISTORY TOGGLE -->
 <div class="mob-hist" id="mob-hist">
@@ -1349,13 +1531,8 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
     bind('tourn-name-inp',   'keydown', function(e) { if (e.key === 'Enter') confirmNewTournament(); });
     bind('mob-hist-hd',      'click',   toggleMobHist);
 
-    document.querySelectorAll('.sport-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        currentSport = this.dataset.sport;
-        document.querySelectorAll('.sport-btn').forEach(function(b) { b.classList.remove('active'); });
-        this.classList.add('active');
-      });
-    });
+    // Sport home is shown by default, analysis view hidden
+    document.getElementById('analysis-view').classList.remove('on');
 
     loadHistory();
     loadTournaments();
@@ -1368,6 +1545,23 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
     document.body.appendChild(d);
   }
 })();
+
+function selectSport(sport) {
+  currentSport = sport;
+  document.getElementById('sport-home').style.display = 'none';
+  document.getElementById('analysis-view').classList.add('on');
+  document.getElementById('back-btn').style.display = 'flex';
+  // Update sport bar active state if it exists
+  document.querySelectorAll('.sport-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.sport === sport);
+  });
+}
+
+function goHome() {
+  document.getElementById('sport-home').style.display = '';
+  document.getElementById('analysis-view').classList.remove('on');
+  document.getElementById('back-btn').style.display = 'none';
+}
 
 function syncPostFromCoaching() {
   // Build score string from G1-G5 inputs
