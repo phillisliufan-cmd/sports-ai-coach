@@ -1859,31 +1859,22 @@ function buildPrompt(tab) {
   if (tab === 'pre') {
     const desc  = document.getElementById('opp-name').value.trim();
     const notes = document.getElementById('pre-notes').value.trim();
-    return `I have uploaded ${active} video frames from a ${sp.name} match. I need to scout my OPPONENT before playing them.
-${desc ? '\nThe opponent can be identified by: ' + desc : '\nFocus on one player and treat them as the opponent.'}
-${notes ? '\nWhat I have already noticed: ' + notes : ''}
+    return `I have uploaded ${active} video frames from a ${sp.name} match. Scout my OPPONENT so I can beat them.
+${desc ? 'Opponent: ' + desc : 'Focus on one player as the opponent.'}
+${notes ? 'My observations: ' + notes : ''}
 
-Analyze the OPPONENT ONLY. Ignore the other player entirely. Focus exclusively on how I can BEAT this opponent.
+Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
 
-**1. WEAKNESSES TO EXPLOIT**
-What are their technical and tactical vulnerabilities? Poor shots, bad footwork, predictable patterns?
+**1. KEY WEAKNESSES**
+Top 3 technical or tactical weaknesses. One sentence each.
 
-**2. PHYSICAL & MOVEMENT GAPS**
-Where are they slow? Do they struggle with pace, front court, width? What tires them out?
+**2. HOW TO EXPLOIT THEM**
+Exactly 3 tactical patterns or shot combinations that target those weaknesses.
 
-**3. THEIR BACKHAND**
-Is it weak? What specifically goes wrong? How do I force them onto it?
+**3. GAME PLAN**
+3 concrete instructions: what to do, where to move them, when to attack.
 
-**4. THEIR FOREHAND**
-Any limitations? Positions where they make errors or play weak shots?
-
-**5. TACTICAL PATTERNS TO TARGET**
-What sequences beat them? Court zones and shot combinations that put them under pressure?
-
-**6. MY GAME PLAN — HOW TO WIN**
-Specific step-by-step strategy: what shots to play, where to move them, what pace to use, when to attack. Make this concrete and actionable.
-
-Be direct and specific. I want to win, so focus only on how to exploit this opponent.`;
+Keep the entire response under 300 words. No padding, no filler. Every sentence must be actionable.`;
   }
 
   if (tab === 'btw') {
@@ -2026,7 +2017,7 @@ async function analyze(tab) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
+        max_tokens: tab === 'pre' ? 1200 : 4096,
         stream: true,
         system: SPORTS[currentSport].sys + '\n\nIMPORTANT: Structure every section in two clearly separated blocks. First write the complete English content for that section. Then on a new line write "---中文---" as a divider, followed by the complete Chinese translation (中文翻译) of that same section. Do NOT mix Chinese words or phrases into the English block. English block must be entirely in English.',
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
