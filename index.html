@@ -1059,6 +1059,7 @@ input[type="file"] { display: none; }
     <div class="ig"><label>How to identify the opponent in the video</label><input type="text" id="opp-name" placeholder="e.g. red shirt, tall, plays on the left side"></div>
     <div class="ig"><label>Anything you've noticed (optional)</label><textarea id="pre-notes" placeholder="e.g. seems to favour backhand, slow on the front court..."></textarea></div>
 
+    <div id="free-banner-pre"></div>
     <div class="lang-bar" id="lang-bar-pre">
       <button class="lang-btn active" onclick="setLang('en',this,'pre')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'pre')">中文</button>
@@ -1099,6 +1100,7 @@ input[type="file"] { display: none; }
     <div class="ig"><label>Identify the opponent in the video</label><input type="text" id="p-style" placeholder="e.g. blue shirt, shorter player on the right side"></div>
     <div class="ig"><label>My errors this game (optional)</label><textarea id="btw-my-errors" placeholder="e.g. hitting the tin on backhand, slow to the front corners…"></textarea></div>
 
+    <div id="free-banner-btw"></div>
     <div class="lang-bar" id="lang-bar-btw">
       <button class="lang-btn active" onclick="setLang('en',this,'btw')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'btw')">中文</button>
@@ -1131,6 +1133,7 @@ input[type="file"] { display: none; }
     <div class="ig"><label>Identify the opponent in the video</label><input type="text" id="pm-player" placeholder="e.g. white shirt, taller player"></div>
     <div class="ig"><label>Match Notes</label><textarea id="pm-notes" placeholder="e.g. lost the 2nd game badly, couldn't cope with their drops..."></textarea></div>
 
+    <div id="free-banner-post"></div>
     <div class="lang-bar" id="lang-bar-post">
       <button class="lang-btn active" onclick="setLang('en',this,'post')">English</button>
       <button class="lang-btn" onclick="setLang('zh',this,'post')">中文</button>
@@ -1254,7 +1257,7 @@ const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
 const SUPA_SESSION_KEY = 'sac_session';
 
-const FREE_LIMIT = 2;
+const FREE_LIMIT = 3; // 1 free round = pre + coaching + post
 const FREE_KEY   = 'sac_free_uses';
 
 function getFreeUses() { return parseInt(localStorage.getItem(FREE_KEY) || '0'); }
@@ -1723,6 +1726,24 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
   }
 })();
 
+function renderFreeBanners() {
+  const session = getSession();
+  if (session) return; // signed in, no banner needed
+  const used = getFreeUses();
+  const left = FREE_LIMIT - used;
+  const isLast = left === 1;
+  const html = left > 0
+    ? `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1a6b2e;display:flex;align-items:center;gap:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><strong>Free trial</strong> — 1 complete round included (Pre-Match + Coaching + Post-Match).${isLast ? ' <strong>This is your last free analysis.</strong>' : ''}</span>
+      </div>`
+    : '';
+  ['pre','btw','post'].forEach(tab => {
+    const el = document.getElementById('free-banner-' + tab);
+    if (el) el.innerHTML = html;
+  });
+}
+
 function selectSport(sport) {
   currentSport = sport;
   document.getElementById('sport-home').style.display = 'none';
@@ -1733,6 +1754,7 @@ function selectSport(sport) {
   document.querySelectorAll('.sport-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.sport === sport);
   });
+  renderFreeBanners();
 }
 
 function goHome() {
@@ -2260,7 +2282,7 @@ async function analyze(tab) {
     toast('Analysis complete ✓', 'ok');
     addHistoryEntry(tab, fullText);
     // Count free use if not signed in
-    if (!session) incFreeUses();
+    if (!session) { incFreeUses(); renderFreeBanners(); }
 
   } catch (err) {
     console.error(err);
