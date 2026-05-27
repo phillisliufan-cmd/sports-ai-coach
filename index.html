@@ -1365,15 +1365,8 @@ function setSubscribed() { localStorage.setItem(SUB_KEY, '1'); }
     headers: { 'Authorization': `Bearer ${accessToken}`, 'apikey': SUPA_ANON }
   }).then(r => r.json()).then(user => {
     setSession({ access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, user });
-    history.replaceState(null, '', window.location.pathname);
-    updateAcctBtn();
-    renderFreeBanners();
-    // Signed in = free trial over, must subscribe
-    if (!isSubscribed()) {
-      showSubscribeWall();
-    } else {
-      toast('Signed in successfully', 'ok');
-    }
+    // Reload cleanly — init code will detect session and show subscribe wall
+    window.location.replace(window.location.pathname);
   }).catch(() => {});
 })();
 
