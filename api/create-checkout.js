@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' };
 
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').trim();
 const SITE_URL   = 'https://sports-ai-coach.vercel.app';
 
 export default async function handler(req) {
