@@ -1,4 +1,4 @@
-const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').trim();
+const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').replace(/\s+/g, '');
 const SITE_URL   = 'https://sports-ai-coach.vercel.app';
 
 module.exports = async function handler(req, res) {
