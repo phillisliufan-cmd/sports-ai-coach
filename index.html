@@ -919,6 +919,9 @@ input[type="file"] { display: none; }
       </button>
       <div id="acct-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:180px;z-index:200;overflow:hidden;">
         <div id="acct-menu-email" style="padding:10px 14px;font-size:12px;color:#999;border-bottom:1px solid #f0f0f0;word-break:break-all;"></div>
+        <div id="acct-menu-sub" style="display:none;border-bottom:1px solid #f0f0f0;">
+          <button onclick="startCheckout()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#00b341;cursor:pointer;font-family:inherit;font-weight:600;">Subscribe — $20/month</button>
+        </div>
         <button onclick="signOut()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#d00;cursor:pointer;font-family:inherit;font-weight:600;">Sign out</button>
       </div>
     </div>
@@ -1333,6 +1336,22 @@ async function authSendCode() {
   } catch(e) { msg.textContent = e.message; }
 }
 
+// ── Subscription helpers ──────────────────────────────────────
+const SUB_KEY = 'sac_subscribed';
+function isSubscribed() { return localStorage.getItem(SUB_KEY) === '1'; }
+function setSubscribed() { localStorage.setItem(SUB_KEY, '1'); }
+
+// Handle ?sub=ok redirect from Stripe
+(function handleStripeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('sub') === 'ok') {
+    setSubscribed();
+    history.replaceState(null, '', window.location.pathname);
+    // Toast shown after DOM ready (below)
+    window._showSubSuccess = true;
+  }
+})();
+
 // Parse Supabase magic link tokens from URL hash on page load
 (function handleMagicLink() {
   const hash = window.location.hash;
@@ -1342,18 +1361,73 @@ async function authSendCode() {
   const refreshToken = params.get('refresh_token');
   const expiresIn    = params.get('expires_in');
   if (!accessToken) return;
-  // Fetch user info and store session
   fetch(`${SUPA_URL}/auth/v1/user`, {
     headers: { 'Authorization': `Bearer ${accessToken}`, 'apikey': SUPA_ANON }
   }).then(r => r.json()).then(user => {
     setSession({ access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, user });
-    // Clean up URL
     history.replaceState(null, '', window.location.pathname);
     updateAcctBtn();
     renderFreeBanners();
-    toast('Signed in successfully', 'ok');
+    // If they've used all free analyses, prompt to subscribe
+    if (getFreeUses() >= FREE_LIMIT && !isSubscribed()) {
+      showSubscribeWall();
+    } else {
+      toast('Signed in successfully', 'ok');
+    }
   }).catch(() => {});
 })();
+
+function showSubscribeWall() {
+  if (document.getElementById('sub-wall')) return;
+  const wall = document.createElement('div');
+  wall.id = 'sub-wall';
+  wall.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;';
+  wall.innerHTML = `
+    <div style="width:100%;max-width:380px;display:flex;flex-direction:column;gap:20px;">
+      <div style="display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:#0a0a0a;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="8" stroke="#0f172a" stroke-width="1.5"/><line x1="13" y1="2" x2="13" y2="6.5" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="19.5" x2="13" y2="24" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="13" x2="6.5" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="19.5" y1="13" x2="24" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="13" r="2" fill="#00b341"/></svg>
+        Sports AI Coach
+      </div>
+      <div>
+        <div style="font-size:22px;font-weight:800;color:#0a0a0a;margin-bottom:6px;">You're signed in!</div>
+        <div style="font-size:15px;color:#555;">Subscribe to unlock unlimited AI analysis.</div>
+      </div>
+      <div style="background:#f8f8f8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:28px;font-weight:800;color:#0a0a0a;">$20 <span style="font-size:16px;font-weight:500;color:#666;">/ month</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#444;">
+          <div>✓ Unlimited Pre-Match, Coaching & Post-Match analysis</div>
+          <div>✓ All racket sports</div>
+          <div>✓ Cancel anytime</div>
+        </div>
+      </div>
+      <button onclick="startCheckout()" id="sub-btn" style="width:100%;padding:16px;background:#0a0a0a;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">
+        Subscribe Now
+      </button>
+      <div id="sub-msg" style="font-size:13px;color:#999;text-align:center;"></div>
+    </div>`;
+  document.body.appendChild(wall);
+}
+
+async function startCheckout() {
+  const session = getSession();
+  if (!session) return;
+  const btn = document.getElementById('sub-btn');
+  const msg = document.getElementById('sub-msg');
+  if (btn) { btn.textContent = 'Redirecting…'; btn.disabled = true; }
+  try {
+    const res = await fetch('/api/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: session.user?.email, userId: session.user?.id }),
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; }
+    else { if (msg) msg.textContent = data.error || 'Error, please try again.'; }
+  } catch(e) {
+    if (msg) msg.textContent = e.message;
+    if (btn) { btn.textContent = 'Subscribe Now'; btn.disabled = false; }
+  }
+}
 
 function updateAcctBtn() {
   const s = getSession();
@@ -1364,6 +1438,8 @@ function updateAcctBtn() {
     const short = s.user.email.split('@')[0];
     document.getElementById('acct-email-lbl').textContent = short;
     document.getElementById('acct-menu-email').textContent = s.user.email;
+    const subItem = document.getElementById('acct-menu-sub');
+    if (subItem) subItem.style.display = isSubscribed() ? 'none' : '';
   } else {
     btn.style.display = 'none';
   }
@@ -1762,6 +1838,7 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
     loadTournaments();
     renderSidebar();
     updateAcctBtn();
+    if (window._showSubSuccess) toast('Subscribed! Welcome to Sports AI Coach.', 'ok');
   } catch(e) {
     // Show init errors visibly on screen
     var d = document.createElement('div');
@@ -2234,14 +2311,14 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
 
-  // Check auth / free tier
+  // Check auth / free tier / subscription
   const session = getSession();
   if (!session) {
     const uses = getFreeUses();
-    if (uses >= FREE_LIMIT) {
-      showAuthWall();
-      return;
-    }
+    if (uses >= FREE_LIMIT) { showAuthWall(); return; }
+  } else if (!isSubscribed()) {
+    showSubscribeWall();
+    return;
   }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
