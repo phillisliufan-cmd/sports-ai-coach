@@ -1420,7 +1420,9 @@ async function startCheckout() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: session.user?.email, userId: session.user?.id }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); } catch { if (msg) msg.textContent = 'Server error — check Vercel env vars'; return; }
     if (data.url) { window.location.href = data.url; }
     else { if (msg) msg.textContent = data.error || 'Error, please try again.'; }
   } catch(e) {
@@ -1839,6 +1841,8 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
     renderSidebar();
     updateAcctBtn();
     if (window._showSubSuccess) toast('Subscribed! Welcome to Sports AI Coach.', 'ok');
+    // If signed in but not subscribed, show subscribe wall immediately
+    if (getSession() && !isSubscribed()) showSubscribeWall();
   } catch(e) {
     // Show init errors visibly on screen
     var d = document.createElement('div');
