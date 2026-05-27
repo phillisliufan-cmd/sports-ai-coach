@@ -1368,8 +1368,8 @@ function setSubscribed() { localStorage.setItem(SUB_KEY, '1'); }
     history.replaceState(null, '', window.location.pathname);
     updateAcctBtn();
     renderFreeBanners();
-    // If they've used all free analyses, prompt to subscribe
-    if (getFreeUses() >= FREE_LIMIT && !isSubscribed()) {
+    // Signed in = free trial over, must subscribe
+    if (!isSubscribed()) {
       showSubscribeWall();
     } else {
       toast('Signed in successfully', 'ok');
