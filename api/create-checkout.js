@@ -1,20 +1,18 @@
-export const config = { runtime: 'edge' };
-
 const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').trim();
 const SITE_URL   = 'https://sports-ai-coach.vercel.app';
 
-export default async function handler(req) {
-  if (req.method !== 'POST')
-    return new Response('Method not allowed', { status: 405 });
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  let email, userId;
-  try { ({ email, userId } = await req.json()); }
-  catch { return new Response(JSON.stringify({ error: 'Invalid body' }), { status: 400 }); }
+  if (!STRIPE_KEY) {
+    return res.status(500).json({ error: 'Stripe not configured' });
+  }
 
-  if (!STRIPE_KEY)
-    return new Response(JSON.stringify({ error: 'Stripe not configured' }), { status: 500 });
+  const { email, userId } = req.body || {};
 
-  const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+  const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${STRIPE_KEY}`,
@@ -22,7 +20,7 @@ export default async function handler(req) {
     },
     body: new URLSearchParams({
       mode: 'subscription',
-      customer_email: email,
+      customer_email: email || '',
       'line_items[0][price_data][currency]': 'usd',
       'line_items[0][price_data][product_data][name]': 'Sports AI Coach',
       'line_items[0][price_data][product_data][description]': 'Unlimited AI video analysis for your matches',
@@ -35,13 +33,10 @@ export default async function handler(req) {
     }).toString(),
   });
 
-  const data = await res.json();
-  if (!res.ok)
-    return new Response(JSON.stringify({ error: data.error?.message || 'Stripe error' }), {
-      status: 400, headers: { 'Content-Type': 'application/json' }
-    });
+  const data = await stripeRes.json();
+  if (!stripeRes.ok) {
+    return res.status(400).json({ error: data.error?.message || 'Stripe error' });
+  }
 
-  return new Response(JSON.stringify({ url: data.url }), {
-    headers: { 'Content-Type': 'application/json' }
-  });
+  return res.status(200).json({ url: data.url });
 }
