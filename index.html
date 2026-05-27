@@ -1346,7 +1346,7 @@ function setSubscribed() { localStorage.setItem(SUB_KEY, '1'); }
   const params = new URLSearchParams(window.location.search);
   if (params.get('sub') === 'ok') {
     setSubscribed();
-    history.replaceState(null, '', window.location.pathname);
+    window.history.replaceState(null, '', window.location.pathname);
     // Toast shown after DOM ready (below)
     window._showSubSuccess = true;
   }
