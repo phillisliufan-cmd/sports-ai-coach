@@ -1,8 +1,9 @@
 export const config = { runtime: 'edge' };
 
-const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
-const SUPA_ANON = process.env.SUPABASE_ANON_KEY;
-const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+const SUPA_URL         = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
+const SUPA_ANON        = process.env.SUPABASE_ANON_KEY;
+const SUPA_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ANTHROPIC_KEY    = process.env.ANTHROPIC_API_KEY;
 
 async function verifySupabaseToken(token) {
   const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
@@ -12,22 +13,46 @@ async function verifySupabaseToken(token) {
   return await res.json();
 }
 
+async function hasActiveSubscription(userId, email) {
+  // Check by user_id first, then by email as fallback
+  const res = await fetch(
+    `${SUPA_URL}/rest/v1/subscriptions?or=(user_id.eq.${encodeURIComponent(userId)},email.eq.${encodeURIComponent(email)})&status=eq.active&limit=1`,
+    {
+      headers: {
+        'apikey': SUPA_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPA_SERVICE_KEY}`,
+      }
+    }
+  );
+  if (!res.ok) return false;
+  const data = await res.json();
+  return Array.isArray(data) && data.length > 0;
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
-  // If a token is provided, verify it. Free-tier users may call without a token.
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
+
   if (token) {
+    // Authenticated user — must have active subscription
     const user = await verifySupabaseToken(token);
     if (!user || !user.id) {
       return new Response(JSON.stringify({ error: 'Invalid session' }), {
         status: 401, headers: { 'Content-Type': 'application/json' }
       });
     }
+    const subscribed = await hasActiveSubscription(user.id, user.email);
+    if (!subscribed) {
+      return new Response(JSON.stringify({ error: 'No active subscription' }), {
+        status: 402, headers: { 'Content-Type': 'application/json' }
+      });
+    }
   }
+  // No token = free tier (client enforces 3-use limit)
 
   if (!ANTHROPIC_KEY) {
     return new Response(JSON.stringify({ error: 'API key not configured' }), {
