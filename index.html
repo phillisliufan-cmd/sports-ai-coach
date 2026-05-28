@@ -1284,7 +1284,7 @@ const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
 const SUPA_SESSION_KEY = 'sac_session';
 
-const FREE_LIMIT = 3; // 1 free round = pre + coaching + post
+const FREE_LIMIT = 1; // 1 anonymous free use, then require email for 2 more
 const FREE_KEY   = 'sac_free_uses';
 
 function getFreeUses() { return parseInt(localStorage.getItem(FREE_KEY) || '0'); }
@@ -1335,7 +1335,8 @@ async function getAuthToken() {
 
 function showAuthWall(mode) {
   if (document.getElementById('auth-wall')) return;
-  const signinOnly = mode === 'signin';
+  const signinOnly  = mode === 'signin';
+  const freeLimit   = mode === 'free-limit';
   const wall = document.createElement('div');
   wall.id = 'auth-wall';
   wall.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;';
@@ -1345,12 +1346,12 @@ function showAuthWall(mode) {
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="8" stroke="#0f172a" stroke-width="1.5"/><line x1="13" y1="2" x2="13" y2="6.5" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="19.5" x2="13" y2="24" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="13" x2="6.5" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="19.5" y1="13" x2="24" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="13" r="2" fill="#00b341"/></svg>
         Sports AI Coach
       </div>
-      ${signinOnly ? '' : `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a6b2e;font-weight:600;">
-        You've used your 3 free analyses. Subscribe to continue.
-      </div>`}
+      ${freeLimit ? `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a6b2e;font-weight:600;">
+        Get 2 more free analyses — enter your email to continue.
+      </div>` : ''}
       <div id="aw-step1">
-        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">${signinOnly ? 'Sign in' : 'Create account &amp; subscribe'}</div>
-        <div style="font-size:14px;color:#666;margin-bottom:16px;">${signinOnly ? "Enter your email and we'll send a login link" : "$20/month — enter your email and we'll send a login link"}</div>
+        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">${signinOnly ? 'Sign in' : freeLimit ? 'Get 2 more free analyses' : 'Create account &amp; subscribe'}</div>
+        <div style="font-size:14px;color:#666;margin-bottom:16px;">${signinOnly ? "Enter your email and we'll send a login link" : freeLimit ? "Free — no payment needed. Enter your email and we'll send a login link." : "$20/month — enter your email and we'll send a login link"}</div>
         <input id="aw-email" class="auth-input" type="email" placeholder="your@email.com" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
         <button onclick="authSendCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Send Login Link</button>
         <div id="aw-msg" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
@@ -2360,8 +2361,6 @@ Analyze video frames noting footwork patterns, blade preparation, attack timing,
     renderSidebar();
     updateAcctBtn();
     if (window._showSubSuccess) toast('Subscribed! Welcome to Sports AI Coach.', 'ok');
-    // If signed in but not subscribed, show subscribe wall immediately
-    if (getSession() && !isSubscribed()) showSubscribeWall();
   } catch(e) {
     // Show init errors visibly on screen
     var d = document.createElement('div');
@@ -2882,14 +2881,11 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 // ═══════════════════════════════════════════════
 async function analyze(tab) {
 
-  // Check auth / free tier / subscription
+  // Check auth / free tier
   const session = getSession();
   if (!session) {
     const uses = getFreeUses();
-    if (uses >= FREE_LIMIT) { showAuthWall(); return; }
-  } else if (!isSubscribed()) {
-    showSubscribeWall();
-    return;
+    if (uses >= FREE_LIMIT) { showAuthWall('free-limit'); return; }
   }
 
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
@@ -2943,10 +2939,16 @@ async function analyze(tab) {
     let authToken = await getAuthToken();
     let res = await doFetch(authToken);
 
-    // If token expired, try refresh once and retry
+    // Handle auth errors
     if (res.status === 401 || res.status === 402) {
       const errData = await res.json().catch(() => ({}));
+      if (res.status === 402) {
+        // Free uses exhausted — show subscribe wall
+        showSubscribeWall();
+        return;
+      }
       if (res.status === 401 && errData.error === 'Invalid session') {
+        // Try refresh once
         const s = getSession();
         if (s && s.refresh_token) {
           const refRes = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
@@ -2968,8 +2970,6 @@ async function analyze(tab) {
           clearSession(); updateAcctBtn();
           throw new Error('Session expired — please sign in again');
         }
-      } else {
-        throw new Error(errData.error || 'API error ' + res.status);
       }
     }
 
