@@ -2882,7 +2882,7 @@ Frame timestamps: ${frameIndexPre}
 ${desc ? 'Opponent: ' + desc : 'Focus on one player as the opponent.'}
 ${notes ? 'My observations: ' + notes : ''}
 
-Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. No emoji.
 
 When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
 
@@ -3711,7 +3711,7 @@ I am giving you ${frames.length} frames from a live match. Focus ONLY on:
 2. What is ${oppName} doing tactically that is causing problems for ${myName}?
 3. Exactly what should ${myName} do differently to counter ${oppName}'s tactics?
 
-Skip non-play frames (breaks, ball pickup). Be direct and specific — address ${myName} by name. 3-5 sentences max.
+Skip non-play frames (breaks, ball pickup). No emoji. Be direct and specific — address ${myName} by name. 3-5 sentences max.
 
 ${langInstr}`;
 
@@ -3763,7 +3763,7 @@ ${langInstr}`;
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
             fullText += ev.delta.text;
-            body.innerHTML = renderMarkdown(fullText);
+            body.innerHTML = renderMarkdown(stripEmoji(fullText));
           }
         } catch {}
       }
