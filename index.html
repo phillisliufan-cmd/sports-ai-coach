@@ -2882,6 +2882,8 @@ Frame timestamps: ${frameIndexPre}
 ${desc ? 'Opponent: ' + desc : 'Focus on one player as the opponent.'}
 ${notes ? 'My observations: ' + notes : ''}
 
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
+
 When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
 
 **1. KEY WEAKNESSES**
@@ -2924,6 +2926,8 @@ Frame timestamps: ${frameIndex}
 Match scores so far: ${scoreSummary}
 ${desc ? 'The opponent can be identified by: ' + desc : ''}
 ${myErrors ? 'Errors I felt I was making: ' + myErrors : ''}
+
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
 Analyze the OPPONENT in these frames. Give EXACTLY 3 tactical instructions for Game ${nextGame}.
@@ -2971,6 +2975,7 @@ ${desc2 ? 'The opponent can be identified by: ' + desc2 : ''}
 ${notes ? 'My observations: ' + notes : ''}
 
 Do NOT use any emoji or special symbols. Plain text only.
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
 
 Analyze the OPPONENT ONLY in these frames. Focus on what I can learn to beat them.
@@ -3676,6 +3681,7 @@ I am giving you ${frames.length} frames captured throughout the match so far, in
 - Tactical adjustments: what ${myName} should do differently
 - Specific tactical advice to exploit ${oppName}'s tendencies or weaknesses
 
+Note: some frames may show non-play moments (picking up balls, breaks, rest) — skip those and only analyze frames where actual play is happening.
 Be direct and specific. Address ${myName} by name. No score commentary.
 
 ${langInstr}`;
