@@ -1297,7 +1297,39 @@ function clearSession() { localStorage.removeItem(SUPA_SESSION_KEY); }
 
 async function getAuthToken() {
   const s = getSession();
-  return s ? s.access_token : null;
+  if (!s) return null;
+
+  // Check if token is expired or will expire in next 5 minutes
+  const expiresAt = s.expires_at || (s.expires_in ? Date.now()/1000 + parseInt(s.expires_in) : 0);
+  const expired = expiresAt && (expiresAt - Date.now()/1000) < 300;
+
+  if (expired && s.refresh_token) {
+    try {
+      const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+        body: JSON.stringify({ refresh_token: s.refresh_token })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const newSession = {
+          access_token:  data.access_token,
+          refresh_token: data.refresh_token,
+          expires_in:    data.expires_in,
+          expires_at:    Date.now()/1000 + data.expires_in,
+          user:          data.user || s.user
+        };
+        setSession(newSession);
+        return newSession.access_token;
+      }
+    } catch(e) { /* fall through */ }
+    // Refresh failed — clear session so user sees sign-in
+    clearSession();
+    updateAcctBtn();
+    return null;
+  }
+
+  return s.access_token;
 }
 
 function showAuthWall(mode) {
@@ -1378,7 +1410,7 @@ function setSubscribed() { localStorage.setItem(SUB_KEY, '1'); }
   fetch(`${SUPA_URL}/auth/v1/user`, {
     headers: { 'Authorization': `Bearer ${accessToken}`, 'apikey': SUPA_ANON }
   }).then(r => r.json()).then(user => {
-    setSession({ access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, user });
+    setSession({ access_token: accessToken, refresh_token: refreshToken, expires_in: expiresIn, expires_at: Date.now()/1000 + parseInt(expiresIn||3600), user });
     // Reload cleanly — init code will detect session and show subscribe wall
     window.location.replace(window.location.pathname);
   }).catch(() => {});
