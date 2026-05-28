@@ -29,6 +29,7 @@ module.exports = async function handler(req, res) {
         'line_items[0][price_data][unit_amount]': '2000',
         'line_items[0][quantity]': '1',
         'metadata[user_id]': userId || '',
+        allow_promotion_codes: 'true',
         success_url: `${SITE_URL}?sub=ok&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${SITE_URL}`,
       }).toString(),
