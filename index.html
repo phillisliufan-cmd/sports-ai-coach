@@ -912,6 +912,7 @@ input[type="file"] { display: none; }
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Change Sport
     </button>
+    <button id="signin-btn" onclick="showAuthWall()" style="display:none;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">Sign in</button>
     <div id="acct-btn" style="display:none;position:relative;">
       <button onclick="toggleAcctMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 12px 5px 8px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1428,9 +1429,11 @@ async function startCheckout() {
 function updateAcctBtn() {
   const s = getSession();
   const btn = document.getElementById('acct-btn');
+  const signinBtn = document.getElementById('signin-btn');
   if (!btn) return;
   if (s && s.user && s.user.email) {
     btn.style.display = '';
+    if (signinBtn) signinBtn.style.display = 'none';
     const short = s.user.email.split('@')[0];
     document.getElementById('acct-email-lbl').textContent = short;
     document.getElementById('acct-menu-email').textContent = s.user.email;
@@ -1438,6 +1441,7 @@ function updateAcctBtn() {
     if (subItem) subItem.style.display = isSubscribed() ? 'none' : '';
   } else {
     btn.style.display = 'none';
+    if (signinBtn) signinBtn.style.display = '';
   }
 }
 
