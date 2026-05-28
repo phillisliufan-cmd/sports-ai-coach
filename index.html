@@ -1250,28 +1250,22 @@ input[type="file"] { display: none; }
           <option value="de">Deutsch</option>
         </select>
       </div>
-      <div class="ig">
-        <label>Capture every</label>
-        <select id="live-interval" class="lang-select">
-          <option value="5">5 seconds</option>
-          <option value="10" selected>10 seconds</option>
-          <option value="20">20 seconds</option>
-          <option value="30">30 seconds</option>
-        </select>
-      </div>
       <button class="btn-go" onclick="startLiveCamera()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="7"/></svg>
-        <span class="btn-lbl">Start Live Analysis</span>
+        <span class="btn-lbl">Start Camera</span>
       </button>
     </div>
     <div id="live-active-ui" style="display:none;">
       <video id="live-video" autoplay playsinline muted></video>
       <canvas id="live-canvas" style="display:none;"></canvas>
-      <div class="live-status-bar">
-        <div class="live-dot"></div>
-        <span id="live-status-txt">Analyzing...</span>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button id="live-analyze-btn" onclick="captureAndAnalyzeLive()" style="flex:1;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+          ⏸ Analyze This Moment
+        </button>
+        <button onclick="stopLiveCamera()" style="padding:14px 16px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+          Stop
+        </button>
       </div>
-      <button class="live-stop-btn" onclick="stopLiveCamera()">⏹ Stop Live Analysis</button>
     </div>
     <div id="live-results"></div>
   </div>
@@ -3580,12 +3574,8 @@ function deleteCurrentEntry() {
 
 /* ─── LIVE CAMERA ─── */
 let liveStream = null;
-let liveTimer  = null;
-let liveCountdown = null;
-let liveSecsLeft  = 0;
 
 async function startLiveCamera() {
-  // Require login for live mode (multiple API calls)
   if (!getSession()) { showAuthWall('free-limit'); return; }
 
   try {
@@ -3604,37 +3594,12 @@ async function startLiveCamera() {
   document.getElementById('live-start-ui').style.display = 'none';
   document.getElementById('live-active-ui').style.display = 'block';
   document.getElementById('live-results').innerHTML = '';
-
-  const intervalSecs = parseInt(document.getElementById('live-interval').value);
-  liveSecsLeft = intervalSecs;
-  updateLiveStatus();
-
-  // First capture immediately after 2s (let camera warm up)
-  setTimeout(() => captureAndAnalyzeLive(), 2000);
-
-  liveCountdown = setInterval(() => {
-    liveSecsLeft--;
-    if (liveSecsLeft <= 0) {
-      liveSecsLeft = intervalSecs;
-      captureAndAnalyzeLive();
-    }
-    updateLiveStatus();
-  }, 1000);
-}
-
-function updateLiveStatus() {
-  const el = document.getElementById('live-status-txt');
-  if (el) el.textContent = 'Next analysis in ' + liveSecsLeft + 's…';
 }
 
 function stopLiveCamera() {
-  if (liveTimer)    { clearTimeout(liveTimer);    liveTimer = null; }
-  if (liveCountdown){ clearInterval(liveCountdown); liveCountdown = null; }
-  if (liveStream)   { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
-
+  if (liveStream) { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
   const video = document.getElementById('live-video');
   if (video) video.srcObject = null;
-
   document.getElementById('live-start-ui').style.display = 'block';
   document.getElementById('live-active-ui').style.display = 'none';
 }
@@ -3642,35 +3607,49 @@ function stopLiveCamera() {
 async function captureAndAnalyzeLive() {
   const video  = document.getElementById('live-video');
   const canvas = document.getElementById('live-canvas');
+  const btn    = document.getElementById('live-analyze-btn');
   if (!video || !canvas || !liveStream) return;
 
-  canvas.width  = video.videoWidth  || 640;
-  canvas.height = video.videoHeight || 360;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-  const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  // Disable button during analysis
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
 
-  const sport = currentSport || 'squash';
+  // Capture 5 frames with 400ms gap for better context
+  const frames = [];
+  for (let i = 0; i < 5; i++) {
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 360;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const b64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+    frames.push(b64);
+    if (i < 4) await new Promise(r => setTimeout(r, 400));
+  }
+
+  const sport    = currentSport || 'squash';
   const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
-  const liveMe  = ((document.getElementById('live-me')  || {}).value || '').trim();
-  const liveOpp = ((document.getElementById('live-opp') || {}).value || '').trim();
+  const liveMe   = ((document.getElementById('live-me')  || {}).value || '').trim();
+  const liveOpp  = ((document.getElementById('live-opp') || {}).value || '').trim();
   const myName   = liveMe  ? liveMe.split(' ')[0]  : 'my player';
   const oppName  = liveOpp ? liveOpp.split(' ')[0] : 'the opponent';
   const myDesc   = liveMe  || 'my player';
   const oppDesc  = liveOpp || 'the opponent';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
-  const prompt = `You are an elite ${sport} coach watching a live match. Identify the players using these descriptions — My player: "${myDesc}". Opponent: "${oppDesc}".
 
-Look at this frame carefully and give ${myName} ONE clear tactical instruction — what should they do right now or in the next shot? Consider: court positioning, shot selection, movement patterns, pressure points, and how to exploit ${oppName}'s position.
+  const prompt = `You are an elite ${sport} coach. The player you are coaching is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
 
-Rules:
-- Speak directly to ${myName} using only their first name ("${myName}, move to...", "Attack the...")
-- Be specific and tactical — not generic advice like "stay focused"
-- 1-3 sentences maximum
-- Do NOT mention score or describe what just happened
+I am giving you 5 consecutive frames captured just now during a live match. Analyze the situation and give ${myName} specific, detailed coaching advice — just like a real coach giving feedback between points. Cover:
+- What just happened / current positioning
+- What ${myName} should do differently or better
+- Tactical adjustments to exploit ${oppName}'s weaknesses or position
+
+Be direct, specific, and tactical. Use ${myName}'s name. No score commentary.
 
 ${langInstr}`;
+
+  const imgBlocks = frames.map(b64 => ({
+    type: 'image',
+    source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+  }));
 
   try {
     const token = await getAuthToken();
@@ -3679,20 +3658,14 @@ ${langInstr}`;
       headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 300,
+        max_tokens: 1500,
         stream: true,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
+        messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
       })
     });
 
     if (res.status === 402) { stopLiveCamera(); showSubscribeWall(); return; }
-    if (!res.ok) return;
+    if (!res.ok) { toast('Analysis failed', 'err'); return; }
 
     // Create result card
     const feed = document.getElementById('live-results');
@@ -3703,10 +3676,10 @@ ${langInstr}`;
     feed.insertBefore(card, feed.firstChild);
     const body = card.querySelector('.live-result-body');
 
-    // Stream result
+    // Stream result with markdown rendering
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let buf = '';
+    let buf = '', fullText = '';
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -3720,13 +3693,18 @@ ${langInstr}`;
         try {
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
-            body.textContent += ev.delta.text;
+            fullText += ev.delta.text;
+            body.innerHTML = renderMarkdown(fullText);
           }
         } catch {}
       }
     }
   } catch (err) {
     console.error('live capture error:', err);
+    toast('Error: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⏸ Analyze This Moment';
   }
 }
 
