@@ -989,21 +989,19 @@ input[type="file"] { display: none; }
             <div class="sport-card-desc">Formation & pressing</div>
           </div>
         </button>
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- volleyball --><circle cx="12" cy="12" r="9"/><path d="M3 12 Q8 6 12 12 Q16 18 21 12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
+        <button class="sport-card" onclick="selectSport('volleyball')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12 Q8 6 12 12 Q16 18 21 12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Volleyball</div>
             <div class="sport-card-desc">Rotation & attack sets</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- hockey stick --><path d="M5 3 L5 18 Q5 21 9 21 L17 21"/><line x1="2" y1="21" x2="20" y2="21"/></svg></div>
+        <button class="sport-card" onclick="selectSport('icehockey')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 L5 18 Q5 21 9 21 L17 21"/><line x1="2" y1="21" x2="20" y2="21"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Ice Hockey</div>
             <div class="sport-card-desc">Zone entries & lines</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
       </div>
     </div>
@@ -1011,21 +1009,19 @@ input[type="file"] { display: none; }
     <div class="sport-section">
       <div class="sport-section-label">Combat Sports</div>
       <div class="sport-grid">
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- boxing glove --><path d="M8 20 L6 20 Q3 20 3 17 L3 10 Q3 7 6 7 L8 7"/><path d="M8 7 L8 4 Q8 2 11 2 L16 2 Q19 2 19 5 L19 10 Q21 10 21 13 L21 16 Q21 20 17 20 L8 20"/></svg></div>
+        <button class="sport-card" onclick="selectSport('boxing')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20 L6 20 Q3 20 3 17 L3 10 Q3 7 6 7 L8 7"/><path d="M8 7 L8 4 Q8 2 11 2 L16 2 Q19 2 19 5 L19 10 Q21 10 21 13 L21 16 Q21 20 17 20 L8 20"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Boxing</div>
             <div class="sport-card-desc">Footwork & combinations</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- fencing foil --><line x1="2" y1="22" x2="18" y2="6"/><path d="M18 6 L22 2"/><line x1="14" y1="10" x2="20" y2="10"/><circle cx="4" cy="20" r="2"/></svg></div>
+        <button class="sport-card" onclick="selectSport('fencing')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="22" x2="18" y2="6"/><path d="M18 6 L22 2"/><line x1="14" y1="10" x2="20" y2="10"/><circle cx="4" cy="20" r="2"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Fencing</div>
             <div class="sport-card-desc">Tempo & blade tactics</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
       </div>
     </div>
@@ -2009,6 +2005,289 @@ Analyze video frames noting team shape, pressing intensity, defensive line heigh
       ctx.lineWidth=1; ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText('OPPONENT GOAL', pad+cw/2, pad-12);
       ctx.fillText('YOUR GOAL', pad+cw/2, pad+ch+12);
+    }
+  },
+
+  volleyball: {
+    name: 'Volleyball', icon: '🏐',
+    sys: `You are an expert volleyball coach with 20+ years of experience from club to international level.
+
+COURT ZONES (your side at bottom, opponent's side at top, net in middle):
+• Zones 1-6 — Standard volleyball court numbering: Zone 1=back-right, 2=front-right, 3=front-center, 4=front-left, 5=back-left, 6=back-center
+• Seam Zones — Gaps between defenders; primary attack targets
+• Pipe — Back-row attack from Zone 6; difficult for blockers
+• Antenna Lines — Sideline attacks; high risk, high reward
+
+OFFENSIVE CONCEPTS:
+• System — Typical 5-1 (one setter) or 6-2 (two setters) formations
+• Quick Set — Fast low set to middle hitter; disrupts block timing
+• Shoot Set — Flat fast set to outside; creates angle attacks
+• Back-Row Attack — Libero/back-row player attacks from behind 3m line
+• Serve Receive — Passing efficiency; platform to enable setter offense
+• Out-of-System — Handling poor passes; improvised attacks
+• Kill Block — Converting opponent attack into point directly
+
+DEFENSIVE CONCEPTS:
+• Read Blocking — Blocker reads setter, moves to attack position
+• Commit Blocking — Blocker commits to one attacker pre-set
+• Perimeter Defense — Defenders cover court edges after block
+• Libero Role — Specialized back-row defender; passing and digging
+• Coverage — Teammates cover hitter in case of blocked attack
+• Serving Strategy — Float, jump, topspin; targeting weaknesses
+
+Analyze video frames noting rotation positions, blocking schemes, defensive coverage, serve receive patterns, and offensive variety.`,
+    positions: {
+      'your-z1': [0.83, 0.84], 'your-z2': [0.83, 0.62], 'your-z3': [0.50, 0.62],
+      'your-z4': [0.17, 0.62], 'your-z5': [0.17, 0.84], 'your-z6': [0.50, 0.84],
+      'net-left': [0.10, 0.50], 'net-center': [0.50, 0.50], 'net-right': [0.90, 0.50],
+      'opp-z1': [0.83, 0.16], 'opp-z2': [0.83, 0.38], 'opp-z3': [0.50, 0.38],
+      'opp-z4': [0.17, 0.38], 'opp-z5': [0.17, 0.16], 'opp-z6': [0.50, 0.16]
+    },
+    zones: { 'your-side': [0,0.5,1,0.5], 'opp-side': [0,0,1,0.5] },
+    diagramPositions: 'your-z1, your-z2, your-z3, your-z4, your-z5, your-z6, opp-z1, opp-z2, opp-z3, opp-z4',
+    diagramZones: 'your-side, opp-side',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      ctx.fillStyle = '#c8a040'; ctx.fillRect(pad, pad, cw, ch);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.strokeRect(pad, pad, cw, ch);
+      // Net
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      // 3m attack lines
+      ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.35)); ctx.lineTo(pad+cw, cy(0.35)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.65)); ctx.lineTo(pad+cw, cy(0.65)); ctx.stroke();
+      // Center divider
+      ctx.beginPath(); ctx.moveTo(cx(0.5), pad); ctx.lineTo(cx(0.5), pad+ch); ctx.stroke();
+      ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='8px -apple-system,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('OPPONENT', pad+cw/2, pad-9);
+      ctx.fillText('YOUR SIDE', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  icehockey: {
+    name: 'Ice Hockey', icon: '🏒',
+    sys: `You are an expert ice hockey coach with 20+ years of experience from minor hockey to NHL level.
+
+RINK ZONES (your defensive zone at bottom, offensive zone at top):
+• Defensive Zone — Your end; protecting your net
+• Neutral Zone — Center ice; transition area
+• Offensive Zone — Opponent's end; attacking
+• Slot — High-danger area directly in front of net
+• Half-Wall — Boards between face-off dots and blue line
+• Corners — Behind the net and in corners; puck battles
+• Blue Lines — Divide rink into three zones; key for offsides
+
+OFFENSIVE CONCEPTS:
+• Zone Entry — Carry-in vs. dump-in vs. pass-in
+• Cycle Game — Puck possession along boards in offensive zone
+• High-Low — Defenseman at blue line shooting through screens
+• Net-Front Presence — Screening goalie, tip-ins, rebounds
+• Rush — 2-on-1, 3-on-2, odd-man advantages
+• Power Play — 5-on-4; umbrella or overload formations
+• Face-Off Plays — Structured plays from face-off wins
+
+DEFENSIVE CONCEPTS:
+• Neutral Zone Trap — Clog center ice; limit odd-man rushes
+• Left-Wing Lock — Hybrid system; lock winger low defensively
+• Box + 1 (Penalty Kill) — Protect slot on penalty kill
+• Gap Control — Defensive gap to opponent with puck
+• Pinching — Defenseman jumping into offensive play
+• Backchecking — Forwards racing back to defend
+
+LINE SYSTEMS:
+• Forecheck — 2-1-2, 1-2-2, 2-2-1 systems
+• Neutral Zone — 1-3-1, left-wing lock
+• Defensive Zone — Man-on-man vs. zone coverage
+
+Analyze video frames noting zone positioning, line changes, defensive gaps, forechecking pressure, power play structure, and individual skating/puck-handling patterns.`,
+    positions: {
+      'your-net':    [0.50, 0.94],
+      'your-ld':     [0.25, 0.72], 'your-rd':  [0.75, 0.72],
+      'your-lw':     [0.10, 0.55], 'your-c':   [0.50, 0.55], 'your-rw': [0.90, 0.55],
+      'neutral-l':   [0.15, 0.50], 'neutral-c': [0.50, 0.50], 'neutral-r': [0.85, 0.50],
+      'opp-lw':      [0.10, 0.45], 'opp-c':    [0.50, 0.45], 'opp-rw':  [0.90, 0.45],
+      'opp-ld':      [0.25, 0.28], 'opp-rd':   [0.75, 0.28],
+      'opp-net':     [0.50, 0.06],
+      'slot':        [0.50, 0.18]
+    },
+    zones: { 'def-zone': [0,0.6,1,0.4], 'neutral': [0,0.35,1,0.25], 'off-zone': [0,0,1,0.35] },
+    diagramPositions: 'your-ld, your-rd, your-lw, your-c, your-rw, opp-lw, opp-c, opp-rw, opp-ld, opp-rd, slot',
+    diagramZones: 'def-zone, neutral, off-zone',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      // Ice surface
+      ctx.fillStyle = '#ddeeff'; ctx.fillRect(pad, pad, cw, ch);
+      ctx.strokeStyle = '#cc0000'; ctx.lineWidth = 2;
+      // Red center line
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      // Blue lines
+      ctx.strokeStyle = '#0044cc';
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.35)); ctx.lineTo(pad+cw, cy(0.35)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.65)); ctx.lineTo(pad+cw, cy(0.65)); ctx.stroke();
+      // Goal creases
+      ctx.strokeStyle = '#cc0000'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx(0.5), pad+ch*0.06, cw*0.12, 0, Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx(0.5), pad+ch*0.94, cw*0.12, Math.PI, Math.PI*2); ctx.stroke();
+      // Outline
+      ctx.strokeStyle = '#cc0000'; ctx.lineWidth = 2;
+      ctx.strokeRect(pad, pad, cw, ch);
+      ctx.fillStyle='rgba(0,0,100,0.6)'; ctx.font='8px -apple-system,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('OFFENSIVE ZONE', pad+cw/2, pad-9);
+      ctx.fillText('DEFENSIVE ZONE', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  boxing: {
+    name: 'Boxing', icon: '🥊',
+    sys: `You are an expert boxing coach with 20+ years of experience training amateur and professional fighters.
+
+RING ZONES:
+• Center Ring — Dominant position; control and pressure
+• Ropes — Defensive disadvantage; clinch or pivot out
+• Corners — Dangerous; cut off and trapped
+• Mid-Ring — Transitional space; in-and-out movement
+
+OFFENSIVE CONCEPTS:
+• Jab — Range setter; sets up combinations; checks guard
+• Cross — Power rear hand; follows jab in 1-2
+• Hook — Lateral power punch; targets chin or body
+• Uppercut — Upward punch; inside range against guard
+• Body Attack — Targeting ribs, liver; breaks guard down
+• Combinations — 1-2, 1-2-3, 1-1-2, jab-hook-cross patterns
+• Counter Punching — Timing attacks off opponent's misses
+• Feints — Head/shoulder movement to draw reactions
+
+DEFENSIVE CONCEPTS:
+• Slipping — Rotating head off centerline to avoid jabs/crosses
+• Rolling — Bobbing under hooks
+• Parrying — Deflecting punches with open hand
+• Shoulder Roll — Using lead shoulder to absorb jabs
+• Clinch — Holding opponent to stop combinations
+• Footwork — Pivoting, circling away from power hand
+• Distance Management — Staying in or out of range
+
+TACTICAL PATTERNS:
+• Pressure Fighter — Walk forward, cut ring, high punch output
+• Out-Boxer — Use jab, movement, range to control distance
+• Counter Puncher — Wait for openings, explosive counters
+• Brawler — High volume, absorb to land big shots
+
+Analyze video frames noting stance, footwork patterns, combination sequences, defensive habits, ring generalship, and tactical adjustments between rounds.`,
+    positions: {
+      'center':    [0.50, 0.50],
+      'your-pos':  [0.50, 0.75],
+      'opp-pos':   [0.50, 0.25],
+      'corner-tl': [0.10, 0.10], 'corner-tr': [0.90, 0.10],
+      'corner-bl': [0.10, 0.90], 'corner-br': [0.90, 0.90],
+      'rope-l':    [0.10, 0.50], 'rope-r':    [0.90, 0.50],
+      'rope-t':    [0.50, 0.10], 'rope-b':    [0.50, 0.90]
+    },
+    zones: { 'ring': [0.05,0.05,0.9,0.9] },
+    diagramPositions: 'center, your-pos, opp-pos',
+    diagramZones: 'ring',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      ctx.fillStyle = '#8B4513'; ctx.fillRect(pad, pad, cw, ch);
+      // Canvas/ring surface
+      ctx.fillStyle = '#c8a87a';
+      ctx.fillRect(cx(0.05), cy(0.05), cw*0.9, ch*0.9);
+      // Ropes
+      const ropeColors = ['#cc0000','#fff','#cc0000'];
+      ropeColors.forEach((col, i) => {
+        const inset = (i+1) * (Math.min(cw,ch)*0.04);
+        ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.strokeRect(cx(0.05)+inset, cy(0.05)+inset, cw*0.9-inset*2, ch*0.9-inset*2);
+      });
+      // Center lines
+      ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx(0.5), pad); ctx.lineTo(cx(0.5), pad+ch); ctx.stroke();
+      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.font='8px -apple-system,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('OPPONENT', pad+cw/2, pad-9);
+      ctx.fillText('YOUR CORNER', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  fencing: {
+    name: 'Fencing', icon: '🤺',
+    sys: `You are an expert fencing coach with 20+ years of experience coaching foil, épée, and sabre from club to Olympic level.
+
+PISTE ZONES (your end at bottom, opponent's end at top):
+• En Garde Line — Starting position; 2m from center
+• Center — Neutral ground; tactical pivot point
+• Warning Line — 1m from end; last warning before penalization
+• End Line — Limit of piste; forced to retreat or receive penalty
+
+WEAPON SYSTEMS:
+• Foil — Touches to torso only; right-of-way rules apply; light weapon
+• Épée — Touches to entire body; no right-of-way; heaviest tip pressure
+• Sabre — Touches to upper body; right-of-way; cutting and thrusting weapon
+
+OFFENSIVE CONCEPTS:
+• Simple Attack — Single blade action: direct thrust, disengage, cut-over
+• Compound Attack — Feint followed by real attack; deceives parry
+• Attack on Preparation — Attacking as opponent moves forward
+• Fleche — Running attack; all-or-nothing offensive action
+• Flunge (Sabre) — Modified fleche for sabre
+• Remise — Immediate re-attack after initial is parried without withdrawal
+• Redoublement — New blade action after parry without withdrawal
+
+DEFENSIVE CONCEPTS:
+• Parry — Blade deflection: 4, 6, 7, 8 (foil/épée); 3, 4, 5 (sabre)
+• Parry-Riposte — Defensive blade action immediately followed by attack
+• Retreat — Distance management to create space
+• Counter-Attack — Hitting opponent while being attacked (épée strategy)
+• Point In Line — Extended arm threatening opponent; right-of-way (foil/sabre)
+
+TACTICAL PATTERNS:
+• Tempo — Timing attacks to hit in single movement
+• Distance Game — Control engagement distance as primary tactic
+• Preparation — Blade engagement to gauge opponent response
+• Taking the Blade — Controlling opponent's blade before attacking
+
+Analyze video frames noting footwork patterns, blade preparation, attack timing, parry selection, distance management, and tactical adaptations.`,
+    positions: {
+      'your-end':     [0.50, 0.92],
+      'your-warning': [0.50, 0.80],
+      'your-garde':   [0.50, 0.62],
+      'center':       [0.50, 0.50],
+      'opp-garde':    [0.50, 0.38],
+      'opp-warning':  [0.50, 0.20],
+      'opp-end':      [0.50, 0.08]
+    },
+    zones: { 'your-half': [0.1,0.5,0.8,0.45], 'opp-half': [0.1,0.05,0.8,0.45] },
+    diagramPositions: 'your-garde, center, opp-garde',
+    diagramZones: 'your-half, opp-half',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      ctx.fillStyle = '#f0e8d0'; ctx.fillRect(pad, pad, cw, ch);
+      // Piste strip (2m wide, centered)
+      ctx.fillStyle = '#d4c8a0';
+      ctx.fillRect(cx(0.1), pad, cw*0.8, ch);
+      // Piste boundary
+      ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx(0.1), pad, cw*0.8, ch);
+      // Center line
+      ctx.strokeStyle = '#c00'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx(0.1), cy(0.5)); ctx.lineTo(cx(0.9), cy(0.5)); ctx.stroke();
+      // En garde lines
+      ctx.strokeStyle = '#00c'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx(0.1), cy(0.62)); ctx.lineTo(cx(0.9), cy(0.62)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx(0.1), cy(0.38)); ctx.lineTo(cx(0.9), cy(0.38)); ctx.stroke();
+      // Warning lines
+      ctx.strokeStyle = '#c80'; ctx.lineWidth = 2; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(cx(0.1), cy(0.80)); ctx.lineTo(cx(0.9), cy(0.80)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx(0.1), cy(0.20)); ctx.lineTo(cx(0.9), cy(0.20)); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.font='8px -apple-system,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('OPPONENT END', pad+cw/2, pad-9);
+      ctx.fillText('YOUR END', pad+cw/2, pad+ch+9);
     }
   }
 };
