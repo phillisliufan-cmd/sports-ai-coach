@@ -408,19 +408,20 @@ body {
 
 /* ─── LANGUAGE SELECTOR ─── */
 .lang-bar {
-  display: flex; gap: 6px; margin-bottom: 14px;
-  background: var(--surface); border: 1px solid var(--border-light);
-  border-radius: 10px; padding: 4px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
 }
-.lang-btn {
-  flex: 1; padding: 7px 0; border: none; border-radius: 7px;
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  background: transparent; color: var(--muted);
-  transition: background .15s, color .15s;
-  font-family: inherit;
+.lang-bar label {
+  font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap;
 }
-.lang-btn.active {
-  background: var(--text); color: #fff;
+.lang-select {
+  flex: 1; padding: 7px 10px; border: 1.5px solid var(--border-light);
+  border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: var(--surface); color: var(--text);
+  font-family: inherit; cursor: pointer; outline: none;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+  padding-right: 28px;
 }
 .spin {
   display: none; width: 17px; height: 17px;
@@ -1077,8 +1078,14 @@ input[type="file"] { display: none; }
 
     <div id="free-banner-pre"></div>
     <div class="lang-bar" id="lang-bar-pre">
-      <button class="lang-btn active" onclick="setLang('en',this,'pre')">English</button>
-      <button class="lang-btn" onclick="setLang('zh',this,'pre')">中文</button>
+      <label>Language</label>
+      <select class="lang-select" onchange="setLang(this.value,this,'pre')">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+      </select>
     </div>
     <button class="btn-go" id="go-pre" onclick="analyze('pre')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyze Opponent</span>
@@ -1117,8 +1124,14 @@ input[type="file"] { display: none; }
 
     <div id="free-banner-btw"></div>
     <div class="lang-bar" id="lang-bar-btw">
-      <button class="lang-btn active" onclick="setLang('en',this,'btw')">English</button>
-      <button class="lang-btn" onclick="setLang('zh',this,'btw')">中文</button>
+      <label>Language</label>
+      <select class="lang-select" onchange="setLang(this.value,this,'btw')">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+      </select>
     </div>
     <button class="btn-go" id="go-btw" onclick="analyze('btw')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Get Courtside Instructions</span>
@@ -1149,8 +1162,14 @@ input[type="file"] { display: none; }
 
     <div id="free-banner-post"></div>
     <div class="lang-bar" id="lang-bar-post">
-      <button class="lang-btn active" onclick="setLang('en',this,'post')">English</button>
-      <button class="lang-btn" onclick="setLang('zh',this,'post')">中文</button>
+      <label>Language</label>
+      <select class="lang-select" onchange="setLang(this.value,this,'post')">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+      </select>
     </div>
     <button class="btn-go" id="go-post" onclick="analyze('post')">
       <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>Generate Match Review</span>
@@ -1472,11 +1491,8 @@ function authBack() {
   document.getElementById('aw-msg').textContent = '';
 }
 
-function setLang(lang, btn, tab) {
+function setLang(lang, el, tab) {
   langSetting[tab] = lang;
-  const bar = document.getElementById('lang-bar-' + tab);
-  bar.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
 }
 const SPORTS = {
   squash: {
@@ -2364,13 +2380,12 @@ async function analyze(tab) {
         model: 'claude-sonnet-4-6',
         max_tokens: tab === 'pre' ? 2000 : 4096,
         stream: true,
-        system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + (
-          langSetting[tab] === 'zh'
-            ? 'IMPORTANT: Write your entire response in Chinese (中文) only. Do not use any English.'
-            : langSetting[tab] === 'bi'
-            ? 'IMPORTANT: For every section, write the complete English content first. Then add a "---中文---" divider line, followed by the complete Chinese translation. Keep English and Chinese strictly separated — no mixing.'
-            : 'IMPORTANT: Write your entire response in English only. Do not use any Chinese.'
-        ),
+        system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + ({
+          zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
+          ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
+          fr: 'IMPORTANT: Write your entire response in French (Français) only.',
+          de: 'IMPORTANT: Write your entire response in German (Deutsch) only.',
+        }[langSetting[tab]] || 'IMPORTANT: Write your entire response in English only.'),
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
       })
     });
@@ -2499,7 +2514,7 @@ function buildVoice(text) {
   // Update summary header label based on language
   const summaryLang = langSetting['btw'];
   vc.querySelector('.summary-hdr').textContent =
-    summaryLang === 'zh' ? '总结' : summaryLang === 'bi' ? '总结 · Summary' : 'Summary';
+    ({zh:'总结', ja:'まとめ', fr:'Résumé', de:'Zusammenfassung'}[summaryLang] || 'Summary');
 
   if (instrs.length === 0) {
     vc.className = 'summary-card';
@@ -2966,7 +2981,8 @@ function extractAndRenderDiagram(fullText, tab, sport) {
     const canvas = document.createElement('canvas');
     canvas.className = 'court-canvas';
     canvas.width = 300; canvas.height = 400;
-    wrap.innerHTML = '<div class="court-diagram-lbl">球场示意图</div>';
+    const diagramLbl = {zh:'球场示意图', ja:'コート図', fr:'Diagramme', de:'Spielfeld'}[langSetting[tab]] || 'Court Diagram';
+    wrap.innerHTML = '<div class="court-diagram-lbl">' + diagramLbl + '</div>';
     wrap.appendChild(canvas);
     renderCourtDiagram(data, canvas, sport || currentSport);
   } catch(e) { console.error('Diagram parse error:', e); }
