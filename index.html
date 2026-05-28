@@ -912,7 +912,7 @@ input[type="file"] { display: none; }
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Change Sport
     </button>
-    <button id="signin-btn" onclick="showAuthWall()" style="display:none;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">Sign in</button>
+    <button id="signin-btn" onclick="showAuthWall('signin')" style="display:none;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">Sign in</button>
     <div id="acct-btn" style="display:none;position:relative;">
       <button onclick="toggleAcctMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 12px 5px 8px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1287,8 +1287,9 @@ async function getAuthToken() {
   return s ? s.access_token : null;
 }
 
-function showAuthWall() {
+function showAuthWall(mode) {
   if (document.getElementById('auth-wall')) return;
+  const signinOnly = mode === 'signin';
   const wall = document.createElement('div');
   wall.id = 'auth-wall';
   wall.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px;';
@@ -1298,12 +1299,12 @@ function showAuthWall() {
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="13" cy="13" r="8" stroke="#0f172a" stroke-width="1.5"/><line x1="13" y1="2" x2="13" y2="6.5" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="19.5" x2="13" y2="24" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="2" y1="13" x2="6.5" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><line x1="19.5" y1="13" x2="24" y2="13" stroke="#0f172a" stroke-width="1.5" stroke-linecap="round"/><circle cx="13" cy="13" r="2" fill="#00b341"/></svg>
         Sports AI Coach
       </div>
-      <div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a6b2e;font-weight:600;">
+      ${signinOnly ? '' : `<div style="background:#f0faf4;border:1px solid #b6e8c8;border-radius:10px;padding:12px 14px;font-size:14px;color:#1a6b2e;font-weight:600;">
         You've used your 3 free analyses. Subscribe to continue.
-      </div>
+      </div>`}
       <div id="aw-step1">
-        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">Create account &amp; subscribe</div>
-        <div style="font-size:14px;color:#666;margin-bottom:16px;">$20/month — enter your email and we'll send a login link</div>
+        <div style="font-size:20px;font-weight:800;color:#0a0a0a;margin-bottom:4px;">${signinOnly ? 'Sign in' : 'Create account &amp; subscribe'}</div>
+        <div style="font-size:14px;color:#666;margin-bottom:16px;">${signinOnly ? "Enter your email and we'll send a login link" : "$20/month — enter your email and we'll send a login link"}</div>
         <input id="aw-email" class="auth-input" type="email" placeholder="your@email.com" style="width:100%;padding:13px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;font-family:inherit;outline:none;box-sizing:border-box;">
         <button onclick="authSendCode()" style="width:100%;margin-top:12px;padding:14px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">Send Login Link</button>
         <div id="aw-msg" style="font-size:13px;color:#999;text-align:center;margin-top:8px;"></div>
@@ -1315,7 +1316,6 @@ function showAuthWall() {
       </div>
     </div>`;
   document.body.appendChild(wall);
-
 }
 
 async function authSendCode() {
