@@ -3782,12 +3782,18 @@ ${langInstr}`;
 function resumeLiveCollection() {
   if (!liveStream || liveCollector) return;
   liveCollector = setInterval(() => {
-    const frame = grabLiveFrame();
-    if (!frame) return;
-    liveFrameBuf.push(frame);
-    if (liveFrameBuf.length > LIVE_MAX_FRAMES) liveFrameBuf.shift();
+    const result = grabLiveFrame();
+    if (!result) return;
+    const { b64, pixels } = result;
+    const isPlaying = livePrevPixels ? motionScore(livePrevPixels, pixels) > LIVE_MOTION_THRESH : true;
+    livePrevPixels = pixels;
     const el = document.getElementById('live-frame-count');
-    if (el) el.textContent = 'Watching\u2026 ' + liveFrameBuf.length + ' frames captured';
+    if (!isPlaying) {
+      if (el) el.textContent = 'Watching\u2026 ' + liveFrameBuf.length + ' play frames · (skipped static)';
+      return;
+    }
+    liveFrameBuf.push(b64);
+    if (el) el.textContent = 'Watching\u2026 ' + liveFrameBuf.length + ' play frames captured';
   }, LIVE_COLLECT_MS);
 }
 
