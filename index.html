@@ -2044,22 +2044,15 @@ async function extractFrames(file, onProgress) {
       try {
         const dur = video.duration;
         const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-        const COUNT    = isMobile ? 8 : 20;
-        const maxD     = isMobile ? 480 : 1024;
-        const jpegKB   = isMobile ? 60 : 200;
-        // On mobile, only sample the first 2 min — seeking deep into large files is very slow
-        const sampleDur = isMobile ? Math.min(dur, 120) : dur;
-        const timestamps = [];
-        for (let i = 0; i < COUNT; i++) timestamps.push((sampleDur / COUNT) * i);
+        const COUNT  = isMobile ? 8 : 20;
+        const maxD   = isMobile ? 480 : 1024;
+        const jpegKB = isMobile ? 60 : 200;
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const result = [];
 
-        for (let i = 0; i < timestamps.length; i++) {
-          onProgress(i, timestamps.length);
-          await seekTo(video, timestamps[i]);
-
+        function captureFrame(ts, idx) {
           const vw = video.videoWidth  || 1280;
           const vh = video.videoHeight || 720;
           let sw = vw, sh = vh;
@@ -2069,7 +2062,56 @@ async function extractFrames(file, onProgress) {
           }
           canvas.width = sw; canvas.height = sh;
           ctx.drawImage(video, 0, 0, sw, sh);
-          result.push({ id: 'f' + Date.now() + '_' + i, dataUrl: compressJpeg(canvas, jpegKB * 1024), ts: timestamps[i], del: false });
+          result.push({ id: 'f' + Date.now() + '_' + idx, dataUrl: compressJpeg(canvas, jpegKB * 1024), ts, del: false });
+        }
+
+        if (isMobile) {
+          // Play at high speed and capture frames at evenly spaced timestamps
+          // Avoids slow random seeks on mobile for large video files
+          const timestamps = [];
+          for (let i = 0; i < COUNT; i++) timestamps.push((dur / COUNT) * i);
+
+          let nextIdx = 0;
+          video.playbackRate = 16;
+          video.muted = true;
+
+          await new Promise((playResolve) => {
+            function onTimeUpdate() {
+              const t = video.currentTime;
+              while (nextIdx < timestamps.length && t >= timestamps[nextIdx]) {
+                captureFrame(timestamps[nextIdx], nextIdx);
+                onProgress(nextIdx, COUNT);
+                nextIdx++;
+              }
+              if (nextIdx >= COUNT) {
+                video.pause();
+                video.removeEventListener('timeupdate', onTimeUpdate);
+                video.removeEventListener('ended', onEnded);
+                playResolve();
+              }
+            }
+            function onEnded() {
+              // Capture any remaining frames at last position
+              while (nextIdx < COUNT) {
+                captureFrame(timestamps[nextIdx] || dur, nextIdx);
+                nextIdx++;
+              }
+              video.removeEventListener('timeupdate', onTimeUpdate);
+              playResolve();
+            }
+            video.addEventListener('timeupdate', onTimeUpdate);
+            video.addEventListener('ended', onEnded, { once: true });
+            video.play().catch(() => playResolve());
+          });
+        } else {
+          // Desktop: seek-based for accuracy
+          const timestamps = [];
+          for (let i = 0; i < COUNT; i++) timestamps.push((dur / COUNT) * i);
+          for (let i = 0; i < timestamps.length; i++) {
+            onProgress(i, timestamps.length);
+            await seekTo(video, timestamps[i]);
+            captureFrame(timestamps[i], i);
+          }
         }
 
         cleanup();
