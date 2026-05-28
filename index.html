@@ -3657,7 +3657,8 @@ async function captureAndAnalyzeLive() {
     ? ' Use these descriptions to identify players in the video — My player: ' + (liveMe || 'unspecified') + '. Opponent: ' + (liveOpp || 'unspecified') + '.'
     : '';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
-  const prompt = 'You are a ' + sport + ' coach watching a live match.' + playerCtx + ' Look at this frame and focus ONLY on my player. If my player made a mistake or is in a poor position, say what went wrong in one sentence, then say exactly what they should do instead. If my player looks fine, say "OK" and nothing else. Do NOT mention the opponent\'s tactics, score, or general observations. Be direct and brief. ' + langInstr;
+  const myName = liveMe ? liveMe.split('·')[0].trim() : 'my player';
+  const prompt = 'You are a ' + sport + ' coach watching a live match.' + playerCtx + ' Look at this frame and focus ONLY on ' + myName + '. If ' + myName + ' made a mistake or is in a poor position, say what went wrong in one sentence, then say exactly what ' + myName + ' should do instead. If ' + myName + ' looks fine, say "OK" and nothing else. Do NOT mention the opponent\'s tactics, score, or general observations. Be direct and brief. ' + langInstr;
 
   try {
     const token = await getAuthToken();
