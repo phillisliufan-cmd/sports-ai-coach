@@ -2331,7 +2331,15 @@ Analyze video frames noting footwork patterns, blade preparation, attack timing,
     ['pre','btw'].forEach(function(tab) {
       var inp = document.getElementById('f-' + tab);
       if (inp) inp.addEventListener('change', function() {
-        if (this.files && this.files[0]) loadVideo(tab, this.files[0]);
+        if (this.files && this.files[0]) {
+          // Gate anonymous users who have hit the free limit
+          if (!getSession() && getFreeUses() >= FREE_LIMIT) {
+            this.value = '';
+            showAuthWall('free-limit');
+            return;
+          }
+          loadVideo(tab, this.files[0]);
+        }
       });
     });
 
