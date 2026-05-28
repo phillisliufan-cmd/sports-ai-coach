@@ -2023,7 +2023,10 @@ async function extractFrames(file, onProgress) {
 
       try {
         const dur = video.duration;
-        const COUNT = 20;
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+        const COUNT  = isMobile ? 10 : 20;   // fewer seeks on mobile
+        const maxD   = isMobile ? 640 : 1024; // smaller frames on mobile
+        const jpegKB = isMobile ? 80 : 200;   // lighter JPEG on mobile
         const timestamps = [];
         for (let i = 0; i < COUNT; i++) timestamps.push((dur / COUNT) * i);
 
@@ -2037,7 +2040,6 @@ async function extractFrames(file, onProgress) {
 
           const vw = video.videoWidth  || 1280;
           const vh = video.videoHeight || 720;
-          const maxD = 1024;
           let sw = vw, sh = vh;
           if (vw > maxD || vh > maxD) {
             const r = Math.min(maxD / vw, maxD / vh);
@@ -2045,7 +2047,7 @@ async function extractFrames(file, onProgress) {
           }
           canvas.width = sw; canvas.height = sh;
           ctx.drawImage(video, 0, 0, sw, sh);
-          result.push({ id: 'f' + Date.now() + '_' + i, dataUrl: compressJpeg(canvas, 200 * 1024), ts: timestamps[i], del: false });
+          result.push({ id: 'f' + Date.now() + '_' + i, dataUrl: compressJpeg(canvas, jpegKB * 1024), ts: timestamps[i], del: false });
         }
 
         cleanup();
