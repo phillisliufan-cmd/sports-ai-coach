@@ -2918,27 +2918,59 @@ async function analyze(tab) {
       source: { type: 'base64', media_type: 'image/jpeg', data: fr.dataUrl.slice(fr.dataUrl.indexOf(',') + 1) }
     }));
 
-    const authToken = await getAuthToken();
-
-    const res = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: {
-        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: tab === 'pre' ? 2000 : 4096,
-        stream: true,
-        system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + ({
-          zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
-          ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
-          fr: 'IMPORTANT: Write your entire response in French (Français) only.',
-          de: 'IMPORTANT: Write your entire response in German (Deutsch) only.',
-        }[langSetting[tab]] || 'IMPORTANT: Write your entire response in English only.'),
-        messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
-      })
+    const reqBody = JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: tab === 'pre' ? 2000 : 4096,
+      stream: true,
+      system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + ({
+        zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
+        ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
+        fr: 'IMPORTANT: Write your entire response in French (Français) only.',
+        de: 'IMPORTANT: Write your entire response in German (Deutsch) only.',
+      }[langSetting[tab]] || 'IMPORTANT: Write your entire response in English only.'),
+      messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
     });
+
+    async function doFetch(token) {
+      return fetch('/api/analyze', {
+        method: 'POST',
+        headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}), 'content-type': 'application/json' },
+        body: reqBody
+      });
+    }
+
+    let authToken = await getAuthToken();
+    let res = await doFetch(authToken);
+
+    // If token expired, try refresh once and retry
+    if (res.status === 401 || res.status === 402) {
+      const errData = await res.json().catch(() => ({}));
+      if (res.status === 401 && errData.error === 'Invalid session') {
+        const s = getSession();
+        if (s && s.refresh_token) {
+          const refRes = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+            body: JSON.stringify({ refresh_token: s.refresh_token })
+          });
+          if (refRes.ok) {
+            const data = await refRes.json();
+            const newSession = { access_token: data.access_token, refresh_token: data.refresh_token, expires_in: data.expires_in, expires_at: Date.now()/1000 + data.expires_in, user: data.user || s.user };
+            setSession(newSession);
+            updateAcctBtn();
+            res = await doFetch(newSession.access_token);
+          } else {
+            clearSession(); updateAcctBtn();
+            throw new Error('Session expired — please sign in again');
+          }
+        } else {
+          clearSession(); updateAcctBtn();
+          throw new Error('Session expired — please sign in again');
+        }
+      } else {
+        throw new Error(errData.error || 'API error ' + res.status);
+      }
+    }
 
     if (!res.ok) {
       let msg = 'API error ' + res.status;
