@@ -1224,11 +1224,13 @@ input[type="file"] { display: none; }
 
   <!-- LIVE CAMERA PANEL -->
   <div class="panel" id="p-live">
+
+    <!-- Setup screen -->
     <div id="live-start-ui">
       <div class="live-intro">
         <div class="live-intro-ico">📷</div>
         <div class="live-intro-ttl">Live Match Analysis</div>
-        <div class="live-intro-sub">Point your camera at the court — AI analyzes frames in real time</div>
+        <div class="live-intro-sub">AI watches the match in the background — pause anytime for deep coaching feedback</div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <div class="ig" style="flex:1;margin:0;">
@@ -1251,22 +1253,30 @@ input[type="file"] { display: none; }
         </select>
       </div>
       <button class="btn-go" onclick="startLiveCamera()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="7"/></svg>
-        <span class="btn-lbl">Start Camera</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        <span class="btn-lbl">Start Match</span>
       </button>
     </div>
+
+    <!-- Recording screen -->
     <div id="live-active-ui" style="display:none;">
       <video id="live-video" autoplay playsinline muted></video>
       <canvas id="live-canvas" style="display:none;"></canvas>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button id="live-analyze-btn" onclick="captureAndAnalyzeLive()" style="flex:1;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
-          ⏸ Analyze This Moment
+      <div style="display:flex;align-items:center;gap:8px;margin:10px 0 6px;">
+        <div class="live-dot"></div>
+        <span id="live-frame-count" style="font-size:13px;color:var(--muted);font-weight:600;">Watching… 0 frames captured</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="live-pause-btn" onclick="pauseAndAnalyzeLive()" style="flex:1;padding:15px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+          ⏸ Pause &amp; Analyze
         </button>
-        <button onclick="stopLiveCamera()" style="padding:14px 16px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
-          Stop
+        <button onclick="stopLiveCamera()" style="padding:15px 16px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+          End
         </button>
       </div>
     </div>
+
+    <!-- Analysis results -->
     <div id="live-results"></div>
   </div>
 
@@ -3573,7 +3583,11 @@ function deleteCurrentEntry() {
 }
 
 /* ─── LIVE CAMERA ─── */
-let liveStream = null;
+let liveStream      = null;
+let liveFrameBuf    = [];   // captured frames during the match
+let liveCollector   = null; // interval that silently grabs frames
+const LIVE_MAX_FRAMES = 20;
+const LIVE_COLLECT_MS = 4000; // grab 1 frame every 4s
 
 async function startLiveCamera() {
   if (!getSession()) { showAuthWall('free-limit'); return; }
@@ -3590,40 +3604,59 @@ async function startLiveCamera() {
 
   const video = document.getElementById('live-video');
   video.srcObject = liveStream;
+  liveFrameBuf = [];
 
-  document.getElementById('live-start-ui').style.display = 'none';
+  document.getElementById('live-start-ui').style.display  = 'none';
   document.getElementById('live-active-ui').style.display = 'block';
-  document.getElementById('live-results').innerHTML = '';
+
+  // Silent background frame collection
+  liveCollector = setInterval(() => {
+    const frame = grabLiveFrame();
+    if (!frame) return;
+    liveFrameBuf.push(frame);
+    // Keep only the most recent MAX frames (rolling window)
+    if (liveFrameBuf.length > LIVE_MAX_FRAMES) liveFrameBuf.shift();
+    const el = document.getElementById('live-frame-count');
+    if (el) el.textContent = 'Watching\u2026 ' + liveFrameBuf.length + ' frames captured';
+  }, LIVE_COLLECT_MS);
+}
+
+function grabLiveFrame() {
+  const video  = document.getElementById('live-video');
+  const canvas = document.getElementById('live-canvas');
+  if (!video || !canvas || !liveStream) return null;
+  canvas.width  = video.videoWidth  || 640;
+  canvas.height = video.videoHeight || 360;
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
 }
 
 function stopLiveCamera() {
-  if (liveStream) { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
+  if (liveCollector) { clearInterval(liveCollector); liveCollector = null; }
+  if (liveStream)    { liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
+  liveFrameBuf = [];
   const video = document.getElementById('live-video');
   if (video) video.srcObject = null;
-  document.getElementById('live-start-ui').style.display = 'block';
+  document.getElementById('live-start-ui').style.display  = 'block';
   document.getElementById('live-active-ui').style.display = 'none';
 }
 
-async function captureAndAnalyzeLive() {
-  const video  = document.getElementById('live-video');
-  const canvas = document.getElementById('live-canvas');
-  const btn    = document.getElementById('live-analyze-btn');
-  if (!video || !canvas || !liveStream) return;
+async function pauseAndAnalyzeLive() {
+  if (!liveStream) return;
 
-  // Disable button during analysis
+  // Pause collection
+  if (liveCollector) { clearInterval(liveCollector); liveCollector = null; }
+
+  // Grab one final frame at the moment of pause
+  const finalFrame = grabLiveFrame();
+  if (finalFrame) liveFrameBuf.push(finalFrame);
+
+  const frames = liveFrameBuf.slice(); // snapshot
+  if (frames.length === 0) { toast('No frames captured yet', 'err'); resumeLiveCollection(); return; }
+
+  const btn = document.getElementById('live-pause-btn');
   btn.disabled = true;
   btn.textContent = 'Analyzing…';
-
-  // Capture 5 frames with 400ms gap for better context
-  const frames = [];
-  for (let i = 0; i < 5; i++) {
-    canvas.width  = video.videoWidth  || 640;
-    canvas.height = video.videoHeight || 360;
-    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-    const b64 = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
-    frames.push(b64);
-    if (i < 4) await new Promise(r => setTimeout(r, 400));
-  }
 
   const sport    = currentSport || 'squash';
   const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
@@ -3635,14 +3668,15 @@ async function captureAndAnalyzeLive() {
   const oppDesc  = liveOpp || 'the opponent';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
 
-  const prompt = `You are an elite ${sport} coach. The player you are coaching is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
+  const prompt = `You are an elite ${sport} coach. You have been watching a live match through a camera. The player you coach is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
 
-I am giving you 5 consecutive frames captured just now during a live match. Analyze the situation and give ${myName} specific, detailed coaching advice — just like a real coach giving feedback between points. Cover:
-- What just happened / current positioning
-- What ${myName} should do differently or better
-- Tactical adjustments to exploit ${oppName}'s weaknesses or position
+I am giving you ${frames.length} frames captured throughout the match so far, in chronological order. Analyze the complete sequence like a real coaching session between games. Cover:
+- ${myName}'s positioning and movement patterns
+- Key mistakes or missed opportunities
+- Tactical adjustments: what ${myName} should do differently
+- Specific tactical advice to exploit ${oppName}'s tendencies or weaknesses
 
-Be direct, specific, and tactical. Use ${myName}'s name. No score commentary.
+Be direct and specific. Address ${myName} by name. No score commentary.
 
 ${langInstr}`;
 
@@ -3658,7 +3692,7 @@ ${langInstr}`;
       headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
+        max_tokens: 2000,
         stream: true,
         messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
       })
@@ -3672,11 +3706,11 @@ ${langInstr}`;
     const card = document.createElement('div');
     card.className = 'live-result-card';
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    card.innerHTML = '<div class="live-result-time">' + timeStr + '</div><div class="live-result-body"></div>';
+    card.innerHTML = '<div class="live-result-time">' + timeStr + ' · ' + frames.length + ' frames analyzed</div><div class="live-result-body"></div>';
     feed.insertBefore(card, feed.firstChild);
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const body = card.querySelector('.live-result-body');
 
-    // Stream result with markdown rendering
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buf = '', fullText = '';
@@ -3700,12 +3734,28 @@ ${langInstr}`;
       }
     }
   } catch (err) {
-    console.error('live capture error:', err);
+    console.error('live analysis error:', err);
     toast('Error: ' + err.message, 'err');
   } finally {
     btn.disabled = false;
-    btn.textContent = '⏸ Analyze This Moment';
+    btn.textContent = '⏸ Pause & Analyze';
+    // Clear buffer and resume collection for next rally
+    liveFrameBuf = [];
+    document.getElementById('live-frame-count').textContent = 'Watching\u2026 0 frames captured';
+    resumeLiveCollection();
   }
+}
+
+function resumeLiveCollection() {
+  if (!liveStream || liveCollector) return;
+  liveCollector = setInterval(() => {
+    const frame = grabLiveFrame();
+    if (!frame) return;
+    liveFrameBuf.push(frame);
+    if (liveFrameBuf.length > LIVE_MAX_FRAMES) liveFrameBuf.shift();
+    const el = document.getElementById('live-frame-count');
+    if (el) el.textContent = 'Watching\u2026 ' + liveFrameBuf.length + ' frames captured';
+  }, LIVE_COLLECT_MS);
 }
 
 function toggleMobHist() {
