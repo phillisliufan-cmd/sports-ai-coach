@@ -3271,13 +3271,15 @@ function getTabLabel(tab) {
 function addHistoryEntry(tab, text) {
   const sel = document.getElementById('tourn-sel');
   const tournamentId = sel ? (sel.value ? parseInt(sel.value) : null) : null;
+  // Strip diagram JSON blocks before saving — they're visual-only
+  const cleanText = text.replace(/```diagram[\s\S]*?```/g, '').trim();
   const entry = {
     id: Date.now(),
     tab,
     tabLabel: getTabLabel(tab),
     name: getPlayerName(tab),
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    text,
+    text: cleanText,
     userNote: '',
     tournamentId
   };
@@ -3378,7 +3380,8 @@ function openModal(id) {
   document.getElementById('m-name').textContent = entry.name;
   document.getElementById('m-meta').innerHTML =
     `<span class="sb-badge ${badgeCls}">${entry.tabLabel}</span> ${entry.date}`;
-  document.getElementById('m-ai-text').innerHTML = postProcess(renderMarkdown(entry.text));
+  const cleanEntry = (entry.text || '').replace(/```diagram[\s\S]*?```/g, '').trim();
+  document.getElementById('m-ai-text').innerHTML = postProcess(renderMarkdown(cleanEntry));
   document.getElementById('m-note').value = entry.userNote || '';
   document.getElementById('m-bg').className = 'm-bg on';
   document.body.style.overflow = 'hidden';
