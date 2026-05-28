@@ -1230,6 +1230,16 @@ input[type="file"] { display: none; }
         <div class="live-intro-ttl">Live Match Analysis</div>
         <div class="live-intro-sub">Point your camera at the court — AI analyzes frames in real time</div>
       </div>
+      <div class="lang-bar">
+        <label>Language</label>
+        <select id="live-lang" class="lang-select">
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
       <div class="ig">
         <label>Capture every</label>
         <select id="live-interval" class="lang-select">
@@ -3632,7 +3642,9 @@ async function captureAndAnalyzeLive() {
   const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
 
   const sport = currentSport || 'squash';
-  const prompt = 'You are watching a live ' + sport + ' match. Analyze this single frame and give 2-3 immediate tactical observations. Be concise and direct — this is real-time coaching.';
+  const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
+  const prompt = 'You are watching a live ' + sport + ' match. Analyze this single frame and give 2-3 immediate tactical observations. Be concise and direct — this is real-time coaching. ' + langInstr;
 
   try {
     const token = await getAuthToken();
