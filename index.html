@@ -1230,13 +1230,15 @@ input[type="file"] { display: none; }
         <div class="live-intro-ttl">Live Match Analysis</div>
         <div class="live-intro-sub">Point your camera at the court — AI analyzes frames in real time</div>
       </div>
-      <div class="ig" style="margin-bottom:10px;">
-        <label>My player — name &amp; appearance</label>
-        <input type="text" id="live-me" class="auth-input" placeholder="e.g. Alex · red shirt, tall, plays left side" style="padding:9px 12px;font-size:14px;">
-      </div>
-      <div class="ig" style="margin-bottom:12px;">
-        <label>Opponent — name &amp; appearance</label>
-        <input type="text" id="live-opp" class="auth-input" placeholder="e.g. Jordan · blue shirt, short, right-handed" style="padding:9px 12px;font-size:14px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div class="ig" style="flex:1;margin:0;">
+          <label>My player</label>
+          <input type="text" id="live-me" class="auth-input" placeholder="e.g. Alex" style="padding:9px 12px;font-size:14px;">
+        </div>
+        <div class="ig" style="flex:1;margin:0;">
+          <label>Opponent</label>
+          <input type="text" id="live-opp" class="auth-input" placeholder="e.g. Jordan" style="padding:9px 12px;font-size:14px;">
+        </div>
       </div>
       <div class="lang-bar">
         <label>Language</label>
@@ -3653,12 +3655,20 @@ async function captureAndAnalyzeLive() {
   const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
   const liveMe  = ((document.getElementById('live-me')  || {}).value || '').trim();
   const liveOpp = ((document.getElementById('live-opp') || {}).value || '').trim();
-  const playerCtx = (liveMe || liveOpp)
-    ? ' Use these descriptions to identify players in the video — My player: ' + (liveMe || 'unspecified') + '. Opponent: ' + (liveOpp || 'unspecified') + '.'
-    : '';
+  const myName  = liveMe  || 'my player';
+  const oppName = liveOpp || 'the opponent';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
-  const myName = liveMe ? liveMe.split('·')[0].trim() : 'my player';
-  const prompt = 'You are a ' + sport + ' coach watching a live match.' + playerCtx + ' Look at this frame and focus ONLY on ' + myName + '. If ' + myName + ' made a mistake or is in a poor position, say what went wrong in one sentence, then say exactly what ' + myName + ' should do instead. If ' + myName + ' looks fine, say "OK" and nothing else. Do NOT mention the opponent\'s tactics, score, or general observations. Be direct and brief. ' + langInstr;
+  const prompt = `You are an elite ${sport} coach watching a live match. The player you are coaching is ${myName}. The opponent is ${oppName}.
+
+Look at this frame carefully and give ${myName} ONE clear tactical instruction — what should they do right now or in the next shot? Consider: court positioning, shot selection, movement patterns, pressure points, and how to exploit ${oppName}'s position.
+
+Rules:
+- Speak directly to ${myName} like a coach on the sideline ("Move to...", "Attack the...", "Drive it...")
+- Be specific and tactical — not generic advice like "stay focused"
+- 1-3 sentences maximum
+- Do NOT mention score or describe what just happened
+
+${langInstr}`;
 
   try {
     const token = await getAuthToken();
