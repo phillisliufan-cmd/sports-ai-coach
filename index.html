@@ -1230,15 +1230,13 @@ input[type="file"] { display: none; }
         <div class="live-intro-ttl">Live Match Analysis</div>
         <div class="live-intro-sub">Point your camera at the court — AI analyzes frames in real time</div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <div class="ig" style="flex:1;margin:0;">
-          <label>My player</label>
-          <input type="text" id="live-me" class="auth-input" placeholder="e.g. Alex" style="padding:9px 12px;font-size:14px;">
-        </div>
-        <div class="ig" style="flex:1;margin:0;">
-          <label>Opponent</label>
-          <input type="text" id="live-opp" class="auth-input" placeholder="e.g. Jordan" style="padding:9px 12px;font-size:14px;">
-        </div>
+      <div class="ig" style="margin-bottom:10px;">
+        <label>My player — name &amp; appearance</label>
+        <input type="text" id="live-me" class="auth-input" placeholder="e.g. Alex · red shirt, tall, plays left side" style="padding:9px 12px;font-size:14px;">
+      </div>
+      <div class="ig" style="margin-bottom:12px;">
+        <label>Opponent — name &amp; appearance</label>
+        <input type="text" id="live-opp" class="auth-input" placeholder="e.g. Jordan · blue shirt, short, right-handed" style="padding:9px 12px;font-size:14px;">
       </div>
       <div class="lang-bar">
         <label>Language</label>
@@ -3655,9 +3653,11 @@ async function captureAndAnalyzeLive() {
   const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
   const liveMe  = ((document.getElementById('live-me')  || {}).value || '').trim();
   const liveOpp = ((document.getElementById('live-opp') || {}).value || '').trim();
-  const playerCtx = (liveMe || liveOpp) ? ' Players: ' + (liveMe || 'my player') + ' vs ' + (liveOpp || 'opponent') + '.' : '';
+  const playerCtx = (liveMe || liveOpp)
+    ? ' Use these descriptions to identify players in the video — My player: ' + (liveMe || 'unspecified') + '. Opponent: ' + (liveOpp || 'unspecified') + '.'
+    : '';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
-  const prompt = 'You are watching a live ' + sport + ' match.' + playerCtx + ' Analyze this single frame and give 2-3 immediate tactical observations, referring to players by name if provided. Be concise and direct — this is real-time coaching. ' + langInstr;
+  const prompt = 'You are watching a live ' + sport + ' match.' + playerCtx + ' Analyze this single frame and give 2-3 immediate tactical observations, referring to players by their name when you can identify them. Be concise and direct — this is real-time coaching. ' + langInstr;
 
   try {
     const token = await getAuthToken();
