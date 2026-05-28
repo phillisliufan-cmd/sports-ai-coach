@@ -3657,7 +3657,7 @@ async function captureAndAnalyzeLive() {
     ? ' Use these descriptions to identify players in the video — My player: ' + (liveMe || 'unspecified') + '. Opponent: ' + (liveOpp || 'unspecified') + '.'
     : '';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
-  const prompt = 'You are watching a live ' + sport + ' match.' + playerCtx + ' Analyze this single frame and give 2-3 immediate tactical observations, referring to players by their name when you can identify them. Be concise and direct — this is real-time coaching. ' + langInstr;
+  const prompt = 'You are a ' + sport + ' coach watching a live match.' + playerCtx + ' Look at this frame and focus ONLY on my player. If my player made a mistake or is in a poor position, say what went wrong in one sentence, then say exactly what they should do instead. If my player looks fine, say "OK" and nothing else. Do NOT mention the opponent\'s tactics, score, or general observations. Be direct and brief. ' + langInstr;
 
   try {
     const token = await getAuthToken();
