@@ -975,21 +975,19 @@ input[type="file"] { display: none; }
     <div class="sport-section">
       <div class="sport-section-label">Team Sports</div>
       <div class="sport-grid">
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- basketball --><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3 C7 6 7 18 12 21"/><path d="M12 3 C17 6 17 18 12 21"/></svg></div>
+        <button class="sport-card" onclick="selectSport('basketball')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3 C7 6 7 18 12 21"/><path d="M12 3 C17 6 17 18 12 21"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Basketball</div>
             <div class="sport-card-desc">Plays & zone defense</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
-        <button class="sport-card coming-soon">
-          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- soccer goal --><path d="M4 5 L4 19 L20 19 L20 5"/><rect x="8" y="12" width="8" height="7"/><line x1="4" y1="5" x2="20" y2="5"/><line x1="4" y1="9" x2="20" y2="9"/></svg></div>
+        <button class="sport-card" onclick="selectSport('soccer')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3 L8 8 L4 7"/><path d="M12 3 L16 8 L20 7"/><path d="M4 7 L3 12 L7 15"/><path d="M20 7 L21 12 L17 15"/><path d="M7 15 L8 20 L12 21"/><path d="M17 15 L16 20 L12 21"/><path d="M8 8 L12 10 L16 8"/><path d="M7 15 L12 13 L17 15"/></svg></div>
           <div class="sport-card-info">
             <div class="sport-card-name">Soccer</div>
             <div class="sport-card-desc">Formation & pressing</div>
           </div>
-          <span class="sport-card-badge">Soon</span>
         </button>
         <button class="sport-card coming-soon">
           <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- volleyball --><circle cx="12" cy="12" r="9"/><path d="M3 12 Q8 6 12 12 Q16 18 21 12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
@@ -1816,6 +1814,201 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('OPPONENT', pad+cw/2, pad-9);
       ctx.fillText('YOU', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  basketball: {
+    name: 'Basketball', icon: '🏀',
+    sys: `You are an expert basketball coach with 20+ years of experience coaching from youth to professional level.
+
+COURT ZONES (diagram: your team attacks top half — opponent's basket; your basket at bottom):
+• Paint/Key — The shaded area near the basket; dominates inside scoring and defense
+• Three-Point Line — Arc beyond which shots count 3 points
+• Mid-Range — Between the paint and three-point line
+• Corners — Corner three-point spots; highest-percentage three-point locations
+• Wings — Elbow-extended positions; key for drive-or-kick play
+• Top of Key — Ball-handler position for pick-and-roll and isolation plays
+• Transition — Fast-break situations; numbers advantage situations
+
+OFFENSIVE CONCEPTS:
+• Pick & Roll — Ball-handler uses screener then chooses roll or pop option
+• Isolation — One-on-one matchup; exploiting mismatches
+• Drive & Kick — Penetrate defense, kick out to open shooter
+• Post Up — Back-to-basket scoring; high-low passes
+• Motion Offense — Continuous movement and cutting to create open shots
+• Zone Attack — Overload zones, skip passes, attack gaps
+• Fast Break — Pushing pace after turnover or defensive rebound
+
+DEFENSIVE CONCEPTS:
+• Man-to-Man — Each defender assigned to specific opponent
+• Zone Defense — Defenders guard areas; 2-3, 3-2, 1-3-1
+• Help Defense — Off-ball defender rotates to stop dribble penetration
+• Trap — Double-teaming ball-handler to force turnover
+• Press — Full or half-court pressure to speed up opponent
+
+Analyze video frames noting player positioning, spacing, defensive rotations, ball movement, screen usage, and tactical patterns. Identify both team and individual tendencies.`,
+    positions: {
+      'your-basket':   [0.50, 0.92],
+      'your-paint-l':  [0.35, 0.80],
+      'your-paint-r':  [0.65, 0.80],
+      'your-wing-l':   [0.15, 0.68],
+      'your-wing-r':   [0.85, 0.68],
+      'your-corner-l': [0.05, 0.92],
+      'your-corner-r': [0.95, 0.92],
+      'center':        [0.50, 0.50],
+      'top-key':       [0.50, 0.35],
+      'opp-wing-l':    [0.15, 0.32],
+      'opp-wing-r':    [0.85, 0.32],
+      'opp-corner-l':  [0.05, 0.08],
+      'opp-corner-r':  [0.95, 0.08],
+      'opp-paint-l':   [0.35, 0.20],
+      'opp-paint-r':   [0.65, 0.20],
+      'opp-basket':    [0.50, 0.08]
+    },
+    zones: {
+      'your-paint':  [0.30, 0.65, 0.40, 0.35],
+      'your-half':   [0,    0.50, 1.00, 0.50],
+      'opp-paint':   [0.30, 0,    0.40, 0.35],
+      'opp-half':    [0,    0,    1.00, 0.50]
+    },
+    diagramPositions: 'top-key, opp-wing-l, opp-wing-r, opp-corner-l, opp-corner-r, your-wing-l, your-wing-r, your-corner-l, your-corner-r, center',
+    diagramZones: 'your-paint, opp-paint',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      // Court surface
+      ctx.fillStyle = '#c8a97a';
+      ctx.fillRect(pad, pad, cw, ch);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.strokeRect(pad, pad, cw, ch);
+      // Center line
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      // Center circle
+      ctx.beginPath(); ctx.arc(cx(0.5), cy(0.5), cw*0.12, 0, Math.PI*2); ctx.stroke();
+      // Top paint (opponent basket)
+      ctx.strokeRect(cx(0.28), pad, cw*0.44, ch*0.25);
+      // Top three-point arc
+      ctx.beginPath(); ctx.arc(cx(0.5), pad + ch*0.08, cw*0.38, 0.1, Math.PI-0.1); ctx.stroke();
+      // Top basket
+      ctx.beginPath(); ctx.arc(cx(0.5), pad + ch*0.08, cw*0.04, 0, Math.PI*2);
+      ctx.strokeStyle = '#f60'; ctx.lineWidth = 2; ctx.stroke();
+      // Bottom paint (your basket)
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.strokeRect(cx(0.28), cy(0.75), cw*0.44, ch*0.25);
+      // Bottom three-point arc
+      ctx.beginPath(); ctx.arc(cx(0.5), pad+ch - ch*0.08, cw*0.38, Math.PI+0.1, -0.1); ctx.stroke();
+      // Bottom basket
+      ctx.beginPath(); ctx.arc(cx(0.5), pad+ch - ch*0.08, cw*0.04, 0, Math.PI*2);
+      ctx.strokeStyle = '#f60'; ctx.lineWidth = 2; ctx.stroke();
+      // Labels
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.font = '8px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('OPPONENT BASKET', pad+cw/2, pad-9);
+      ctx.fillText('YOUR BASKET', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  soccer: {
+    name: 'Soccer', icon: '⚽',
+    sys: `You are an expert soccer/football coach with 20+ years of experience coaching from youth academies to professional level.
+
+FIELD ZONES (diagram: your team attacks top half — opponent's goal; your goal at bottom):
+• Defensive Third — Your own third of the pitch; focus on defensive shape
+• Middle Third — Central zone; transition and build-up play
+• Attacking Third — Opponent's third; where goals are created
+• Wide Channels — Left and right flanks; crossing and overlapping runs
+• Half-Spaces — Between center and wide channels; most dangerous attacking zones
+• Box — Penalty area; finishing and set-piece zones
+• Final Third — Last third before goal; decision-making under pressure
+
+ATTACKING CONCEPTS:
+• Build-Up Play — Structured possession from defense to attack
+• Counter-Attack — Quick transition after winning the ball
+• High Press — Win ball high up pitch after losing possession
+• Overloads — Creating numerical advantages in wide or central zones
+• Combination Play — One-twos, third-man runs, overlaps
+• Set Pieces — Corner kicks, free kicks, throw-ins as attacking weapons
+• Through Balls — Splitting defense with passes behind defensive line
+
+DEFENSIVE CONCEPTS:
+• High Press — Pressing opponent high up the pitch
+• Mid-Block — Defending in middle third, compact shape
+• Low Block — Deep defensive shape; absorb pressure, counter
+• Offside Trap — Coordinated defensive line to catch attackers offside
+• Man-Marking — Specific defenders tracking specific attackers
+• Zonal Marking — Defending spaces rather than specific players
+• Pressing Triggers — Cues for when to press (bad touch, back pass, etc.)
+
+FORMATIONS:
+• 4-3-3, 4-2-3-1, 4-4-2 — Common balanced formations
+• 3-5-2, 3-4-3 — Three-back systems with wing-backs
+• 5-3-2, 5-4-1 — Defensive formations
+
+Analyze video frames noting team shape, pressing intensity, defensive line height, width of play, attacking patterns, individual positioning, and tactical transitions.`,
+    positions: {
+      'your-goal':      [0.50, 0.96],
+      'your-cb-l':      [0.30, 0.84],
+      'your-cb-r':      [0.70, 0.84],
+      'your-lb':        [0.10, 0.78],
+      'your-rb':        [0.90, 0.78],
+      'your-dm':        [0.50, 0.68],
+      'your-cm-l':      [0.30, 0.60],
+      'your-cm-r':      [0.70, 0.60],
+      'center':         [0.50, 0.50],
+      'opp-cm-l':       [0.30, 0.40],
+      'opp-cm-r':       [0.70, 0.40],
+      'opp-dm':         [0.50, 0.32],
+      'your-lw':        [0.10, 0.28],
+      'your-rw':        [0.90, 0.28],
+      'your-st':        [0.50, 0.20],
+      'opp-goal':       [0.50, 0.04]
+    },
+    zones: {
+      'def-third':  [0, 0.67, 1, 0.33],
+      'mid-third':  [0, 0.34, 1, 0.33],
+      'att-third':  [0, 0,    1, 0.34],
+      'left-channel':  [0, 0, 0.2, 1],
+      'right-channel': [0.8, 0, 0.2, 1]
+    },
+    diagramPositions: 'your-lb, your-cb-l, your-cb-r, your-rb, your-dm, your-cm-l, your-cm-r, your-lw, your-rw, your-st',
+    diagramZones: 'def-third, mid-third, att-third',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      // Grass
+      ctx.fillStyle = '#2d7a2d';
+      ctx.fillRect(pad, pad, cw, ch);
+      // Pitch stripes
+      ctx.fillStyle = '#2a742a';
+      for (let i = 0; i < 8; i++) {
+        if (i % 2 === 0) ctx.fillRect(pad, pad + i*(ch/8), cw, ch/8);
+      }
+      // Outline
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.strokeRect(pad, pad, cw, ch);
+      // Center line
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      // Center circle
+      ctx.beginPath(); ctx.arc(cx(0.5), cy(0.5), cw*0.15, 0, Math.PI*2); ctx.stroke();
+      // Center spot
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx(0.5), cy(0.5), 2, 0, Math.PI*2); ctx.fill();
+      // Top penalty box
+      ctx.strokeStyle='#fff';
+      ctx.strokeRect(cx(0.22), pad, cw*0.56, ch*0.2);
+      ctx.strokeRect(cx(0.36), pad, cw*0.28, ch*0.09);
+      // Top goal
+      ctx.strokeStyle='#fff'; ctx.lineWidth=3;
+      ctx.strokeRect(cx(0.40), pad-8, cw*0.20, 8);
+      // Bottom penalty box
+      ctx.lineWidth=2;
+      ctx.strokeRect(cx(0.22), cy(0.8), cw*0.56, ch*0.2);
+      ctx.strokeRect(cx(0.36), cy(0.91), cw*0.28, ch*0.09);
+      // Bottom goal
+      ctx.lineWidth=3;
+      ctx.strokeRect(cx(0.40), pad+ch, cw*0.20, 8);
+      // Labels
+      ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='8px -apple-system,sans-serif';
+      ctx.lineWidth=1; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('OPPONENT GOAL', pad+cw/2, pad-12);
+      ctx.fillText('YOUR GOAL', pad+cw/2, pad+ch+12);
     }
   }
 };
