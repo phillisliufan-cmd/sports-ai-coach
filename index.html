@@ -2044,11 +2044,13 @@ async function extractFrames(file, onProgress) {
       try {
         const dur = video.duration;
         const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
-        const COUNT  = isMobile ? 10 : 20;   // fewer seeks on mobile
-        const maxD   = isMobile ? 640 : 1024; // smaller frames on mobile
-        const jpegKB = isMobile ? 80 : 200;   // lighter JPEG on mobile
+        const COUNT    = isMobile ? 8 : 20;
+        const maxD     = isMobile ? 480 : 1024;
+        const jpegKB   = isMobile ? 60 : 200;
+        // On mobile, only sample the first 2 min — seeking deep into large files is very slow
+        const sampleDur = isMobile ? Math.min(dur, 120) : dur;
         const timestamps = [];
-        for (let i = 0; i < COUNT; i++) timestamps.push((dur / COUNT) * i);
+        for (let i = 0; i < COUNT; i++) timestamps.push((sampleDur / COUNT) * i);
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -2089,13 +2091,14 @@ async function extractFrames(file, onProgress) {
       reject(new Error('Cannot load video. Make sure it is MP4/MOV format.'));
     };
 
-    // Overall loading timeout — if no event fires in 30 s, fail gracefully
+    // Overall loading timeout — longer on mobile as large files take more time to load
+    const isMobileLoad = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
     globalTimer = setTimeout(() => {
       if (!started) {
         cleanup();
         reject(new Error('Video loading timed out. Try a shorter clip or different format.'));
       }
-    }, 30000);
+    }, isMobileLoad ? 60000 : 30000);
 
     video.src = blobUrl;
     video.load();
@@ -2121,7 +2124,8 @@ function seekTo(video, time) {
       if (Math.abs(video.currentTime - time) < 0.5) finish();
     }
 
-    const t = setTimeout(finish, 8000);
+    const isMobileSeek = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const t = setTimeout(finish, isMobileSeek ? 12000 : 8000);
 
     video.addEventListener('seeked',      finish, { once: true });
     video.addEventListener('timeupdate',  onTU);
