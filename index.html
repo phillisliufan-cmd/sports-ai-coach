@@ -3704,16 +3704,14 @@ async function pauseAndAnalyzeLive() {
   const oppDesc  = liveOpp || 'the opponent';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
 
-  const prompt = `You are an elite ${sport} coach. You have been watching a live match through a camera. The player you coach is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
+  const prompt = `You are an elite ${sport} coach. The player you coach is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
 
-I am giving you ${frames.length} frames captured throughout the match so far, in chronological order. Analyze the complete sequence like a real coaching session between games. Cover:
-- ${myName}'s positioning and movement patterns
-- Key mistakes or missed opportunities
-- Tactical adjustments: what ${myName} should do differently
-- Specific tactical advice to exploit ${oppName}'s tendencies or weaknesses
+I am giving you ${frames.length} frames from a live match. Focus ONLY on:
+1. What mistakes is ${myName} making? (positioning, shot selection, movement)
+2. What is ${oppName} doing tactically that is causing problems for ${myName}?
+3. Exactly what should ${myName} do differently to counter ${oppName}'s tactics?
 
-Note: some frames may show non-play moments (picking up balls, breaks, rest) — skip those and only analyze frames where actual play is happening.
-Be direct and specific. Address ${myName} by name. No score commentary.
+Skip non-play frames (breaks, ball pickup). Be direct and specific — address ${myName} by name. 3-5 sentences max.
 
 ${langInstr}`;
 
