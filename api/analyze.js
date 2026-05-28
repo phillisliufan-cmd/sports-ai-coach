@@ -34,16 +34,18 @@ async function checkAndIncrementFreeUses(email) {
   if (current >= SERVER_FREE_LIMIT) return false;
 
   // Upsert incremented count
-  await fetch(`${SUPA_URL}/rest/v1/free_uses`, {
+  const upsertRes = await fetch(`${SUPA_URL}/rest/v1/free_uses?on_conflict=email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPA_SERVICE_KEY,
       'Authorization': `Bearer ${SUPA_SERVICE_KEY}`,
-      'Prefer': 'resolution=merge-duplicates',
+      'Prefer': 'resolution=merge-duplicates,return=representation',
     },
     body: JSON.stringify({ email, count: current + 1 }),
   });
+  const upsertBody = await upsertRes.text();
+  console.log('free_uses upsert', upsertRes.status, upsertBody);
 
   return true;
 }
