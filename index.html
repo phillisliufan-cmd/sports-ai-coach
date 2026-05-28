@@ -2942,10 +2942,9 @@ FORMAT (strictly follow):
 2. [Second instruction]
 3. [Third instruction]
 
-Then add a "COACH NOTE:" section (keep the whole note under 8 sentences total):
-- 2 sentences: what patterns is the opponent using to WIN points against me — identify their winning shots/tactics
-- 1-2 sentences: how to neutralize or counter those winning patterns specifically
-- 2 sentences max: one specific error I'm making in my own play (from the video${myErrors ? ' and from what I described: ' + myErrors : ''}), cite the frame number where it's visible (e.g. "Frame 4"), and give one fix to apply right now
+Then add a "COACH NOTE:" section (keep the whole note under 5 sentences total):
+- 1 sentence: how the opponent is winning points (their key winning pattern) + 1 sentence on how to counter it
+- 1-2 sentences max: one error I'm making in my own play, cite the frame (e.g. "Frame 4"), and the fix
 
 Finally output a court diagram as a \`\`\`diagram JSON block (no other text around it):
 {
@@ -3682,7 +3681,9 @@ async function pauseAndAnalyzeLive() {
   const finalResult = grabLiveFrame();
   if (finalResult) liveFrameBuf.push(finalResult.b64);
 
-  const frames = liveFrameBuf.slice(); // snapshot
+  // Evenly sample up to 20 frames across the full buffer
+  const all = liveFrameBuf.slice();
+  const frames = all.length <= 20 ? all : Array.from({length: 20}, (_, i) => all[Math.round(i * (all.length - 1) / 19)]);
   if (frames.length === 0) { toast('No frames captured yet', 'err'); resumeLiveCollection(); return; }
 
   const btn = document.getElementById('live-pause-btn');
