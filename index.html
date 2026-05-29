@@ -3074,7 +3074,9 @@ async function analyze(tab) {
     return;
   }
 
-  const toSend  = frames.slice(0, 20);
+  const toSend  = frames.length <= 20
+    ? frames
+    : Array.from({length: 20}, (_, i) => frames[Math.round(i * (frames.length - 1) / 19)]);
   const prompt  = buildPrompt(tab);
 
   const btn     = document.getElementById('go-' + tab);
