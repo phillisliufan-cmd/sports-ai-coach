@@ -10,9 +10,33 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Email service not configured' });
   }
 
-  const { name, email, message } = req.body || {};
+  const { name, email, message, imageData, imageName } = req.body || {};
   if (!name || !email || !message) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const payload = {
+    from: 'Sports AI Coach <support@aceriq.ai>',
+    to: [TO_EMAIL],
+    reply_to: email,
+    subject: `Support request from ${name}`,
+    html: `
+      <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p><strong>Message:</strong></p>
+      <p style="white-space:pre-wrap;">${escapeHtml(message)}</p>
+      ${imageData ? `<p><strong>Screenshot attached.</strong></p>` : ''}
+    `,
+  };
+
+  if (imageData && imageName) {
+    const ext = imageName.split('.').pop().toLowerCase();
+    const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic' };
+    payload.attachments = [{
+      filename: imageName,
+      content: imageData,
+      content_type: mimeMap[ext] || 'image/jpeg',
+    }];
   }
 
   try {
@@ -22,18 +46,7 @@ module.exports = async function handler(req, res) {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'Sports AI Coach <support@aceriq.ai>',
-        to: [TO_EMAIL],
-        reply_to: email,
-        subject: `Support request from ${name}`,
-        html: `
-          <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-          <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p><strong>Message:</strong></p>
-          <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
-        `,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await resendRes.json();
