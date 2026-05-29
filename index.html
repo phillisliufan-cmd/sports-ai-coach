@@ -1154,6 +1154,10 @@ input[type="file"] { display: none; }
     <input type="file" id="f-btw" accept="video/*,video/mp4,video/quicktime,video/mov">
 
     <div class="prog-wrap" id="pg-btw"><div class="prog-bar"><div class="prog-fill" id="pf-btw" style="width:0"></div></div><div class="prog-lbl" id="pl-btw"></div></div>
+    <div id="btw-frame-total" style="display:none;font-size:12px;color:var(--muted);margin:4px 0 2px;align-items:center;justify-content:space-between;">
+      <span id="btw-frame-total-lbl"></span>
+      <button onclick="clearBtwFrames()" style="background:none;border:none;font-size:12px;color:#d00;cursor:pointer;font-family:inherit;padding:0;">Clear all clips</button>
+    </div>
 
     <div class="ig">
       <label>Game Scores (me — opponent)</label>
@@ -2590,8 +2594,23 @@ function loadVideo(tab, file) {
   up._file = file;
   document.getElementById('fn-' + tab).textContent =
     file.name + ' — ' + fmtBytes(file.size);
-  frameStore[tab] = [];
+  if (tab !== 'btw') frameStore[tab] = [];
   doExtract(tab);
+}
+
+function clearBtwFrames() {
+  frameStore['btw'] = [];
+  const up = document.getElementById('up-btw');
+  up.classList.remove('loaded');
+  up._file = null;
+  document.getElementById('fn-btw').textContent = '';
+  document.getElementById('f-btw').value = '';
+  document.getElementById('pl-btw').textContent = '';
+  document.getElementById('pg-btw').className = 'prog-wrap';
+  document.getElementById('btw-frame-total').style.display = 'none';
+  document.getElementById('btw-frame-total-lbl').textContent = '';
+  updatePostFrameInfo();
+  toast('All game clips cleared');
 }
 
 // ═══════════════════════════════════════════════
@@ -2608,7 +2627,7 @@ async function doExtract(tab) {
   pgFill.style.width = '0%';
   pgLbl.textContent = 'Loading video…';
 
-  frameStore[tab] = [];
+  if (tab !== 'btw') frameStore[tab] = [];
 
   try {
     const frames = await extractFrames(up._file, (i, n) => {
@@ -2617,9 +2636,20 @@ async function doExtract(tab) {
       pgLbl.textContent = `Extracting frame ${i + 1} of ${n}…`;
     });
 
-    frameStore[tab] = frames;
-    pgFill.style.width = '100%';
-    pgLbl.textContent = `✓ ${frames.length} frames ready — tap Analyze`;
+    if (tab === 'btw') {
+      frameStore['btw'] = frameStore['btw'].concat(frames);
+      const total = frameStore['btw'].length;
+      pgFill.style.width = '100%';
+      pgLbl.textContent = `✓ ${frames.length} frames added`;
+      const totalWrap = document.getElementById('btw-frame-total');
+      const totalLbl = document.getElementById('btw-frame-total-lbl');
+      if (totalWrap) totalWrap.style.display = 'flex';
+      if (totalLbl) totalLbl.textContent = `${total} frames total across all clips`;
+    } else {
+      frameStore[tab] = frames;
+      pgFill.style.width = '100%';
+      pgLbl.textContent = `✓ ${frames.length} frames ready — tap Analyze`;
+    }
     if (tab === 'btw') updatePostFrameInfo();
     setTimeout(() => { pgWrap.className = 'prog-wrap'; }, 2500);
   } catch (err) {
