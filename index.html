@@ -4041,7 +4041,7 @@ function postProcess(html, lang) {
   });
   // Wrap COACH NOTE paragraph in a yellow box
   html = html.replace(/<p>((?:COACH NOTE|教练提示)[：:])([\s\S]*?)<\/p>/gi,
-    '<div class="coach-box"><div class="coach-lbl">教练提示</div><p>$2</p></div>');
+    '<div class="coach-box"><div class="coach-lbl">Coach Note</div><p>$2</p></div>');
   return html;
 }
 
