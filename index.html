@@ -1121,8 +1121,7 @@ input[type="file"] { display: none; }
 
     <div class="prog-wrap" id="pg-pre"><div class="prog-bar"><div class="prog-fill" id="pf-pre" style="width:0"></div></div><div class="prog-lbl" id="pl-pre"></div></div>
 
-    <div class="ig"><label>How to identify the opponent in the video</label><input type="text" id="opp-name" placeholder="e.g. red shirt, tall, plays on the left side"></div>
-    <div class="ig"><label>Anything you've noticed (optional)</label><textarea id="pre-notes" placeholder="e.g. seems to favour backhand, slow on the front court..."></textarea></div>
+    <div class="ig"><label>Opponent's name</label><input type="text" id="opp-name" placeholder="e.g. Sarah"></div>
 
     <div id="free-banner-pre"></div>
     <div class="lang-bar" id="lang-bar-pre">
@@ -1172,7 +1171,7 @@ input[type="file"] { display: none; }
         <div class="gsrow" data-g="5"><span class="gslbl">G5</span><input class="gsinp" id="gs-me-5" type="number" min="0" max="30" placeholder="—"><span class="gssep">:</span><input class="gsinp" id="gs-op-5" type="number" min="0" max="30" placeholder="—"></div>
       </div>
     </div>
-    <div class="ig"><label>Identify the opponent in the video</label><input type="text" id="p-style" placeholder="e.g. blue shirt, shorter player on the right side"></div>
+    <div class="ig"><label>Opponent's name</label><input type="text" id="p-style" placeholder="e.g. Sarah"></div>
     <div id="free-banner-btw"></div>
     <div class="lang-bar" id="lang-bar-btw">
       <label>Language</label>
@@ -1208,7 +1207,7 @@ input[type="file"] { display: none; }
     </div>
 
     <div class="ig"><label>Game Scores</label><input type="text" id="g-scores" placeholder="e.g. 11-8, 9-11, 11-7, 11-5"></div>
-    <div class="ig"><label>Identify the opponent in the video</label><input type="text" id="pm-player" placeholder="e.g. white shirt, taller player"></div>
+    <div class="ig"><label>Opponent's name</label><input type="text" id="pm-player" placeholder="e.g. Sarah"></div>
     <div class="ig"><label>Match Notes</label><textarea id="pm-notes" placeholder="e.g. lost the 2nd game badly, couldn't cope with their drops..."></textarea></div>
 
     <div id="free-banner-post"></div>
@@ -2968,26 +2967,25 @@ function buildPrompt(tab) {
 
   if (tab === 'pre') {
     const desc  = document.getElementById('opp-name').value.trim();
-    const notes = document.getElementById('pre-notes').value.trim();
+    const oppLabel = desc || 'the opponent';
     const toSendPre = frameStore['pre'].slice(0, 20);
     const frameIndexPre = toSendPre.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
-    return `I have uploaded ${active} video frames from a ${sp.name} match. Scout my OPPONENT so I can beat them.
+    return `I have uploaded ${active} video frames from a ${sp.name} match. Scout my opponent so I can beat them.
 Frame timestamps: ${frameIndexPre}
-${desc ? 'Opponent: ' + desc : 'Focus on one player as the opponent.'}
-${notes ? 'My observations: ' + notes : ''}
+${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}
 
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. No emoji.
 
-When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze the OPPONENT ONLY. Be brief and direct — max 3 bullet points per section.
+When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Be brief and direct — max 3 bullet points per section.
 
 **1. KEY WEAKNESSES**
-Top 3 technical or tactical weaknesses. One sentence each.
+Top 3 technical or tactical weaknesses of ${oppLabel}. One sentence each.
 
 **2. HOW TO EXPLOIT THEM**
-Exactly 3 tactical patterns or shot combinations that target those weaknesses.
+Exactly 3 tactical patterns or shot combinations that target ${oppLabel}'s weaknesses. Write each instruction starting with "you" (e.g. "You should...").
 
 **3. GAME PLAN**
-3 concrete instructions: what to do, where to move them, when to attack.
+3 concrete instructions for you: what to do, where to move ${oppLabel}, when to attack.
 
 Keep the entire response under 300 words. No padding, no filler. Every sentence must be actionable.`;
   }
@@ -3010,6 +3008,7 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
       ? gameLines.join(', ') + `. Match score: ${meWins}–${opWins} going into Game ${nextGame}.`
       : 'no scores entered yet';
     const desc      = document.getElementById('p-style').value.trim();
+    const oppLabelBtw = desc || 'the opponent';
     const toSendBtw = frameStore['btw'].slice(0, 20);
     const frameIndex = toSendBtw.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from the ${sp.name} game just played. We are about to start Game ${nextGame}.
@@ -3017,26 +3016,26 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
 Frame timestamps: ${frameIndex}
 
 Match scores so far: ${scoreSummary}
-${desc ? 'The opponent can be identified by: ' + desc : ''}
+${desc ? `The opponent's name is ${desc}.` : ''}
 
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
-Analyze the OPPONENT in these frames. Give EXACTLY 3 tactical instructions for Game ${nextGame}.
+Refer to the opponent as "${oppLabelBtw}" and refer to the player I coach as "you".
+Analyze ${oppLabelBtw} in these frames. Give EXACTLY 3 tactical instructions for Game ${nextGame}.
 
 FORMAT (strictly follow):
-- Exactly 3 numbered instructions
-- Each instruction: one clear sentence, max 18 words
-- Simple, direct language — start each with an action verb
-- Each targets a specific opponent weakness you observed
+- Exactly 3 numbered instructions addressed to "you"
+- Each instruction: one clear sentence, max 18 words, starting with "You"
+- Simple, direct language — targets a specific weakness of ${oppLabelBtw}
 
 1. [First instruction]
 2. [Second instruction]
 3. [Third instruction]
 
 Then add a "COACH NOTE:" section (keep the whole note under 5 sentences total):
-- 1 sentence: how the opponent is winning points (their key winning pattern) + 1 sentence on how to counter it
-- 1-2 sentences max: one error I'm making in my own play, cite the frame (e.g. "Frame 4"), and the fix
+- 1 sentence: how ${oppLabelBtw} is winning points (their key winning pattern) + 1 sentence on how you can counter it
+- 1-2 sentences max: one error you are making, cite the frame (e.g. "Frame 4"), and the fix
 
 Finally output a court diagram as a \`\`\`diagram JSON block (no other text around it):
 {
@@ -3050,12 +3049,13 @@ Finally output a court diagram as a \`\`\`diagram JSON block (no other text arou
 }
 Valid positions: ${sp.diagramPositions}
 Valid zones: ${sp.diagramZones} — color: "opponent" (red) or "target" (blue)
-Show the 3 tactics as arrows. Mark where the opponent is stuck as a zone.`;
+Show the 3 tactics as arrows. Mark where ${oppLabelBtw} is stuck as a zone.`;
   }
 
   // post
   const scores = document.getElementById('g-scores').value.trim() || 'not provided';
   const desc2  = document.getElementById('pm-player').value.trim();
+  const oppLabelPost = desc2 || 'the opponent';
   const notes  = document.getElementById('pm-notes').value.trim();
   const toSendPost = frameStore['btw'].slice(0, 20);
   const frameIndexPost = toSendPost.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
@@ -3063,32 +3063,33 @@ Show the 3 tactics as arrows. Mark where the opponent is stuck as a zone.`;
 
 Frame timestamps: ${frameIndexPost}
 Game scores: ${scores}
-${desc2 ? 'The opponent can be identified by: ' + desc2 : ''}
-${notes ? 'My observations: ' + notes : ''}
+${desc2 ? `The opponent's name is ${desc2}.` : ''}
+${notes ? 'Notes: ' + notes : ''}
 
 Do NOT use any emoji or special symbols. Plain text only.
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
+Refer to the opponent as "${oppLabelPost}" and refer to the player I coach as "you".
 
-Analyze the OPPONENT ONLY in these frames. Focus on what I can learn to beat them.
+Analyze ${oppLabelPost} ONLY in these frames. Focus on what you can learn to beat them.
 
-**1. OPPONENT WEAKNESSES EXPOSED IN THIS MATCH**
-What vulnerabilities did the match reveal? Technical flaws, physical limits, mental patterns?
+**1. ${oppLabelPost.toUpperCase()} WEAKNESSES EXPOSED IN THIS MATCH**
+What vulnerabilities did the match reveal about ${oppLabelPost}? Technical flaws, physical limits, mental patterns?
 
-**2. MOMENTS I SHOULD HAVE WON MORE POINTS**
-When did I miss opportunities to exploit their weaknesses? What shots should I have played?
+**2. MOMENTS YOU SHOULD HAVE WON MORE POINTS**
+When did you miss opportunities to exploit ${oppLabelPost}'s weaknesses? What shots should you have played?
 
-**3. WHAT WORKED AGAINST THEM**
-Tactics and shots that troubled them — double down on these next time.
+**3. WHAT WORKED AGAINST ${oppLabelPost.toUpperCase()}**
+Tactics and shots that troubled ${oppLabelPost} — you should double down on these next time.
 
-**4. HOW THEY BEAT ME**
-What did they do that worked? How do I neutralise it next match?
+**4. HOW ${oppLabelPost.toUpperCase()} BEAT YOU**
+What did ${oppLabelPost} do that worked? How should you neutralise it next match?
 
 **5. GAME PLAN FOR THE REMATCH**
-Concrete strategy to beat them next time: specific shots, court positions, patterns to use.
+Concrete strategy for you to beat ${oppLabelPost} next time: specific shots, court positions, patterns to use.
 
-**6. TOP 3 THINGS TO PRACTICE**
-The highest-impact things to train this week that will help me beat this specific opponent.
+**6. TOP 3 THINGS FOR YOU TO PRACTICE**
+The highest-impact things to train this week that will help you beat ${oppLabelPost}.
 
 Be direct and focused on winning. Reference court zones and shot types.`;
 }
@@ -3801,21 +3802,21 @@ async function pauseAndAnalyzeLive() {
 
   const prompt = `You are a world-class ${sport} coach with deep knowledge of PSA Tour tactics — the deception of Ramy Ashour, the relentless length of Nick Matthew, the angles of Ali Farag, the physicality of El Shorbagy.
 
-Player you coach: ${myName}. Opponent: ${oppName}.
+Opponent: ${oppName}. Refer to the player you are coaching as "you" throughout.
 
 Analyze these ${frames.length} match frames. Skip non-play frames. No emoji. Output EXACTLY this format:
 
 **MISTAKES**
-- [1 specific mistake ${myName} is making — be precise: wrong shot choice, wrong positioning, telegraphing, slow recovery to T, etc.]
+- [1 specific mistake you are making — be precise: wrong shot choice, wrong positioning, telegraphing, slow recovery to T, etc.]
 - [1 more if visible]
 
-**OPPONENT PATTERN**
+**${oppName.toUpperCase()} PATTERN**
 - [What ${oppName} is doing to win points — specific shot patterns, where they're targeting, what's working]
 
 **ADJUST NOW**
-- [1-2 concrete tactical changes ${myName} should make THIS game — reference specific shots: volley drop, boast, hold-and-flick, tight rail, cross-court nick, lob under pressure, body shot, counter-drop, etc.]
+- [1-2 concrete tactical changes you should make THIS game — reference specific shots: volley drop, boast, hold-and-flick, tight rail, cross-court nick, lob under pressure, body shot, counter-drop, etc.]
 
-Be brutally honest and specific. Reference what you actually see in the frames. Address ${myName} directly.
+Be brutally honest and specific. Reference what you actually see in the frames. Address the player as "you" directly.
 
 ${langInstr}`;
 
