@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
         'line_items[0][price_data][product_data][name]': 'Sports AI Coach',
         'line_items[0][price_data][product_data][description]': 'Unlimited AI video analysis for your matches',
         'line_items[0][price_data][recurring][interval]': 'month',
-        'line_items[0][price_data][unit_amount]': '2000',
+        'line_items[0][price_data][unit_amount]': '999',
         'line_items[0][quantity]': '1',
         'metadata[user_id]': userId || '',
         allow_promotion_codes: 'true',
