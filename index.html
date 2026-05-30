@@ -3803,14 +3803,23 @@ async function pauseAndAnalyzeLive() {
   const oppDesc  = liveOpp || 'the opponent';
   const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
 
-  const prompt = `You are an elite ${sport} coach. The player you coach is ${myName} (${myDesc}). The opponent is ${oppName} (${oppDesc}).
+  const prompt = `You are a world-class ${sport} coach with deep knowledge of PSA Tour tactics — the deception of Ramy Ashour, the relentless length of Nick Matthew, the angles of Ali Farag, the physicality of El Shorbagy.
 
-I am giving you ${frames.length} frames from a live match. Focus ONLY on:
-1. What mistakes is ${myName} making? (positioning, shot selection, movement)
-2. What is ${oppName} doing tactically that is causing problems for ${myName}?
-3. Exactly what should ${myName} do differently to counter ${oppName}'s tactics?
+Player you coach: ${myName}. Opponent: ${oppName}.
 
-Skip non-play frames (breaks, ball pickup). No emoji. Be direct and specific — address ${myName} by name. 3-5 sentences max.
+Analyze these ${frames.length} match frames. Skip non-play frames. No emoji. Output EXACTLY this format:
+
+**MISTAKES**
+- [1 specific mistake ${myName} is making — be precise: wrong shot choice, wrong positioning, telegraphing, slow recovery to T, etc.]
+- [1 more if visible]
+
+**OPPONENT PATTERN**
+- [What ${oppName} is doing to win points — specific shot patterns, where they're targeting, what's working]
+
+**ADJUST NOW**
+- [1-2 concrete tactical changes ${myName} should make THIS game — reference specific shots: volley drop, boast, hold-and-flick, tight rail, cross-court nick, lob under pressure, body shot, counter-drop, etc.]
+
+Be brutally honest and specific. Reference what you actually see in the frames. Address ${myName} directly.
 
 ${langInstr}`;
 
