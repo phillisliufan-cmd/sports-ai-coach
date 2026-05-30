@@ -10,7 +10,8 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Stripe not configured' });
   }
 
-  const { email, userId } = req.body || {};
+  const { email, userId, plan } = req.body || {};
+  const isYearly = plan === 'yearly';
 
   try {
     const stripeRes = await fetch('https://api.stripe.com/v1/checkout/sessions', {
@@ -25,8 +26,8 @@ module.exports = async function handler(req, res) {
         'line_items[0][price_data][currency]': 'usd',
         'line_items[0][price_data][product_data][name]': 'Sports AI Coach',
         'line_items[0][price_data][product_data][description]': 'Unlimited AI video analysis for your matches',
-        'line_items[0][price_data][recurring][interval]': 'month',
-        'line_items[0][price_data][unit_amount]': '999',
+        'line_items[0][price_data][recurring][interval]': isYearly ? 'year' : 'month',
+        'line_items[0][price_data][unit_amount]': isYearly ? '9900' : '999',
         'line_items[0][quantity]': '1',
         'metadata[user_id]': userId || '',
         allow_promotion_codes: 'true',

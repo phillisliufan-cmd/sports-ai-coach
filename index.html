@@ -1550,33 +1550,36 @@ function showSubscribeWall() {
         <div style="font-size:22px;font-weight:800;color:#0a0a0a;margin-bottom:6px;">You're signed in!</div>
         <div style="font-size:15px;color:#555;">Subscribe to unlock unlimited AI analysis.</div>
       </div>
-      <div style="background:#f8f8f8;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px;">
-        <div style="font-size:28px;font-weight:800;color:#0a0a0a;">$20 <span style="font-size:16px;font-weight:500;color:#666;">/ month</span></div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#444;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:14px;color:#444;margin-bottom:4px;">
           <div>✓ Unlimited Pre-Match, Coaching & Post-Match analysis</div>
           <div>✓ All racket sports</div>
           <div>✓ Cancel anytime</div>
         </div>
+        <button onclick="startCheckout('monthly')" id="sub-btn-monthly" style="width:100%;padding:16px;background:#0a0a0a;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;">
+          <span>Monthly</span><span>$9.99 / month</span>
+        </button>
+        <button onclick="startCheckout('yearly')" id="sub-btn-yearly" style="width:100%;padding:16px;background:#fff;color:#0a0a0a;border:2px solid #0a0a0a;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:space-between;">
+          <span>Yearly <span style="font-size:12px;background:#00b341;color:#fff;padding:2px 7px;border-radius:20px;font-weight:600;">Save 2 months</span></span><span>$99 / year</span>
+        </button>
       </div>
-      <button onclick="startCheckout()" id="sub-btn" style="width:100%;padding:16px;background:#0a0a0a;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;">
-        Subscribe Now
-      </button>
       <div id="sub-msg" style="font-size:13px;color:#999;text-align:center;"></div>
     </div>`;
   document.body.appendChild(wall);
 }
 
-async function startCheckout() {
+async function startCheckout(plan) {
   const session = getSession();
   if (!session) return;
-  const btn = document.getElementById('sub-btn');
+  const btnId = plan === 'yearly' ? 'sub-btn-yearly' : 'sub-btn-monthly';
+  const btn = document.getElementById(btnId) || document.getElementById('sub-btn');
   const msg = document.getElementById('sub-msg');
   if (btn) { btn.textContent = 'Redirecting…'; btn.disabled = true; }
   try {
     const res = await fetch('/api/create-checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: session.user?.email, userId: session.user?.id }),
+      body: JSON.stringify({ email: session.user?.email, userId: session.user?.id, plan: plan || 'monthly' }),
     });
     const text = await res.text();
     console.log('[checkout] status:', res.status, 'body:', text);
