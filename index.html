@@ -3226,48 +3226,33 @@ function showVideoReview(tab, frames) {
   const old = card.querySelector('.vr-wrap');
   if (old) { old.remove(); }
 
+  const blobUrl = URL.createObjectURL(up._file);
+
   const wrap = document.createElement('div');
   wrap.className = 'vr-wrap';
+  wrap.innerHTML = `
+    <div class="vr-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>Video — tap a frame to jump to that moment</div>
+    <video class="vr-vid" id="vr-vid-${tab}" src="${blobUrl}"
+      controls playsinline muted webkit-playsinline></video>
+    <div class="vr-strip" id="vr-strip-${tab}"></div>
+  `;
+  card.appendChild(wrap);
 
-  if (tab === 'post') {
-    // Post-match may have frames from multiple videos — show thumbnails only, no player
-    wrap.innerHTML = `
-      <div class="vr-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>Frames analyzed — sampled across all clips</div>
-      <div class="vr-strip" id="vr-strip-${tab}" style="flex-wrap:wrap;"></div>
-    `;
-    card.appendChild(wrap);
-    const strip = wrap.querySelector('.vr-strip');
-    frames.forEach((fr, i) => {
-      const thumb = document.createElement('div');
-      thumb.className = 'vr-thumb';
-      thumb.style.cursor = 'default';
-      thumb.innerHTML = `<img src="${fr.dataUrl}" loading="lazy"><span>#${i+1}</span>`;
-      strip.appendChild(thumb);
+  const vid = wrap.querySelector('video');
+  const strip = wrap.querySelector('.vr-strip');
+
+  frames.forEach((fr, i) => {
+    const thumb = document.createElement('div');
+    thumb.className = 'vr-thumb';
+    thumb.innerHTML = `<img src="${fr.dataUrl}" loading="lazy"><span>#${i+1} · ${fmtTime(fr.ts)}</span>`;
+    thumb.addEventListener('click', function() {
+      vid.currentTime = fr.ts;
+      strip.querySelectorAll('.vr-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
+      vid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
-  } else {
-    const blobUrl = URL.createObjectURL(up._file);
-    wrap.innerHTML = `
-      <div class="vr-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>Video — tap a frame to jump to that moment</div>
-      <video class="vr-vid" id="vr-vid-${tab}" src="${blobUrl}"
-        controls playsinline muted webkit-playsinline></video>
-      <div class="vr-strip" id="vr-strip-${tab}"></div>
-    `;
-    card.appendChild(wrap);
-    const vid = wrap.querySelector('video');
-    const strip = wrap.querySelector('.vr-strip');
-    frames.forEach((fr, i) => {
-      const thumb = document.createElement('div');
-      thumb.className = 'vr-thumb';
-      thumb.innerHTML = `<img src="${fr.dataUrl}" loading="lazy"><span>#${i+1} · ${fmtTime(fr.ts)}</span>`;
-      thumb.addEventListener('click', function() {
-        vid.currentTime = fr.ts;
-        strip.querySelectorAll('.vr-thumb').forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-        vid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-      strip.appendChild(thumb);
-    });
-  }
+    strip.appendChild(thumb);
+  });
 }
 
 // ═══════════════════════════════════════════════
