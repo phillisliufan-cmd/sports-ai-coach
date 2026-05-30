@@ -1,5 +1,5 @@
 const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').replace(/\s+/g, '');
-const SITE_URL   = 'https://sports-ai-coach.vercel.app';
+const SITE_URL   = 'https://aceriq.ai';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
