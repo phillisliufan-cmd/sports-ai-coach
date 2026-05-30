@@ -1173,8 +1173,6 @@ input[type="file"] { display: none; }
       </div>
     </div>
     <div class="ig"><label>Identify the opponent in the video</label><input type="text" id="p-style" placeholder="e.g. blue shirt, shorter player on the right side"></div>
-    <div class="ig"><label>My errors this game (optional)</label><textarea id="btw-my-errors" placeholder="e.g. hitting the tin on backhand, slow to the front corners…"></textarea></div>
-
     <div id="free-banner-btw"></div>
     <div class="lang-bar" id="lang-bar-btw">
       <label>Language</label>
@@ -3012,7 +3010,6 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
       ? gameLines.join(', ') + `. Match score: ${meWins}–${opWins} going into Game ${nextGame}.`
       : 'no scores entered yet';
     const desc      = document.getElementById('p-style').value.trim();
-    const myErrors  = document.getElementById('btw-my-errors').value.trim();
     const toSendBtw = frameStore['btw'].slice(0, 20);
     const frameIndex = toSendBtw.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from the ${sp.name} game just played. We are about to start Game ${nextGame}.
@@ -3021,7 +3018,6 @@ Frame timestamps: ${frameIndex}
 
 Match scores so far: ${scoreSummary}
 ${desc ? 'The opponent can be identified by: ' + desc : ''}
-${myErrors ? 'Errors I felt I was making: ' + myErrors : ''}
 
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 
