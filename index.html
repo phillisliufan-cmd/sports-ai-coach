@@ -2529,8 +2529,22 @@ function renderFreeBanners(remaining) {
 async function fetchAndRenderFreeBanners() {
   renderFreeBanners(); // show immediately with '…'
   const session = getSession();
-  if (!session || isSubscribed()) return;
+  if (!session) return;
   try {
+    // Check server-side subscription status first
+    const subRes = await fetch('/api/subscription-status', {
+      headers: { 'Authorization': `Bearer ${session.access_token}` }
+    });
+    if (subRes.ok) {
+      const subData = await subRes.json();
+      if (subData.subscribed) {
+        setSubscribed();
+        renderFreeBanners();
+        return;
+      }
+    }
+    if (isSubscribed()) return;
+    // Not subscribed — fetch free uses count
     const res = await fetch('/api/free-uses', {
       headers: { 'Authorization': `Bearer ${session.access_token}` }
     });
