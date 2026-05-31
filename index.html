@@ -1285,6 +1285,17 @@ input[type="file"] { display: none; }
 
     <!-- Analysis results -->
     <div id="live-results"></div>
+
+    <!-- Match Summary -->
+    <div id="live-summary-section" style="display:none;margin-top:16px;">
+      <button id="live-summary-btn" onclick="summarizeLive()" style="width:100%;padding:14px;background:#3a4a8a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+        Summarize Match
+      </button>
+      <div id="live-summary-card" style="display:none;margin-top:12px;background:#f5f7ff;border:1px solid #d0d8f0;border-radius:14px;padding:18px;">
+        <div style="font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#3a4a8a;margin-bottom:10px;">Match Summary</div>
+        <div id="live-summary-body" style="font-size:14px;line-height:1.7;color:var(--text);"></div>
+      </div>
+    </div>
   </div>
 
 </div><!-- /wrap -->
@@ -3658,6 +3669,7 @@ let liveStream      = null;
 let liveFrameBuf    = [];    // captured frames during the match
 let liveCollector   = null;  // interval that silently grabs frames
 let livePrevPixels  = null;  // previous frame pixel data for motion detection
+let liveAnalysisLog = [];    // accumulated text from each analysis round
 const LIVE_COLLECT_MS   = 3000; // grab 1 frame every 3s
 const LIVE_MOTION_THRESH = 15;  // avg pixel diff threshold (0-255); below = no play
 
@@ -3678,6 +3690,10 @@ async function startLiveCamera() {
   video.srcObject = liveStream;
   liveFrameBuf = [];
   livePrevPixels = null;
+  liveAnalysisLog = [];
+  document.getElementById('live-results').innerHTML = '';
+  document.getElementById('live-summary-section').style.display = 'none';
+  document.getElementById('live-summary-card').style.display = 'none';
 
   document.getElementById('live-start-ui').style.display  = 'none';
   document.getElementById('live-active-ui').style.display = 'block';
@@ -3739,6 +3755,95 @@ function stopLiveCamera() {
   if (video) video.srcObject = null;
   document.getElementById('live-start-ui').style.display  = 'block';
   document.getElementById('live-active-ui').style.display = 'none';
+}
+
+async function summarizeLive() {
+  if (liveAnalysisLog.length === 0) { toast('No analysis to summarize yet', 'err'); return; }
+
+  const btn = document.getElementById('live-summary-btn');
+  btn.disabled = true;
+  btn.textContent = 'Summarizing…';
+
+  const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
+  const liveOpp  = ((document.getElementById('live-opp') || {}).value || '').trim();
+  const oppName  = liveOpp ? liveOpp.split(' ')[0] : 'the opponent';
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
+
+  const combinedAnalysis = liveAnalysisLog.map((txt, i) => `--- Analysis ${i + 1} ---\n${txt}`).join('\n\n');
+
+  const prompt = `You are a world-class squash coach. Below are ${liveAnalysisLog.length} live in-game analysis reports from a match against ${oppName}.
+
+${combinedAnalysis}
+
+Based on ALL of the above, write a concise post-match summary for the player. Refer to the player as "you". Refer to the opponent as "${oppName}".
+
+FORMAT:
+**OVERALL PATTERN**
+1-2 sentences: the dominant theme of the match — what ${oppName} kept doing, and how you responded.
+
+**YOUR BIGGEST MISTAKE TODAY**
+1-2 sentences: the most repeated error you made, with a concrete fix.
+
+**WHAT WORKED**
+1-2 sentences: the tactic that troubled ${oppName} most — do more of this.
+
+**TOP 3 THINGS TO DO DIFFERENTLY NEXT MATCH**
+3 short bullet points, each starting with an action verb.
+
+Keep the whole response under 200 words. Be direct and actionable.
+
+${langInstr}`;
+
+  const summaryCard = document.getElementById('live-summary-card');
+  const summaryBody = document.getElementById('live-summary-body');
+  summaryCard.style.display = 'block';
+  summaryBody.textContent = '';
+
+  try {
+    const token = await getAuthToken();
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        stream: true,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) { toast('Summary failed', 'err'); return; }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '', fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(data);
+          if (ev.type === 'content_block_delta' && ev.delta?.text) {
+            fullText += ev.delta.text;
+            summaryBody.innerHTML = renderMarkdown(stripEmoji(fullText));
+          }
+        } catch {}
+      }
+    }
+    summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    console.error('summary error:', err);
+    toast('Error: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Summarize Match';
+  }
 }
 
 async function pauseAndAnalyzeLive() {
@@ -3842,6 +3947,11 @@ ${langInstr}`;
           }
         } catch {}
       }
+    }
+    // Save to log and show summary button
+    if (fullText.trim()) {
+      liveAnalysisLog.push(fullText.trim());
+      document.getElementById('live-summary-section').style.display = 'block';
     }
   } catch (err) {
     console.error('live analysis error:', err);
