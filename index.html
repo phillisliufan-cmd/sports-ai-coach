@@ -1122,6 +1122,7 @@ input[type="file"] { display: none; }
     <div class="prog-wrap" id="pg-pre"><div class="prog-bar"><div class="prog-fill" id="pf-pre" style="width:0"></div></div><div class="prog-lbl" id="pl-pre"></div></div>
 
     <div class="ig"><label>Opponent's name</label><input type="text" id="opp-name" placeholder="e.g. Sarah"></div>
+    <div class="ig"><label>How to identify them in the video</label><input type="text" id="opp-desc" placeholder="e.g. red shirt, tall, plays on the left side"></div>
 
     <div id="free-banner-pre"></div>
     <div class="lang-bar" id="lang-bar-pre">
@@ -1172,6 +1173,7 @@ input[type="file"] { display: none; }
       </div>
     </div>
     <div class="ig"><label>Opponent's name</label><input type="text" id="p-style" placeholder="e.g. Sarah"></div>
+    <div class="ig"><label>How to identify them in the video</label><input type="text" id="p-style-desc" placeholder="e.g. blue shirt, shorter player on the right side"></div>
     <div id="free-banner-btw"></div>
     <div class="lang-bar" id="lang-bar-btw">
       <label>Language</label>
@@ -1208,6 +1210,7 @@ input[type="file"] { display: none; }
 
     <div class="ig"><label>Game Scores</label><input type="text" id="g-scores" placeholder="e.g. 11-8, 9-11, 11-7, 11-5"></div>
     <div class="ig"><label>Opponent's name</label><input type="text" id="pm-player" placeholder="e.g. Sarah"></div>
+    <div class="ig"><label>How to identify them in the video</label><input type="text" id="pm-player-desc" placeholder="e.g. white shirt, taller player"></div>
     <div class="ig"><label>Match Notes</label><textarea id="pm-notes" placeholder="e.g. lost the 2nd game badly, couldn't cope with their drops..."></textarea></div>
 
     <div id="free-banner-post"></div>
@@ -2612,11 +2615,11 @@ function syncPostFromCoaching() {
     document.getElementById('g-scores').value = lines.join(', ');
   }
 
-  // Opponent description
+  // Opponent name + description carry-over to post
   const oppDesc = document.getElementById('p-style').value.trim();
-  if (oppDesc) {
-    document.getElementById('pm-player').value = oppDesc;
-  }
+  if (oppDesc) document.getElementById('pm-player').value = oppDesc;
+  const oppDescVid = document.getElementById('p-style-desc').value.trim();
+  if (oppDescVid) document.getElementById('pm-player-desc').value = oppDescVid;
 }
 
 function updatePostFrameInfo() {
@@ -2966,13 +2969,14 @@ function buildPrompt(tab) {
   const active = frameStore[tab].length;
 
   if (tab === 'pre') {
-    const desc  = document.getElementById('opp-name').value.trim();
+    const desc     = document.getElementById('opp-name').value.trim();
+    const descVid  = document.getElementById('opp-desc').value.trim();
     const oppLabel = desc || 'the opponent';
     const toSendPre = frameStore['pre'].slice(0, 20);
     const frameIndexPre = toSendPre.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from a ${sp.name} match. Scout my opponent so I can beat them.
 Frame timestamps: ${frameIndexPre}
-${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}
+${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}${descVid ? ` In the video, identify them by: ${descVid}.` : ''}
 
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. No emoji.
 
@@ -3007,7 +3011,8 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
     const scoreSummary = gameLines.length > 0
       ? gameLines.join(', ') + `. Match score: ${meWins}–${opWins} going into Game ${nextGame}.`
       : 'no scores entered yet';
-    const desc      = document.getElementById('p-style').value.trim();
+    const desc        = document.getElementById('p-style').value.trim();
+    const descVidBtw  = document.getElementById('p-style-desc').value.trim();
     const oppLabelBtw = desc || 'the opponent';
     const toSendBtw = frameStore['btw'].slice(0, 20);
     const frameIndex = toSendBtw.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
@@ -3016,7 +3021,7 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
 Frame timestamps: ${frameIndex}
 
 Match scores so far: ${scoreSummary}
-${desc ? `The opponent's name is ${desc}.` : ''}
+${desc ? `The opponent's name is ${desc}.` : ''}${descVidBtw ? ` In the video, identify them by: ${descVidBtw}.` : ''}
 
 Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
 
@@ -3054,8 +3059,9 @@ Show the 3 tactics as arrows. Mark where ${oppLabelBtw} is stuck as a zone.`;
 
   // post
   const scores = document.getElementById('g-scores').value.trim() || 'not provided';
-  const desc2  = document.getElementById('pm-player').value.trim();
-  const oppLabelPost = desc2 || 'the opponent';
+  const desc2         = document.getElementById('pm-player').value.trim();
+  const descVidPost   = document.getElementById('pm-player-desc').value.trim();
+  const oppLabelPost  = desc2 || 'the opponent';
   const notes  = document.getElementById('pm-notes').value.trim();
   const toSendPost = frameStore['btw'].slice(0, 20);
   const frameIndexPost = toSendPost.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
@@ -3063,7 +3069,7 @@ Show the 3 tactics as arrows. Mark where ${oppLabelBtw} is stuck as a zone.`;
 
 Frame timestamps: ${frameIndexPost}
 Game scores: ${scores}
-${desc2 ? `The opponent's name is ${desc2}.` : ''}
+${desc2 ? `The opponent's name is ${desc2}.` : ''}${descVidPost ? ` In the video, identify them by: ${descVidPost}.` : ''}
 ${notes ? 'Notes: ' + notes : ''}
 
 Do NOT use any emoji or special symbols. Plain text only.
