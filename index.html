@@ -1191,10 +1191,6 @@ input[type="file"] { display: none; }
     <div class="out-card" id="oc-btw">
       <div class="out-hdr"><span class="out-ttl">Courtside Coaching</span></div>
       <div class="out-body" id="ob-btw"></div>
-      <div class="summary-card" id="vc">
-        <div class="summary-hdr">Summary</div>
-        <div id="vitems"></div>
-      </div>
     </div>
   </div>
 
@@ -3303,7 +3299,7 @@ function showVideoReview(tab, frames) {
 //  VOICE (Between-Games)
 // ═══════════════════════════════════════════════
 function buildVoice(text) {
-  // Extract lines starting with 1. 2. 3.
+  // Extract numbered instructions for speak feature
   const lines = text.split('\n');
   const instrs = [];
   for (const line of lines) {
@@ -3314,41 +3310,7 @@ function buildVoice(text) {
     }
     if (instrs.length === 3) break;
   }
-
   voiceLines = instrs;
-
-  const vc = document.getElementById('vc');
-  const vi = document.getElementById('vitems');
-  vi.innerHTML = '';
-
-  // Update summary header label based on language
-  const summaryLang = langSetting['btw'];
-  vc.querySelector('.summary-hdr').textContent =
-    ({zh:'总结', ja:'まとめ', fr:'Résumé', de:'Zusammenfassung'}[summaryLang] || 'Summary');
-
-  if (instrs.length === 0) {
-    vc.className = 'summary-card';
-    return;
-  }
-
-  instrs.forEach((instr, i) => {
-    const row = document.createElement('div');
-    row.className = 'v-item';
-
-    const num = document.createElement('div');
-    num.className = 'v-num';
-    num.textContent = i + 1;
-
-    const txt = document.createElement('div');
-    txt.className = 'v-txt';
-    txt.textContent = instr;
-
-    row.appendChild(num);
-    row.appendChild(txt);
-    vi.appendChild(row);
-  });
-
-  vc.className = 'summary-card on';
 }
 
 function speak(text) {
