@@ -2978,7 +2978,7 @@ function buildPrompt(tab) {
 Frame timestamps: ${frameIndexPre}
 ${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}${descVid ? ` In the video, identify them by: ${descVid}.` : ''}
 
-Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. No emoji.
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. No emoji. Do NOT include a frame-by-frame description or summary section. Go directly to the structured sections below.
 
 When referencing observations, cite the specific frame number (e.g. "Frame 3"). Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Be brief and direct — max 3 bullet points per section.
 
@@ -3023,7 +3023,7 @@ Frame timestamps: ${frameIndex}
 Match scores so far: ${scoreSummary}
 ${desc ? `The opponent's name is ${desc}.` : ''}${descVidBtw ? ` In the video, identify them by: ${descVidBtw}.` : ''}
 
-Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. Do NOT include a frame-by-frame description or summary section. Go directly to the 3 tactical instructions.
 
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
 Refer to the opponent as "${oppLabelBtw}" and refer to the player I coach as "you".
@@ -3073,7 +3073,7 @@ ${desc2 ? `The opponent's name is ${desc2}.` : ''}${descVidPost ? ` In the video
 ${notes ? 'Notes: ' + notes : ''}
 
 Do NOT use any emoji or special symbols. Plain text only.
-Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening.
+Note: some frames may show non-play moments (picking up balls, breaks, changing sides) — skip those and only analyze frames where actual play is happening. Do NOT include a frame-by-frame description or summary section. Go directly to the structured sections below.
 When referencing observations, cite the specific frame number (e.g. "Frame 3").
 Refer to the opponent as "${oppLabelPost}" and refer to the player I coach as "you".
 
