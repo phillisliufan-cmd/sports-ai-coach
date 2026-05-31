@@ -3010,6 +3010,8 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
     const desc        = document.getElementById('p-style').value.trim();
     const descVidBtw  = document.getElementById('p-style-desc').value.trim();
     const oppLabelBtw = desc || 'the opponent';
+    const btwLang     = langSetting['btw'] || 'en';
+    const btwLangInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
     const toSendBtw = frameStore['btw'].slice(0, 20);
     const frameIndex = toSendBtw.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from the ${sp.name} game just played. We are about to start Game ${nextGame}.
@@ -3026,8 +3028,8 @@ Refer to the opponent as "${oppLabelBtw}" and refer to the player I coach as "yo
 Analyze ${oppLabelBtw} in these frames. Give EXACTLY 3 tactical instructions for Game ${nextGame}.
 
 FORMAT (strictly follow):
-- Exactly 3 numbered instructions addressed to "you"
-- Each instruction: one clear sentence, max 18 words, starting with "You"
+- Exactly 3 numbered instructions addressed to the player you coach
+- Each instruction: one clear sentence, max 18 words
 - Simple, direct language — targets a specific weakness of ${oppLabelBtw}
 
 1. [First instruction]
