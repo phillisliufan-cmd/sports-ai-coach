@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || '',
         'line_items[0][price_data][currency]': 'usd',
-        'line_items[0][price_data][product_data][name]': 'Sports AI Coach',
+        'line_items[0][price_data][product_data][name]': 'Aceriq AI Coach',
         'line_items[0][price_data][product_data][description]': 'Unlimited AI video analysis for your matches',
         'line_items[0][price_data][recurring][interval]': isYearly ? 'year' : 'month',
         'line_items[0][price_data][unit_amount]': isYearly ? '9900' : '999',
