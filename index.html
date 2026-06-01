@@ -1244,7 +1244,19 @@ input[type="file"] { display: none; }
     <!-- Setup screen -->
     <div id="live-start-ui">
       <div class="live-intro">
-        <div class="live-intro-ico">📷</div>
+        <div class="live-intro-ico">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)">
+            <!-- camera body -->
+            <rect x="4" y="13" width="32" height="22" rx="3"/>
+            <!-- lens -->
+            <circle cx="20" cy="24" r="7"/>
+            <circle cx="20" cy="24" r="4"/>
+            <!-- viewfinder bump -->
+            <path d="M14 13v-3a2 2 0 012-2h8a2 2 0 012 2v3"/>
+            <!-- flash dot -->
+            <circle cx="31" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
         <div class="live-intro-ttl">Live Match Analysis</div>
         <div class="live-intro-sub">AI watches the match in the background — pause anytime for deep coaching feedback</div>
       </div>
@@ -1364,7 +1376,16 @@ input[type="file"] { display: none; }
     <div id="solo-live-mode" style="display:none;">
       <div id="solo-live-start-ui">
         <div class="live-intro">
-          <div class="live-intro-ico">🎾</div>
+          <div class="live-intro-ico">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)">
+              <!-- person -->
+              <circle cx="20" cy="10" r="4"/>
+              <path d="M12 28c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+              <!-- racket -->
+              <ellipse cx="28" cy="24" rx="5" ry="6" transform="rotate(-35 28 24)"/>
+              <line x1="31.5" y1="28.5" x2="36" y2="35"/>
+            </svg>
+          </div>
           <div class="live-intro-ttl">Live Solo Technique Analysis</div>
           <div class="live-intro-sub">AI watches your solo practice — pause anytime for technique feedback</div>
         </div>
