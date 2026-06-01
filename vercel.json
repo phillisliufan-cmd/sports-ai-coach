@@ -1,6 +1,6 @@
 {
   "functions": {
     "api/gemini-upload.js":  { "maxDuration": 60 },
-    "api/analyze-video.js":  { "maxDuration": 60 }
+    "api/analyze-video.js":  { "maxDuration": 300 }
   }
 }
