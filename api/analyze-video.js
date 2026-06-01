@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
               { text: prompt }
             ]
           }],
-          generationConfig: { maxOutputTokens: 4096 },
+          generationConfig: { maxOutputTokens: 8192 },
         }),
       }
     );
