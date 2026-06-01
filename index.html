@@ -1535,6 +1535,7 @@ window.onerror = function(msg, src, line) {
 //  STATE
 // ═══════════════════════════════════════════════
 const frameStore = { pre: [], btw: [], post: [], solo: [] };
+const videoStore  = { pre: null, btw: null, post: null, solo: null };
 let voiceLines = [];
 const HIST_KEY = 'squash_history';
 let history = [];
@@ -2778,12 +2779,13 @@ function syncPostFromCoaching() {
 function updatePostFrameInfo() {
   const lbl = document.getElementById('post-frame-lbl');
   if (!lbl) return;
+  const hasVideo = !!videoStore['btw'];
   const n = frameStore['btw'].length;
-  if (n > 0) {
-    lbl.textContent = n + ' frames from Coaching tab ready to analyze';
+  if (hasVideo || n > 0) {
+    lbl.textContent = hasVideo ? 'Video from Coaching tab ready to analyze' : n + ' frames from Coaching tab ready to analyze';
     lbl.style.color = 'var(--accent-dark)';
   } else {
-    lbl.textContent = 'Uses frames from Coaching tab — upload a video there first';
+    lbl.textContent = 'Uses video from Coaching tab — upload a video there first';
     lbl.style.color = 'var(--muted)';
   }
 }
@@ -2810,11 +2812,13 @@ function loadVideo(tab, file) {
   document.getElementById('fn-' + tab).textContent =
     file.name + ' — ' + fmtBytes(file.size);
   if (tab !== 'btw') frameStore[tab] = [];
-  doExtract(tab);
+  videoStore[tab] = null; // clear old URI
+  doGeminiUpload(tab, file);
 }
 
 function clearBtwFrames() {
   frameStore['btw'] = [];
+  videoStore['btw'] = null;
   const up = document.getElementById('up-btw');
   up.classList.remove('loaded');
   up._file = null;
@@ -2831,6 +2835,308 @@ function clearBtwFrames() {
 // ═══════════════════════════════════════════════
 //  FRAME EXTRACTION
 // ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  GEMINI VIDEO UPLOAD
+// ═══════════════════════════════════════════════
+async function doGeminiUpload(tab, file) {
+  const pgWrap = document.getElementById('pg-' + tab);
+  const pgFill = document.getElementById('pf-' + tab);
+  const pgLbl  = document.getElementById('pl-' + tab);
+  pgWrap.className = 'prog-wrap on';
+  pgFill.style.width = '0%';
+  pgLbl.textContent = 'Uploading video…';
+
+  try {
+    const token = await getAuthToken();
+
+    const result = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          pgFill.style.width = pct + '%';
+          pgLbl.textContent = 'Uploading… ' + pct + '%';
+        }
+      };
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch(e) { reject(new Error('Bad response from server')); }
+        } else {
+          try {
+            const d = JSON.parse(xhr.responseText);
+            reject(new Error(d.error || 'Upload failed (' + xhr.status + ')'));
+          } catch { reject(new Error('Upload failed (' + xhr.status + ')')); }
+        }
+      };
+      xhr.onerror = function() { reject(new Error('Network error during upload')); };
+
+      xhr.open('POST', '/api/gemini-upload');
+      xhr.setRequestHeader('x-mime-type', file.type || 'video/mp4');
+      xhr.setRequestHeader('Content-Length', file.size);
+      if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.send(file);
+    });
+
+    videoStore[tab] = { uri: result.uri, name: result.name, mimeType: result.mimeType || file.type || 'video/mp4' };
+
+    pgFill.style.width = '100%';
+    pgLbl.textContent = '✓ Video ready — tap Analyze';
+    setTimeout(function() { pgWrap.className = 'prog-wrap'; }, 2500);
+
+    if (tab === 'btw') updatePostFrameInfo();
+
+  } catch (err) {
+    toast('Upload failed: ' + err.message, 'err');
+    pgWrap.className = 'prog-wrap';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  BUILD PROMPT FOR GEMINI (video-native)
+// ═══════════════════════════════════════════════
+function buildVideoPrompt(tab) {
+  const sp = SPORTS[currentSport];
+
+  if (tab === 'pre') {
+    const desc    = document.getElementById('opp-name').value.trim();
+    const descVid = document.getElementById('opp-desc').value.trim();
+    const oppLabel = desc || 'the opponent';
+    return `I'm sharing a ${sp.name} match video. Scout my opponent so I can beat them.
+${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}${descVid ? ` Identify them by: ${descVid}.` : ''}
+
+Skip non-play moments. When referencing observations, cite approximate timestamps (e.g., "at 0:45"). Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Max 3 bullets per section. No emoji.
+
+**1. KEY WEAKNESSES**
+Top 3 technical or tactical weaknesses of ${oppLabel}. One sentence each.
+
+**2. HOW TO EXPLOIT THEM**
+Exactly 3 tactical patterns or shot combinations targeting ${oppLabel}'s weaknesses. Start each with "You should…".
+
+**3. GAME PLAN**
+3 concrete instructions: what to do, where to move ${oppLabel}, when to attack.
+
+Under 300 words. Every sentence actionable.`;
+  }
+
+  if (tab === 'btw') {
+    let meWins = 0, opWins = 0;
+    const gameLines = [];
+    for (let g = 1; g <= 5; g++) {
+      const me = document.getElementById('gs-me-' + g).value;
+      const op = document.getElementById('gs-op-' + g).value;
+      if (me !== '' && op !== '') {
+        const mi = parseInt(me), oi = parseInt(op);
+        gameLines.push('Game ' + g + ': ' + mi + '\u2013' + oi + ' (' + (mi > oi ? 'I won' : 'opponent won') + ')');
+        if (mi > oi) meWins++; else opWins++;
+      }
+    }
+    const nextGame    = gameLines.length + 1;
+    const scoreSummary = gameLines.length > 0
+      ? gameLines.join(', ') + '. Match score: ' + meWins + '\u2013' + opWins + ' going into Game ' + nextGame + '.'
+      : 'no scores entered yet';
+    const desc        = document.getElementById('p-style').value.trim();
+    const descVid     = document.getElementById('p-style-desc').value.trim();
+    const oppLabel    = desc || 'the opponent';
+    const btwLang     = langSetting['btw'] || 'en';
+    const langInstr   = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
+
+    return `I'm sharing a ${sp.name} game video. We are about to start Game ${nextGame}.
+
+Match scores so far: ${scoreSummary}
+${desc ? 'The opponent\'s name is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
+
+Skip non-play moments. Cite approximate timestamps. Refer to opponent as "${oppLabel}" and player I coach as "you". Give EXACTLY 3 tactical instructions for Game ${nextGame}.
+
+FORMAT:
+1. [First instruction — one sentence, max 18 words]
+2. [Second instruction]
+3. [Third instruction]
+
+Then a "COACH NOTE:" (under 5 sentences total):
+- How ${oppLabel} is winning points + how you counter it
+- One error you are making + the fix (cite timestamp)
+
+Finally output a court diagram as a \`\`\`diagram JSON block:
+{
+  "arrows": [{"from":"POSITION","to":"POSITION","style":"solid","color":"blue","label":"1. Shot name"}],
+  "zones":  [{"pos":"ZONE","label":"text","color":"opponent"}]
+}
+Valid positions: ${sp.diagramPositions}
+Valid zones: ${sp.diagramZones} — color "opponent" (red) or "target" (blue)
+
+${langInstr}`;
+  }
+
+  if (tab === 'solo') {
+    const focus     = (document.getElementById('solo-focus') || {}).value || '';
+    const focusInstr = focus.trim() ? 'The player wants specific feedback on: ' + focus.trim() + '.' : '';
+    const soloLang  = langSetting['solo'] || 'en';
+    const langInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[soloLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
+    return `I'm sharing a ${sp.name} solo practice video.
+${focusInstr}
+
+Analyze technique across the video. Skip non-play moments. Cite approximate timestamps. No emoji. Address the player as "you".
+
+**1. WHAT YOU'RE DOING WELL**
+2-3 specific technical things that look correct. Be precise, cite timestamps.
+
+**2. KEY TECHNICAL ISSUES**
+Top 3 problems with mechanics, footwork, or positioning. One sentence per issue + one concrete fix.
+
+**3. MOVEMENT & FOOTWORK**
+Court movement: recovery to T, split step, balance. What to fix and how.
+
+**4. SHOT MECHANICS**
+The 1-2 most important mechanics issues — racket prep, swing path, follow-through. Give the fix.
+
+**5. TOP 3 DRILLS FOR THIS WEEK**
+Specific solo drills. For each: name it, describe in 1 sentence, state reps/sets.
+
+Under 380 words. Every sentence actionable.
+
+${langInstr}`;
+  }
+
+  // post
+  const scores      = document.getElementById('g-scores').value.trim() || 'not provided';
+  const desc2       = document.getElementById('pm-player').value.trim();
+  const descVidPost = document.getElementById('pm-player-desc').value.trim();
+  const oppLabelPost = desc2 || 'the opponent';
+  const notes       = document.getElementById('pm-notes').value.trim();
+  return `I'm sharing a ${sp.name} match video I just played. I want to understand how to beat this opponent better next time.
+
+Game scores: ${scores}
+${desc2 ? 'The opponent\'s name is ' + desc2 + '.' : ''}${descVidPost ? ' Identify them by: ' + descVidPost + '.' : ''}
+${notes ? 'Notes: ' + notes : ''}
+
+Skip non-play moments. Cite approximate timestamps. Refer to opponent as "${oppLabelPost}" and to me as "you". No emoji.
+
+**1. ${oppLabelPost.toUpperCase()} WEAKNESSES EXPOSED IN THIS MATCH**
+**2. MOMENTS YOU SHOULD HAVE WON MORE POINTS**
+**3. WHAT WORKED AGAINST ${oppLabelPost.toUpperCase()}**
+**4. HOW ${oppLabelPost.toUpperCase()} BEAT YOU**
+**5. GAME PLAN FOR THE REMATCH**
+**6. TOP 3 THINGS FOR YOU TO PRACTICE**
+
+Be direct and focused on winning. Reference court zones and shot types.`;
+}
+
+// ═══════════════════════════════════════════════
+//  ANALYZE WITH GEMINI (video path)
+// ═══════════════════════════════════════════════
+async function analyzeWithGemini(tab, videoData) {
+  const session = getSession();
+
+  const prompt       = buildVideoPrompt(tab);
+  const systemPrompt = SPORTS[currentSport].sys +
+    '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' +
+    ({ zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
+       ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
+       fr: 'IMPORTANT: Write your entire response in French (Français) only.',
+       de: 'IMPORTANT: Write your entire response in German (Deutsch) only.' }[langSetting[tab]] ||
+      'IMPORTANT: Write your entire response in English only.');
+
+  const btn     = document.getElementById('go-' + tab);
+  const lbl     = btn.querySelector('.btn-lbl');
+  const origTxt = lbl.textContent;
+  btn.disabled  = true;
+  btn.classList.add('busy');
+  lbl.textContent = 'Analyzing video…';
+
+  const outBody = document.getElementById('ob-' + tab);
+  const outCard = document.getElementById('oc-' + tab);
+  outBody.textContent = '';
+  outCard.className   = 'out-card';
+
+  try {
+    async function doFetch(token) {
+      return fetch('/api/analyze-video', {
+        method: 'POST',
+        headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
+        body: JSON.stringify({ fileUri: videoData.uri, fileName: videoData.name, mimeType: videoData.mimeType, systemPrompt, prompt })
+      });
+    }
+
+    let authToken = await getAuthToken();
+    let res = await doFetch(authToken);
+
+    if (res.status === 401 || res.status === 402) {
+      const errData = await res.json().catch(() => ({}));
+      if (res.status === 402) { showSubscribeWall(); return; }
+      if (res.status === 401 && errData.error === 'Invalid session') {
+        const s = getSession();
+        if (s && s.refresh_token) {
+          const refRes = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+            body: JSON.stringify({ refresh_token: s.refresh_token })
+          });
+          if (refRes.ok) {
+            const data = await refRes.json();
+            const newSession = { access_token: data.access_token, refresh_token: data.refresh_token, expires_in: data.expires_in, expires_at: Date.now()/1000 + data.expires_in, user: data.user || s.user };
+            setSession(newSession); updateAcctBtn();
+            res = await doFetch(newSession.access_token);
+          } else {
+            clearSession(); updateAcctBtn();
+            throw new Error('Session expired — please sign in again');
+          }
+        }
+      }
+    }
+
+    if (!res.ok) {
+      let msg = 'API error ' + res.status;
+      try { const e = await res.json(); msg = e.error || msg; } catch {}
+      throw new Error(msg);
+    }
+
+    outCard.className = 'out-card on';
+    outCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    lbl.textContent = 'Analyzing…';
+
+    const reader  = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '', buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const raw = line.slice(6).trim();
+        if (raw === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(raw);
+          if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+            fullText += evt.delta.text;
+            const displayText = fullText.replace(/```diagram[\s\S]*?```/g, '').trim();
+            outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
+          }
+        } catch {}
+      }
+    }
+
+    if (tab === 'btw') { buildVoice(fullText); extractAndRenderDiagram(fullText, tab, currentSport); }
+    showVideoReview(tab, []);
+    toast('Analysis complete ✓', 'ok');
+    addHistoryEntry(tab, fullText);
+    if (!session) { incFreeUses(); renderFreeBanners(); }
+    else { fetchAndRenderFreeBanners(); }
+
+  } catch (err) {
+    console.error(err);
+    toast('Error: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('busy');
+    lbl.textContent = origTxt;
+  }
+}
+
 async function doExtract(tab) {
   const up = document.getElementById('up-' + tab);
   if (!up._file) { toast('Upload a video first', 'err'); return; }
@@ -3299,6 +3605,12 @@ async function analyze(tab) {
     if (uses >= FREE_LIMIT) { showAuthWall('free-limit'); return; }
   }
 
+  // ── Gemini video path ─────────────────────────────────────────────────
+  const srcTab   = tab === 'post' ? 'btw' : tab;
+  const videoData = videoStore[srcTab];
+  if (videoData) return analyzeWithGemini(tab, videoData);
+
+  // ── Legacy frame path (fallback / live camera) ────────────────────────
   const frames = tab === 'post' ? frameStore['btw'] : frameStore[tab];
   if (frames.length === 0) {
     toast(tab === 'post' ? 'Upload a video in the Coaching tab first' : 'Upload a video first', 'err');
@@ -3461,29 +3773,31 @@ function showVideoReview(tab, frames) {
 
   const wrap = document.createElement('div');
   wrap.className = 'vr-wrap';
+  const hasFrames = frames && frames.length > 0;
   wrap.innerHTML = `
-    <div class="vr-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>Video — tap a frame to jump to that moment</div>
+    <div class="vr-ttl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>${hasFrames ? 'Video — tap a frame to jump to that moment' : 'Your video'}</div>
     <video class="vr-vid" id="vr-vid-${tab}" src="${blobUrl}"
       controls playsinline muted webkit-playsinline></video>
-    <div class="vr-strip" id="vr-strip-${tab}"></div>
+    ${hasFrames ? `<div class="vr-strip" id="vr-strip-${tab}"></div>` : ''}
   `;
   card.appendChild(wrap);
 
-  const vid = wrap.querySelector('video');
-  const strip = wrap.querySelector('.vr-strip');
-
-  frames.forEach((fr, i) => {
-    const thumb = document.createElement('div');
-    thumb.className = 'vr-thumb';
-    thumb.innerHTML = `<img src="${fr.dataUrl}" loading="lazy"><span>#${i+1} · ${fmtTime(fr.ts)}</span>`;
-    thumb.addEventListener('click', function() {
-      vid.currentTime = fr.ts;
-      strip.querySelectorAll('.vr-thumb').forEach(t => t.classList.remove('active'));
-      thumb.classList.add('active');
-      vid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (hasFrames) {
+    const vid   = wrap.querySelector('video');
+    const strip = wrap.querySelector('.vr-strip');
+    frames.forEach((fr, i) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'vr-thumb';
+      thumb.innerHTML = `<img src="${fr.dataUrl}" loading="lazy"><span>#${i+1} · ${fmtTime(fr.ts)}</span>`;
+      thumb.addEventListener('click', function() {
+        vid.currentTime = fr.ts;
+        strip.querySelectorAll('.vr-thumb').forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        vid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+      strip.appendChild(thumb);
     });
-    strip.appendChild(thumb);
-  });
+  }
 }
 
 // ═══════════════════════════════════════════════
