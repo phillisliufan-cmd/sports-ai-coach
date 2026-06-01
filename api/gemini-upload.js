@@ -1,40 +1,42 @@
-const GEMINI_KEY    = (process.env.GEMINI_API_KEY         || '').replace(/\s+/g, '');
-const SUPA_URL      = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
-const SUPA_ANON     = (process.env.SUPABASE_ANON_KEY      || '').replace(/\s+/g, '');
+export const config = { runtime: 'edge' };
+
+const GEMINI_KEY = (process.env.GEMINI_API_KEY       || '').replace(/\s+/g, '');
+const SUPA_URL   = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
+const SUPA_ANON  = (process.env.SUPABASE_ANON_KEY    || '').replace(/\s+/g, '');
 
 async function verifyToken(token) {
-  const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
+  const r = await fetch(`${SUPA_URL}/auth/v1/user`, {
     headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPA_ANON }
   });
-  if (!res.ok) return null;
-  return await res.json();
+  if (!r.ok) return null;
+  return r.json();
 }
 
-// Collect readable stream into a Buffer
-async function streamToBuffer(stream) {
-  const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  return Buffer.concat(chunks);
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
 }
 
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
-  if (!GEMINI_KEY) return res.status(500).json({ error: 'Gemini API key not configured' });
+export default async function handler(request) {
+  if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
+  if (!GEMINI_KEY) return json({ error: 'Gemini API key not configured' }, 500);
 
   // Optional auth check
-  const token = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
+  const authHeader = request.headers.get('authorization') || '';
+  const token = authHeader.replace('Bearer ', '').trim();
   if (token) {
     const user = await verifyToken(token);
-    if (!user) return res.status(401).json({ error: 'Invalid session' });
+    if (!user) return json({ error: 'Invalid session' }, 401);
   }
 
-  const mimeType   = req.headers['x-mime-type']    || 'video/mp4';
-  const fileSize   = req.headers['content-length'];
-
-  if (!fileSize) return res.status(400).json({ error: 'content-length header required' });
+  const mimeType = request.headers.get('x-mime-type') || 'video/mp4';
+  const fileSize = request.headers.get('content-length');
+  if (!fileSize) return json({ error: 'content-length header required' }, 400);
 
   try {
-    // ── Step 1: Start resumable upload with Gemini Files API ──────────────
+    // ── Step 1: Start resumable upload session with Gemini ────────────────
     const initRes = await fetch(
       `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_KEY}`,
       {
@@ -52,40 +54,38 @@ module.exports = async function handler(req, res) {
 
     if (!initRes.ok) {
       const err = await initRes.text();
-      return res.status(502).json({ error: 'Gemini init failed: ' + err });
+      return json({ error: 'Gemini init failed: ' + err }, 502);
     }
 
     const uploadUrl = initRes.headers.get('x-goog-upload-url');
-    if (!uploadUrl) return res.status(502).json({ error: 'No upload URL from Gemini' });
+    if (!uploadUrl) return json({ error: 'No upload URL from Gemini' }, 502);
 
-    // ── Step 2: Buffer video from client and upload to Gemini ─────────────
-    const videoBuffer = await streamToBuffer(req);
-
+    // ── Step 2: Stream video body directly to Gemini (no buffering) ───────
     const uploadRes = await fetch(uploadUrl, {
-      method:  'POST',
+      method: 'POST',
       headers: {
-        'Content-Length':        videoBuffer.length,
+        'Content-Length':        fileSize,
         'X-Goog-Upload-Offset':  '0',
         'X-Goog-Upload-Command': 'upload, finalize',
       },
-      body: videoBuffer,
+      body: request.body,   // ReadableStream — no buffering in memory
+      // @ts-ignore duplex required for streaming request body
+      duplex: 'half',
     });
 
     if (!uploadRes.ok) {
       const err = await uploadRes.text();
-      return res.status(502).json({ error: 'Gemini upload failed: ' + err });
+      return json({ error: 'Gemini upload failed: ' + err }, 502);
     }
 
     const fileData = await uploadRes.json();
     const uri  = fileData.file?.uri;
     const name = fileData.file?.name;
+    if (!uri) return json({ error: 'No file URI returned from Gemini' }, 502);
 
-    if (!uri) return res.status(502).json({ error: 'No file URI returned from Gemini' });
-
-    return res.status(200).json({ uri, name, mimeType });
+    return json({ uri, name, mimeType });
 
   } catch (err) {
-    console.error('gemini-upload error:', err);
-    if (!res.headersSent) res.status(500).json({ error: err.message });
+    return json({ error: err.message }, 500);
   }
-};
+}
