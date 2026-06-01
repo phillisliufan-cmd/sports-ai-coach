@@ -3,7 +3,7 @@ const SUPA_URL         = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON        = (process.env.SUPABASE_ANON_KEY       || '').replace(/\s+/g, '');
 const SUPA_SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY|| '').replace(/\s+/g, '');
 const SERVER_FREE_LIMIT = 3;
-const GEMINI_MODEL     = 'gemini-2.0-flash';
+const GEMINI_MODEL     = 'gemini-1.5-flash-latest';
 
 async function verifySupabaseToken(token) {
   const res = await fetch(`${SUPA_URL}/auth/v1/user`, {
@@ -92,12 +92,12 @@ module.exports = async function handler(req, res) {
 
     // ── Call Gemini with SSE streaming ────────────────────────────────────
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemPrompt || '' }] },
+          system_instruction: { parts: [{ text: systemPrompt || '' }] },
           contents: [{
             role: 'user',
             parts: [
