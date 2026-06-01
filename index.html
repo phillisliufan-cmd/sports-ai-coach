@@ -167,11 +167,13 @@ body {
 #r-pre:checked ~ #analysis-view .app-body #p-pre,
 #r-btw:checked ~ #analysis-view .app-body #p-btw,
 #r-post:checked ~ #analysis-view .app-body #p-post,
-#r-live:checked ~ #analysis-view .app-body #p-live { display: block; }
+#r-live:checked ~ #analysis-view .app-body #p-live,
+#r-solo:checked ~ #analysis-view .app-body #p-solo { display: block; }
 #r-pre:checked ~ #analysis-view .tabs label[for="r-pre"],
 #r-btw:checked ~ #analysis-view .tabs label[for="r-btw"],
 #r-post:checked ~ #analysis-view .tabs label[for="r-post"],
-#r-live:checked ~ #analysis-view .tabs label[for="r-live"] {
+#r-live:checked ~ #analysis-view .tabs label[for="r-live"],
+#r-solo:checked ~ #analysis-view .tabs label[for="r-solo"] {
   color: var(--text);
   border-bottom-color: var(--text);
   font-weight: 600;
@@ -933,6 +935,7 @@ input[type="file"] { display: none; }
 <input type="radio" name="tab" id="r-btw" hidden>
 <input type="radio" name="tab" id="r-post" hidden>
 <input type="radio" name="tab" id="r-live" hidden>
+<input type="radio" name="tab" id="r-solo" hidden>
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
@@ -1101,6 +1104,11 @@ input[type="file"] { display: none; }
     <span class="tab-ico">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="7"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
     </span>Live
+  </label>
+  <label class="tab" for="r-solo">
+    <span class="tab-ico">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><line x1="12" y1="14" x2="12" y2="20"/></svg>
+    </span>Solo
   </label>
 </div>
 
@@ -1299,6 +1307,118 @@ input[type="file"] { display: none; }
     </div>
   </div>
 
+  <!-- SOLO PRACTICE -->
+  <div class="panel" id="p-solo">
+
+    <!-- Mode toggle -->
+    <div style="display:flex;background:var(--surface3);border-radius:10px;padding:3px;margin-bottom:20px;gap:3px;">
+      <button id="solo-mode-video-btn" onclick="setSoloMode('video')"
+        style="flex:1;padding:9px 0;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);transition:all .15s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
+        Video Upload
+      </button>
+      <button id="solo-mode-live-btn" onclick="setSoloMode('live')"
+        style="flex:1;padding:9px 0;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;background:transparent;color:var(--muted);transition:all .15s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="7"/></svg>
+        Live Camera
+      </button>
+    </div>
+
+    <!-- ── VIDEO MODE ── -->
+    <div id="solo-video-mode">
+      <label class="upload" id="up-solo" for="f-solo"
+        onclick="if(!getSession()&&getFreeUses()>=FREE_LIMIT){event.preventDefault();showAuthWall('free-limit');}"
+        ondragover="dov(event)" ondragleave="dlv(event)" ondrop="drp(event,'solo')">
+        <div class="upload-ico"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div>
+        <div class="upload-ttl">Upload Solo Practice Video</div>
+        <div class="upload-sub">Tap to choose · auto-extracts frames</div>
+        <div class="upload-fn" id="fn-solo"></div>
+      </label>
+      <input type="file" id="f-solo" accept="video/*,video/mp4,video/quicktime,video/mov">
+
+      <div class="prog-wrap" id="pg-solo"><div class="prog-bar"><div class="prog-fill" id="pf-solo" style="width:0"></div></div><div class="prog-lbl" id="pl-solo"></div></div>
+
+      <div class="ig"><label>Focus area (optional)</label><input type="text" id="solo-focus" placeholder="e.g. backhand, footwork, serve, ghosting"></div>
+
+      <div id="free-banner-solo"></div>
+      <div class="lang-bar">
+        <label>Language</label>
+        <select class="lang-select" onchange="setLang(this.value,this,'solo')">
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <button class="btn-go" id="go-solo" onclick="analyze('solo')">
+        <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>Analyze My Technique</span>
+      </button>
+      <div class="out-card" id="oc-solo">
+        <div class="out-hdr"><span class="out-ttl">Solo Practice Analysis</span></div>
+        <div class="out-body" id="ob-solo"></div>
+      </div>
+    </div>
+
+    <!-- ── LIVE CAMERA MODE ── -->
+    <div id="solo-live-mode" style="display:none;">
+      <div id="solo-live-start-ui">
+        <div class="live-intro">
+          <div class="live-intro-ico">🎾</div>
+          <div class="live-intro-ttl">Live Solo Technique Analysis</div>
+          <div class="live-intro-sub">AI watches your solo practice — pause anytime for technique feedback</div>
+        </div>
+        <div class="ig" style="margin-bottom:12px;">
+          <label>Focus area (optional)</label>
+          <input type="text" id="solo-live-focus" class="auth-input" placeholder="e.g. backhand, footwork, ghosting" style="padding:9px 12px;font-size:14px;">
+        </div>
+        <select id="solo-live-lang" class="lang-select" style="width:100%;margin-bottom:16px;">
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+        <button class="btn-go" onclick="startSoloLive()">
+          <span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="7"/></svg>Start Live Analysis</span>
+        </button>
+      </div>
+
+      <div id="solo-live-active-ui" style="display:none;">
+        <video id="solo-live-video" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;max-height:260px;object-fit:cover;display:block;"></video>
+        <canvas id="solo-live-canvas" style="display:none;"></canvas>
+        <div class="live-status-bar" style="margin:10px 0;">
+          <div class="live-dot"></div>
+          <span id="solo-live-frame-count" style="font-size:13px;color:var(--muted);font-weight:600;">Watching… 0 frames captured</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="solo-live-pause-btn" onclick="pauseAndAnalyzeSoloLive()"
+            style="flex:1;padding:15px;background:#0a0a0a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+            Get Feedback Now
+          </button>
+          <button onclick="stopSoloLive()"
+            style="padding:15px 16px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">
+            Stop
+          </button>
+        </div>
+      </div>
+
+      <div id="solo-live-results"></div>
+
+      <div id="solo-live-summary-section" style="display:none;margin-top:16px;">
+        <button id="solo-live-summary-btn" onclick="summarizeSoloLive()"
+          style="width:100%;padding:14px;background:#3a4a8a;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">
+          Summarize Session
+        </button>
+        <div id="solo-live-summary-card" style="display:none;margin-top:12px;background:#f5f7ff;border:1px solid #d0d8f0;border-radius:14px;padding:18px;">
+          <div style="font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#3a4a8a;margin-bottom:10px;">Session Summary</div>
+          <div id="solo-live-summary-body" style="font-size:14px;line-height:1.7;color:var(--text);"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /p-solo -->
+
 </div><!-- /wrap -->
 
   <!-- DESKTOP SIDEBAR -->
@@ -1393,7 +1513,7 @@ window.onerror = function(msg, src, line) {
 // ═══════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════
-const frameStore = { pre: [], btw: [], post: [] };
+const frameStore = { pre: [], btw: [], post: [], solo: [] };
 let voiceLines = [];
 const HIST_KEY = 'squash_history';
 let history = [];
@@ -1402,7 +1522,7 @@ let _toastT;
 const TOURN_KEY = 'squash_tournaments';
 let tournaments = [];
 let currentSport = 'squash';
-const langSetting = { pre: 'en', btw: 'en', post: 'en' };
+const langSetting = { pre: 'en', btw: 'en', post: 'en', solo: 'en' };
 
 // ─── AUTH (direct Supabase REST, no SDK) ───
 const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
@@ -2458,7 +2578,7 @@ Analyze video frames noting footwork patterns, blade preparation, attack timing,
 
 (function init() {
   try {
-    ['pre','btw'].forEach(function(tab) {
+    ['pre','btw','solo'].forEach(function(tab) {
       var inp = document.getElementById('f-' + tab);
       if (inp) inp.addEventListener('change', function() {
         if (this.files && this.files[0]) {
@@ -2491,10 +2611,14 @@ Analyze video frames noting footwork patterns, blade preparation, attack timing,
     bind('tourn-name-inp',   'keydown', function(e) { if (e.key === 'Enter') confirmNewTournament(); });
     bind('mob-hist-hd',      'click',   toggleMobHist);
 
-    // Stop live camera when switching away from Live tab
-    ['r-pre','r-btw','r-post'].forEach(function(id) {
+    // Stop live cameras when switching away from their tabs
+    ['r-pre','r-btw','r-post','r-solo'].forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.addEventListener('change', function() { if (liveStream) stopLiveCamera(); });
+    });
+    ['r-pre','r-btw','r-post','r-live'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', function() { if (soloLiveStream) stopSoloLive(); });
     });
 
     // Sport home is shown by default, analysis view hidden
@@ -2536,7 +2660,7 @@ function renderFreeBanners(remaining) {
       </div>`;
   }
 
-  ['pre','btw','post'].forEach(tab => {
+  ['pre','btw','post','solo'].forEach(tab => {
     const el = document.getElementById('free-banner-' + tab);
     if (el) el.innerHTML = html;
   });
@@ -3065,6 +3189,38 @@ Finally output a court diagram as a \`\`\`diagram JSON block (no other text arou
 Valid positions: ${sp.diagramPositions}
 Valid zones: ${sp.diagramZones} — color: "opponent" (red) or "target" (blue)
 Show the 3 tactics as arrows. Mark where ${oppLabelBtw} is stuck as a zone.`;
+  }
+
+  if (tab === 'solo') {
+    const sp = SPORTS[currentSport];
+    const focus = (document.getElementById('solo-focus') || {}).value || '';
+    const focusInstr = focus.trim() ? `The player wants specific feedback on: ${focus.trim()}.` : '';
+    const toSend = frameStore['solo'].slice(0, 20);
+    const frameIdx = toSend.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
+    return `I have uploaded ${active} video frames from a solo ${sp.name} practice session.
+Frame timestamps: ${frameIdx}
+${focusInstr}
+
+Analyze my technique across these frames. Skip non-play or static frames. No emoji. Plain text and markdown only. Do NOT include a frame-by-frame description. Go directly to the structured sections below.
+
+When referencing observations, cite the specific frame number (e.g. "Frame 3").
+
+**1. WHAT YOU'RE DOING WELL**
+2-3 specific technical things that look correct or strong. Be precise and cite frames.
+
+**2. KEY TECHNICAL ISSUES**
+Top 3 problems with mechanics, footwork, positioning, or shot execution. One sentence per issue + one concrete fix. Cite frames.
+
+**3. MOVEMENT & FOOTWORK**
+Assess court movement: recovery to T, split step timing, balance, court coverage. What to fix and how.
+
+**4. SHOT MECHANICS**
+The 1-2 most important shot mechanics issues you see — racket prep, swing path, follow-through, wrist, body rotation. Cite frames and give the fix.
+
+**5. TOP 3 DRILLS FOR THIS WEEK**
+Specific solo drills to address the issues above. For each: name it, describe it in 1 sentence, state reps/sets.
+
+Keep the entire response under 380 words. Every sentence must be actionable and specific.`;
   }
 
   // post
@@ -4282,6 +4438,314 @@ async function submitContact(e) {
     msgEl.textContent = 'Network error. Please try again.';
     btn.disabled = false;
     btn.textContent = 'Send Message';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SOLO MODE TOGGLE
+// ═══════════════════════════════════════════════
+function setSoloMode(mode) {
+  const videoMode = document.getElementById('solo-video-mode');
+  const liveMode  = document.getElementById('solo-live-mode');
+  const videoBtnEl = document.getElementById('solo-mode-video-btn');
+  const liveBtnEl  = document.getElementById('solo-mode-live-btn');
+  const isVideo = mode === 'video';
+  videoMode.style.display = isVideo ? '' : 'none';
+  liveMode.style.display  = isVideo ? 'none' : '';
+  const activeStyle   = 'background:#fff;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);';
+  const inactiveStyle = 'background:transparent;color:var(--muted);box-shadow:none;';
+  videoBtnEl.style.cssText = videoBtnEl.style.cssText.replace(/background[^;]+;|color[^;]+;|box-shadow[^;]+;/g, '');
+  liveBtnEl.style.cssText  = liveBtnEl.style.cssText.replace(/background[^;]+;|color[^;]+;|box-shadow[^;]+;/g, '');
+  if (isVideo) {
+    videoBtnEl.style.background = '#fff';
+    videoBtnEl.style.color = 'var(--text)';
+    videoBtnEl.style.boxShadow = '0 1px 4px rgba(0,0,0,.08)';
+    liveBtnEl.style.background = 'transparent';
+    liveBtnEl.style.color = 'var(--muted)';
+    liveBtnEl.style.boxShadow = 'none';
+    if (soloLiveStream) stopSoloLive();
+  } else {
+    liveBtnEl.style.background = '#fff';
+    liveBtnEl.style.color = 'var(--text)';
+    liveBtnEl.style.boxShadow = '0 1px 4px rgba(0,0,0,.08)';
+    videoBtnEl.style.background = 'transparent';
+    videoBtnEl.style.color = 'var(--muted)';
+    videoBtnEl.style.boxShadow = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SOLO LIVE CAMERA
+// ═══════════════════════════════════════════════
+let soloLiveStream      = null;
+let soloLiveFrameBuf    = [];
+let soloLiveCollector   = null;
+let soloLivePrevPixels  = null;
+let soloLiveAnalysisLog = [];
+
+async function startSoloLive() {
+  try {
+    soloLiveStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+  } catch (e) {
+    toast('Camera access denied: ' + e.message, 'err'); return;
+  }
+  const video = document.getElementById('solo-live-video');
+  video.srcObject = soloLiveStream;
+  soloLiveFrameBuf = [];
+  soloLivePrevPixels = null;
+  soloLiveAnalysisLog = [];
+  document.getElementById('solo-live-results').innerHTML = '';
+  document.getElementById('solo-live-summary-section').style.display = 'none';
+  document.getElementById('solo-live-summary-card').style.display = 'none';
+  document.getElementById('solo-live-start-ui').style.display  = 'none';
+  document.getElementById('solo-live-active-ui').style.display = 'block';
+
+  soloLiveCollector = setInterval(() => {
+    const r = grabSoloLiveFrame();
+    if (!r) return;
+    const { b64, pixels } = r;
+    const isMoving = soloLivePrevPixels ? motionScore(soloLivePrevPixels, pixels) > LIVE_MOTION_THRESH : true;
+    soloLivePrevPixels = pixels;
+    const el = document.getElementById('solo-live-frame-count');
+    if (!isMoving) {
+      if (el) el.textContent = 'Watching\u2026 ' + soloLiveFrameBuf.length + ' frames \u00b7 (skipped static)';
+      return;
+    }
+    soloLiveFrameBuf.push(b64);
+    if (el) el.textContent = 'Watching\u2026 ' + soloLiveFrameBuf.length + ' frames captured';
+  }, 1500);
+}
+
+function grabSoloLiveFrame() {
+  const video  = document.getElementById('solo-live-video');
+  const canvas = document.getElementById('solo-live-canvas');
+  if (!video || !canvas || !soloLiveStream) return null;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!vw || !vh) return null;
+  const maxD = 480;
+  const r = Math.min(maxD / vw, maxD / vh, 1);
+  canvas.width  = Math.round(vw * r);
+  canvas.height = Math.round(vh * r);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const b64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+  return { b64, pixels };
+}
+
+function stopSoloLive() {
+  if (soloLiveCollector) { clearInterval(soloLiveCollector); soloLiveCollector = null; }
+  if (soloLiveStream)    { soloLiveStream.getTracks().forEach(t => t.stop()); soloLiveStream = null; }
+  soloLiveFrameBuf = []; soloLivePrevPixels = null;
+  const video = document.getElementById('solo-live-video');
+  if (video) video.srcObject = null;
+  document.getElementById('solo-live-start-ui').style.display  = 'block';
+  document.getElementById('solo-live-active-ui').style.display = 'none';
+  if (soloLiveAnalysisLog.length > 0) {
+    document.getElementById('solo-live-summary-section').style.display = 'block';
+  }
+}
+
+async function pauseAndAnalyzeSoloLive() {
+  if (!soloLiveStream) return;
+
+  if (soloLiveCollector) { clearInterval(soloLiveCollector); soloLiveCollector = null; }
+
+  const finalFrame = grabSoloLiveFrame();
+  if (finalFrame) soloLiveFrameBuf.push(finalFrame.b64);
+
+  const all    = soloLiveFrameBuf.slice();
+  const frames = all.length <= 20 ? all : Array.from({length: 20}, (_, i) => all[Math.round(i * (all.length - 1) / 19)]);
+  if (frames.length === 0) { toast('No frames captured yet', 'err'); resumeSoloLiveCollection(); return; }
+
+  const btn = document.getElementById('solo-live-pause-btn');
+  btn.disabled = true;
+  btn.textContent = 'Analyzing…';
+
+  const sport    = currentSport || 'squash';
+  const focus    = ((document.getElementById('solo-live-focus') || {}).value || '').trim();
+  const lang     = ((document.getElementById('solo-live-lang') || {}).value || 'en');
+  const focusInstr = focus ? `The player is focusing on: ${focus}.` : '';
+  const langInstr  = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[lang] || 'IMPORTANT: Reply in English only.';
+
+  const prompt = `You are a world-class ${sport} coach reviewing solo practice footage. There is no opponent — analyze only the player's own technique, movement, and mechanics.
+
+${focusInstr}
+
+Analyze these ${frames.length} practice frames. Skip static or non-play frames. No emoji. Output EXACTLY this format:
+
+**GOOD**
+- [1-2 things the player is doing correctly — be specific with body part and action]
+
+**FIX NOW**
+- [The most urgent technical issue you see — one concrete, actionable instruction]
+- [Second issue if clearly visible]
+
+**MOVEMENT**
+- [One observation about footwork, court coverage, or recovery — with a fix]
+
+Be brutally specific. Reference what you actually see. Address the player as "you" directly.
+
+${langInstr}`;
+
+  const imgBlocks = frames.map(b64 => ({
+    type: 'image',
+    source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+  }));
+
+  try {
+    const token = await getAuthToken();
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        stream: true,
+        messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
+      })
+    });
+
+    if (res.status === 402) { stopSoloLive(); showSubscribeWall(); return; }
+    if (!res.ok) { toast('Analysis failed', 'err'); resumeSoloLiveCollection(); return; }
+
+    const feed = document.getElementById('solo-live-results');
+    const card = document.createElement('div');
+    card.className = 'live-result-card';
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    card.innerHTML = '<div class="live-result-time">' + timeStr + ' · ' + frames.length + ' frames analyzed</div><div class="live-result-body"></div>';
+    feed.insertBefore(card, feed.firstChild);
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const body = card.querySelector('.live-result-body');
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '', fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(data);
+          if (ev.type === 'content_block_delta' && ev.delta?.text) {
+            fullText += ev.delta.text;
+            body.innerHTML = renderMarkdown(stripEmoji(fullText));
+          }
+        } catch {}
+      }
+    }
+    soloLiveAnalysisLog.push(fullText);
+    document.getElementById('solo-live-summary-section').style.display = 'block';
+    // Reset frame buffer and resume collection
+    soloLiveFrameBuf = [];
+    resumeSoloLiveCollection();
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+    resumeSoloLiveCollection();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Get Feedback Now';
+  }
+}
+
+function resumeSoloLiveCollection() {
+  if (!soloLiveStream || soloLiveCollector) return;
+  soloLiveCollector = setInterval(() => {
+    const r = grabSoloLiveFrame();
+    if (!r) return;
+    const { b64, pixels } = r;
+    const isMoving = soloLivePrevPixels ? motionScore(soloLivePrevPixels, pixels) > LIVE_MOTION_THRESH : true;
+    soloLivePrevPixels = pixels;
+    const el = document.getElementById('solo-live-frame-count');
+    if (!isMoving) {
+      if (el) el.textContent = 'Watching\u2026 ' + soloLiveFrameBuf.length + ' frames \u00b7 (skipped static)';
+      return;
+    }
+    soloLiveFrameBuf.push(b64);
+    if (el) el.textContent = 'Watching\u2026 ' + soloLiveFrameBuf.length + ' frames captured';
+  }, 1500);
+}
+
+async function summarizeSoloLive() {
+  if (soloLiveAnalysisLog.length === 0) { toast('No analysis to summarize yet', 'err'); return; }
+
+  const btn = document.getElementById('solo-live-summary-btn');
+  btn.disabled = true;
+  btn.textContent = 'Summarizing…';
+
+  const lang = ((document.getElementById('solo-live-lang') || {}).value || 'en');
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[lang] || 'IMPORTANT: Reply in English only.';
+
+  const combined = soloLiveAnalysisLog.map((txt, i) => `--- Check-in ${i + 1} ---\n${txt}`).join('\n\n');
+
+  const prompt = `You are a world-class coach. Below are ${soloLiveAnalysisLog.length} technique feedback reports from a solo practice session.
+
+${combined}
+
+Write a concise session summary for the player. Refer to the player as "you".
+
+FORMAT:
+**SESSION THEME**
+1-2 sentences: the dominant pattern across all feedback — what kept coming up.
+
+**YOUR BIGGEST TECHNICAL ISSUE**
+1-2 sentences: the most repeated problem, with a specific fix to drill this week.
+
+**WHAT'S IMPROVING**
+1 sentence: what you did well or better as the session progressed.
+
+**TOP 3 THINGS TO PRACTICE NEXT SESSION**
+3 short bullet points, each starting with an action verb.
+
+Keep the whole response under 200 words. Be direct and actionable.
+
+${langInstr}`;
+
+  const summaryCard = document.getElementById('solo-live-summary-card');
+  const summaryBody = document.getElementById('solo-live-summary-body');
+  summaryCard.style.display = 'block';
+  summaryBody.textContent = '';
+
+  try {
+    const token = await getAuthToken();
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { ...(token ? { 'Authorization': 'Bearer ' + token } : {}), 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, stream: true, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!res.ok) { toast('Summary failed', 'err'); return; }
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '', fullText = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const ev = JSON.parse(data);
+          if (ev.type === 'content_block_delta' && ev.delta?.text) {
+            fullText += ev.delta.text;
+            summaryBody.innerHTML = renderMarkdown(stripEmoji(fullText));
+          }
+        } catch {}
+      }
+    }
+    summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    toast('Error: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Summarize Session';
   }
 }
 </script>
