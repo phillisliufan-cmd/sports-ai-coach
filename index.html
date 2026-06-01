@@ -2833,8 +2833,115 @@ function clearBtwFrames() {
 }
 
 // ═══════════════════════════════════════════════
-//  FRAME EXTRACTION
+//  CLIENT-SIDE VIDEO COMPRESSION
 // ═══════════════════════════════════════════════
+const COMPRESS_THRESHOLD = 40 * 1024 * 1024; // compress files > 40 MB
+
+async function compressVideoForUpload(file, onProgress) {
+  return new Promise(function(resolve) {
+    const video = document.createElement('video');
+    video.muted      = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.style.cssText = 'position:fixed;width:160px;height:90px;opacity:0.01;top:-200px;left:0;pointer-events:none;z-index:-1;';
+    document.body.appendChild(video);
+
+    const blobUrl = URL.createObjectURL(file);
+
+    function fallback() {
+      cleanup();
+      resolve(file); // return original if anything goes wrong
+    }
+
+    function cleanup() {
+      try { if (document.body.contains(video)) document.body.removeChild(video); } catch(e) {}
+      URL.revokeObjectURL(blobUrl);
+    }
+
+    video.onerror = fallback;
+
+    video.onloadedmetadata = function() {
+      if (!isFinite(video.duration) || video.duration <= 0) { fallback(); return; }
+
+      // Target resolution: max 720px wide, keep aspect ratio
+      var vw = video.videoWidth  || 1280;
+      var vh = video.videoHeight || 720;
+      var scale = Math.min(720 / vw, 480 / vh, 1);
+      var w = Math.round(vw * scale);
+      var h = Math.round(vh * scale);
+
+      var canvas = document.createElement('canvas');
+      canvas.width  = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+
+      // Pick best supported codec
+      var mimeTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4'
+      ];
+      var mime = mimeTypes.find(function(t) {
+        return typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t);
+      });
+
+      if (!mime || typeof canvas.captureStream !== 'function') { fallback(); return; }
+
+      var stream   = canvas.captureStream(15); // 15 fps is enough for analysis
+      var recorder;
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 800000 });
+      } catch(e) { fallback(); return; }
+
+      var chunks = [];
+      recorder.ondataavailable = function(e) { if (e.data && e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = function() {
+        cleanup();
+        var blob = new Blob(chunks, { type: mime });
+        // Only use compressed version if it's actually smaller
+        if (blob.size < file.size) {
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webm', { type: mime }));
+        } else {
+          resolve(file);
+        }
+      };
+      recorder.onerror = fallback;
+
+      recorder.start(500); // collect data every 500ms
+
+      // Draw video frames to canvas
+      var drawing = true;
+      function drawLoop() {
+        if (!drawing) return;
+        if (!video.paused && !video.ended) ctx.drawImage(video, 0, 0, w, h);
+        requestAnimationFrame(drawLoop);
+      }
+
+      video.ontimeupdate = function() {
+        if (onProgress && video.duration > 0) {
+          onProgress(video.currentTime / video.duration);
+        }
+      };
+
+      video.onended = function() {
+        drawing = false;
+        ctx.drawImage(video, 0, 0, w, h);
+        setTimeout(function() {
+          try { recorder.stop(); } catch(e) { fallback(); }
+        }, 600);
+      };
+
+      video.playbackRate = 4; // compress 4× faster than real-time
+      drawLoop();
+      video.play().catch(fallback);
+    };
+
+    video.src = blobUrl;
+  });
+}
+
 // ═══════════════════════════════════════════════
 //  GEMINI VIDEO UPLOAD
 // ═══════════════════════════════════════════════
@@ -2844,16 +2951,33 @@ async function doGeminiUpload(tab, file) {
   const pgLbl  = document.getElementById('pl-' + tab);
   pgWrap.className = 'prog-wrap on';
   pgFill.style.width = '0%';
-  pgLbl.textContent = 'Uploading video…';
 
   try {
+    // ── Step 1: Compress if large ────────────────────────────────────────
+    let uploadFile = file;
+    if (file.size > COMPRESS_THRESHOLD) {
+      pgLbl.textContent = 'Compressing video…';
+      uploadFile = await compressVideoForUpload(file, function(p) {
+        pgFill.style.width = Math.round(p * 50) + '%';
+        pgLbl.textContent = 'Compressing… ' + Math.round(p * 100) + '%';
+      });
+      pgFill.style.width = '50%';
+      const saved = Math.round((1 - uploadFile.size / file.size) * 100);
+      if (saved > 5) pgLbl.textContent = 'Compressed ' + saved + '% — uploading…';
+      else pgLbl.textContent = 'Uploading…';
+    } else {
+      pgLbl.textContent = 'Uploading video…';
+    }
+
+    // ── Step 2: Upload to Gemini via server ──────────────────────────────
     const token = await getAuthToken();
 
     const result = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.upload.onprogress = function(e) {
         if (e.lengthComputable) {
-          const pct = Math.round((e.loaded / e.total) * 100);
+          const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
+          const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
           pgFill.style.width = pct + '%';
           pgLbl.textContent = 'Uploading… ' + pct + '%';
         }
@@ -2872,13 +2996,12 @@ async function doGeminiUpload(tab, file) {
       xhr.onerror = function() { reject(new Error('Network error during upload')); };
 
       xhr.open('POST', '/api/gemini-upload');
-      xhr.setRequestHeader('x-mime-type', file.type || 'video/mp4');
-      xhr.setRequestHeader('Content-Length', file.size);
+      xhr.setRequestHeader('x-mime-type', uploadFile.type || 'video/mp4');
       if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-      xhr.send(file);
+      xhr.send(uploadFile);
     });
 
-    videoStore[tab] = { uri: result.uri, name: result.name, mimeType: result.mimeType || file.type || 'video/mp4' };
+    videoStore[tab] = { uri: result.uri, name: result.name, mimeType: result.mimeType || uploadFile.type || 'video/mp4' };
 
     pgFill.style.width = '100%';
     pgLbl.textContent = '✓ Video ready — tap Analyze';
