@@ -3176,7 +3176,7 @@ Be direct and focused on winning. Reference court zones and shot types.`;
 async function analyzeWithGemini(tab, videoData) {
   const session = getSession();
 
-  if (window.posthog) posthog.capture('analysis_started', { tab, sport: currentSport, type: 'video' });
+  if (window.posthog) posthog.capture('analysis_started', { tab, sport: currentSport, type: 'video', is_free: !session });
   const prompt       = buildVideoPrompt(tab);
   const systemPrompt = SPORTS[currentSport].sys +
     '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' +
@@ -3272,9 +3272,14 @@ async function analyzeWithGemini(tab, videoData) {
     if (tab === 'btw') { buildVoice(fullText); extractAndRenderDiagram(fullText, tab, currentSport); }
     showVideoReview(tab, []);
     toast('Analysis complete ✓', 'ok');
-    if (window.posthog) posthog.capture('analysis_completed', { tab, sport: currentSport, type: 'video' });
+    if (window.posthog) posthog.capture('analysis_completed', { tab, sport: currentSport, type: 'video', is_free: !session });
     addHistoryEntry(tab, fullText);
-    if (!session) { incFreeUses(); renderFreeBanners(); }
+    if (!session) {
+      incFreeUses();
+      const newUses = getFreeUses();
+      if (window.posthog) posthog.capture('free_analysis_used', { tab, sport: currentSport, uses_remaining: FREE_LIMIT - newUses });
+      renderFreeBanners();
+    }
     else { fetchAndRenderFreeBanners(); }
 
   } catch (err) {
@@ -3752,7 +3757,10 @@ async function analyze(tab) {
   const session = getSession();
   if (!session) {
     const uses = getFreeUses();
-    if (uses >= FREE_LIMIT) { showAuthWall('free-limit'); return; }
+    if (uses >= FREE_LIMIT) {
+      if (window.posthog) posthog.capture('free_limit_hit', { tab, sport: currentSport, uses });
+      showAuthWall('free-limit'); return;
+    }
   }
 
   // ── Gemini video path ─────────────────────────────────────────────────
@@ -3890,9 +3898,15 @@ async function analyze(tab) {
     if (tab === 'btw') { buildVoice(fullText); extractAndRenderDiagram(fullText, tab, currentSport); }
     showVideoReview(tab, toSend);
     toast('Analysis complete ✓', 'ok');
+    if (window.posthog) posthog.capture('analysis_completed', { tab, sport: currentSport, type: 'frames', is_free: !session });
     addHistoryEntry(tab, fullText);
     // Count free use if not signed in
-    if (!session) { incFreeUses(); renderFreeBanners(); }
+    if (!session) {
+      incFreeUses();
+      const newUses = getFreeUses();
+      if (window.posthog) posthog.capture('free_analysis_used', { tab, sport: currentSport, uses_remaining: FREE_LIMIT - newUses });
+      renderFreeBanners();
+    }
     else { fetchAndRenderFreeBanners(); }
 
   } catch (err) {
