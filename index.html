@@ -3212,7 +3212,7 @@ async function analyzeWithGemini(tab, videoData) {
 
     if (res.status === 401 || res.status === 402) {
       const errData = await res.json().catch(() => ({}));
-      if (res.status === 402) { showSubscribeWall(); return; }
+      if (res.status === 402) { if (window.posthog) posthog.capture('free_limit_hit', { tab, sport: currentSport, type: 'video' }); showSubscribeWall(); return; }
       if (res.status === 401 && errData.error === 'Invalid session') {
         const s = getSession();
         if (s && s.refresh_token) {
@@ -3827,6 +3827,7 @@ async function analyze(tab) {
       const errData = await res.json().catch(() => ({}));
       if (res.status === 402) {
         // Free uses exhausted — show subscribe wall
+        if (window.posthog) posthog.capture('free_limit_hit', { tab, sport: currentSport, type: 'frames' });
         showSubscribeWall();
         return;
       }
@@ -4569,7 +4570,7 @@ ${langInstr}`;
       })
     });
 
-    if (res.status === 402) { stopLiveCamera(); showSubscribeWall(); return; }
+    if (res.status === 402) { if (window.posthog) posthog.capture('free_limit_hit', { sport: currentSport, type: 'live' }); stopLiveCamera(); showSubscribeWall(); return; }
     if (!res.ok) { toast('Analysis failed', 'err'); return; }
 
     // Create result card
@@ -5105,7 +5106,7 @@ ${langInstr}`;
       })
     });
 
-    if (res.status === 402) { stopSoloLive(); showSubscribeWall(); return; }
+    if (res.status === 402) { if (window.posthog) posthog.capture('free_limit_hit', { sport: currentSport, type: 'solo_live' }); stopSoloLive(); showSubscribeWall(); return; }
     if (!res.ok) { toast('Analysis failed', 'err'); resumeSoloLiveCollection(); return; }
 
     const feed = document.getElementById('solo-live-results');
