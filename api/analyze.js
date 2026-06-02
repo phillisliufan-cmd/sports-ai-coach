@@ -2,7 +2,7 @@ const SUPA_URL         = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON        = (process.env.SUPABASE_ANON_KEY        || '').replace(/\s+/g, '');
 const SUPA_SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || '').replace(/\s+/g, '');
 const ANTHROPIC_KEY    = (process.env.ANTHROPIC_API_KEY         || '').replace(/\s+/g, '');
-const SERVER_FREE_LIMIT = 3;
+const SERVER_FREE_LIMIT = 2;
 
 async function verifySupabaseToken(token) {
   const res = await fetch(`${SUPA_URL}/auth/v1/user`, {

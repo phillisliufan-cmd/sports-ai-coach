@@ -2,7 +2,7 @@ const GEMINI_KEY       = (process.env.GEMINI_API_KEY          || '').replace(/\s
 const SUPA_URL         = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON        = (process.env.SUPABASE_ANON_KEY       || '').replace(/\s+/g, '');
 const SUPA_SERVICE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY|| '').replace(/\s+/g, '');
-const SERVER_FREE_LIMIT = 3;
+const SERVER_FREE_LIMIT = 2;
 const GEMINI_MODEL     = 'gemini-2.5-flash';
 
 async function verifySupabaseToken(token) {
