@@ -26,7 +26,21 @@ module.exports = async function handler(req, res) {
     { headers: { 'apikey': SUPA_SERVICE_KEY, 'Authorization': `Bearer ${SUPA_SERVICE_KEY}` } }
   );
   const subs = await subRes.json();
-  const customerId = Array.isArray(subs) && subs.length > 0 ? subs[0].stripe_customer_id : null;
+  let customerId = Array.isArray(subs) && subs.length > 0 ? subs[0].stripe_customer_id : null;
+
+  // Fallback: look up customer in Stripe by email if not in DB
+  if (!customerId && user.email) {
+    const searchRes = await fetch(
+      `https://api.stripe.com/v1/customers?email=${encodeURIComponent(user.email)}&limit=1`,
+      { headers: { 'Authorization': `Bearer ${STRIPE_KEY}` } }
+    );
+    if (searchRes.ok) {
+      const searchData = await searchRes.json();
+      if (searchData.data && searchData.data.length > 0) {
+        customerId = searchData.data[0].id;
+      }
+    }
+  }
 
   if (!customerId) {
     return res.status(400).json({ error: 'No active subscription found' });
