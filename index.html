@@ -324,12 +324,12 @@ body {
 }
 .ig input, .ig select, .ig textarea {
   width: 100%;
-  padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
+  padding: 14px 16px;
+  background: #fff;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 12px;
   color: var(--text);
-  font-size: 16px;
+  font-size: 15px;
   font-family: inherit;
   transition: border-color .2s, box-shadow .2s;
   -webkit-appearance: none;
@@ -452,12 +452,8 @@ body {
 .btn-go:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
 
 /* ─── LANGUAGE SELECTOR ─── */
-.lang-bar {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-}
-.lang-bar label {
-  font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap;
-}
+.lang-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.lang-bar label { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .lang-select {
   flex: 1; padding: 7px 10px; border: 1.5px solid var(--border-light);
   border-radius: 8px; font-size: 13px; font-weight: 600;
@@ -1146,9 +1142,9 @@ input[type="file"] { display: none; }
     <label class="upload" id="up-pre" for="f-pre"
       onclick="if(!getSession()&&getFreeUses()>=FREE_LIMIT){event.preventDefault();showAuthWall('free-limit');}"
       ondragover="dov(event)" ondragleave="dlv(event)" ondrop="drp(event,'pre')">
-      <div class="upload-ico"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg></div>
-      <div class="upload-ttl">Upload Opponent Match Video</div>
-      <div class="upload-sub">Tap to choose · auto-extracts frames</div>
+      <div class="upload-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg></div>
+      <div class="upload-ttl">Upload match video</div>
+      <div class="upload-sub">MP4, MOV or AVI · up to 500MB</div>
       <div class="upload-fn" id="fn-pre"></div>
     </label>
     <input type="file" id="f-pre" accept="video/*,video/mp4,video/quicktime,video/mov">
@@ -1159,7 +1155,7 @@ input[type="file"] { display: none; }
     <div class="ig"><label>How to identify them in the video</label><input type="text" id="opp-desc" placeholder="e.g. red shirt, tall, plays on the left side"></div>
 
     <div id="free-banner-pre"></div>
-    <div class="lang-bar" id="lang-bar-pre">
+    <div class="ig" id="lang-bar-pre">
       <label>Language</label>
       <select class="lang-select" onchange="setLang(this.value,this,'pre')">
         <option value="en">English</option>
@@ -1170,7 +1166,7 @@ input[type="file"] { display: none; }
       </select>
     </div>
     <button class="btn-go" id="go-pre" onclick="analyze('pre')">
-      <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyze Opponent</span>
+      <span class="spin"></span><span class="btn-lbl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyze opponent</span>
     </button>
     <div class="out-card" id="oc-pre">
       <div class="out-hdr"><span class="out-ttl">Pre-Match Scouting Report</span></div>
