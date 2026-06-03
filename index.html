@@ -149,6 +149,8 @@ body {
   gap: 0;
   border-bottom: 1px solid var(--border);
   overflow-x: auto; -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
 }
 .tabs label:first-child { padding-left: 0; }
 .tabs::-webkit-scrollbar { display: none; }
