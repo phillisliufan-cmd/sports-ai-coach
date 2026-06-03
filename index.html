@@ -2864,7 +2864,7 @@ function selectSport(sport) {
     b.classList.toggle('active', b.dataset.sport === sport);
   });
   fetchAndRenderFreeBanners();
-  window.history.pushState({ page: 'sport' }, '');
+  window.history.pushState({ sport }, '', '/?sport=' + sport);
 }
 
 function goHome() {
@@ -2873,14 +2873,24 @@ function goHome() {
   document.getElementById('back-btn').style.display = 'none';
   const mh = document.getElementById('mob-hist');
   if (mh) mh.style.display = 'none';
+  window.history.pushState({}, '', '/');
 }
 
 window.addEventListener('popstate', function(e) {
-  if (document.getElementById('analysis-view').classList.contains('on')) {
-    goHome();
-    window.history.pushState({ page: 'home' }, '');
+  if (e.state && e.state.sport) {
+    selectSport(e.state.sport);
+  } else {
+    if (document.getElementById('analysis-view').classList.contains('on')) {
+      goHome();
+    }
   }
 });
+
+// On load, auto-select sport from URL
+(function() {
+  const sp = new URLSearchParams(location.search).get('sport');
+  if (sp) selectSport(sp);
+})();
 
 function syncPostFromCoaching() {
   // Build score string from G1-G5 inputs
