@@ -1029,6 +1029,13 @@ input[type="file"] { display: none; }
             <div class="sport-card-desc">Spin, speed & placement</div>
           </div>
         </button>
+        <button class="sport-card" onclick="selectSport('pickleball')">
+          <div class="sport-card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><!-- pickleball paddle --><ellipse cx="10" cy="9" rx="6" ry="7"/><line x1="10" y1="16" x2="10" y2="21"/><circle cx="7" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="10" cy="6" r="1" fill="currentColor" stroke="none"/><circle cx="13" cy="7" r="1" fill="currentColor" stroke="none"/><circle cx="8" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="10" r="1" fill="currentColor" stroke="none"/></svg></div>
+          <div class="sport-card-info">
+            <div class="sport-card-name">Pickleball</div>
+            <div class="sport-card-desc">Dinking, thirds & placement</div>
+          </div>
+        </button>
       </div>
     </div>
 
@@ -2144,6 +2151,87 @@ Analyze video frames noting footwork, stroke mechanics, spin usage, table positi
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('OPPONENT', pad+cw/2, pad-9);
       ctx.fillText('YOU', pad+cw/2, pad+ch+9);
+    }
+  },
+
+  pickleball: {
+    name: 'Pickleball', icon: '🥒',
+    sys: `You are an expert pickleball coach with 15+ years of experience coaching players from beginners to professional tournament level.
+
+COURT ZONES (diagram: your side at bottom, opponent's side at top, net in middle):
+• Kitchen (NVZ) — Non-Volley Zone; 7ft from net each side; cannot volley from here
+• Transition Zone — Mid-court area between baseline and kitchen; danger zone
+• Baseline — Back of court; starting position for serves and resets
+• Centerline — Divides each side into left (even) and right (odd) service boxes
+
+SHOT TYPES:
+• Dink — Soft shot into opponent's kitchen; forces them to hit up
+• Third Shot Drop — Key shot: from baseline, soft arc into kitchen to transition forward
+• Drive — Fast flat groundstroke from baseline; used to pressure opponent
+• Lob — High arcing shot over opponent at net; used when they crowd the kitchen
+• Volley — Hit out of air before bounce; must be outside kitchen
+• Erne — Advanced: jump/step outside court to volley from beside kitchen post
+• ATP (Around the Post) — Advanced: hit around the net post when pushed wide
+• Reset — Soft defensive shot to neutralize fast exchanges and re-dink
+
+TACTICAL CONCEPTS:
+• Kitchen Control — Both players at kitchen line = neutral/dominant position
+• Stack Formation — Both players position on same side for forehand coverage
+• Poach — Partner crosses to intercept opponent's shot at net
+• Bangers vs Dinkers — Adjust strategy based on opponent's playstyle
+• Middle Attack — Hit down the centerline to create confusion between opponents
+• Speed-Up — Sudden fast shot to break dink rally and force error
+• Patient Dinking — Construct point slowly; wait for attackable ball
+• Wind & Sun — Outdoor factors; adjust shot selection and positioning
+
+Analyze video noting footwork, kitchen line positioning, third shot execution, dink consistency, transition patterns, and partner communication.`,
+    positions: {
+      'your-left':     [0.15, 0.84],
+      'your-right':    [0.85, 0.84],
+      'your-center':   [0.50, 0.84],
+      'your-kitchen':  [0.50, 0.62],
+      'net-left':      [0.15, 0.50],
+      'net-center':    [0.50, 0.50],
+      'net-right':     [0.85, 0.50],
+      'opp-kitchen':   [0.50, 0.38],
+      'opp-left':      [0.15, 0.16],
+      'opp-right':     [0.85, 0.16],
+      'opp-center':    [0.50, 0.16]
+    },
+    zones: {
+      'your-left':    [0,   0.50, 0.5, 0.50],
+      'your-right':   [0.5, 0.50, 0.5, 0.50],
+      'opp-left':     [0,   0,    0.5, 0.50],
+      'opp-right':    [0.5, 0,    0.5, 0.50]
+    },
+    diagramPositions: 'your-left, your-right, your-center, your-kitchen, net-left, net-center, net-right, opp-kitchen, opp-left, opp-right, opp-center',
+    diagramZones: 'your-left, your-right, opp-left, opp-right',
+    drawCourt(ctx, pad, cw, ch) {
+      const cx = nx => pad + nx * cw, cy = ny => pad + ny * ch;
+      // Court surface
+      ctx.fillStyle = '#4a7c59';
+      ctx.fillRect(pad, pad, cw, ch);
+      // Outer boundary
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.strokeRect(pad, pad, cw, ch);
+      // Center line
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx(0.5), pad); ctx.lineTo(cx(0.5), pad+ch); ctx.stroke();
+      // Net
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.5)); ctx.lineTo(pad+cw, cy(0.5)); ctx.stroke();
+      // Kitchen lines (7ft = ~30% from net each side)
+      ctx.strokeStyle = 'rgba(255,255,100,0.8)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.62)); ctx.lineTo(pad+cw, cy(0.62)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, cy(0.38)); ctx.lineTo(pad+cw, cy(0.38)); ctx.stroke();
+      // Labels
+      ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '8px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('OPPONENT', pad+cw/2, pad-9);
+      ctx.fillText('YOU', pad+cw/2, pad+ch+9);
+      ctx.fillStyle = 'rgba(255,255,100,0.7)'; ctx.font = '7px -apple-system,sans-serif';
+      ctx.fillText('Kitchen', pad+cw/2, cy(0.65));
+      ctx.fillText('Kitchen', pad+cw/2, cy(0.35));
     }
   },
 
