@@ -88,7 +88,7 @@ body {
 }
 .hdr-top { display: flex; align-items: center; gap: 10px; }
 .hdr-logo { font-size: 1.4rem; line-height: 1; }
-.hdr h1 { font-size: 1rem; font-weight: 700; line-height: 1; color: var(--text); letter-spacing: -0.03em; }
+.hdr h1 { font-size: 1.1rem; font-weight: 700; line-height: 1; color: var(--text); letter-spacing: -0.04em; }
 .hdr h1 em { font-style: normal; color: var(--accent); }
 .hdr-sub { display: none; }
 
@@ -225,14 +225,14 @@ body {
 .upload {
   display: block;
   border: 1.5px dashed var(--border);
-  border-radius: var(--r);
-  padding: 32px 16px;
+  border-radius: 16px;
+  padding: 40px 16px;
   text-align: center;
   cursor: pointer;
   margin-bottom: 16px;
   transition: all .2s;
   position: relative;
-  background: var(--surface2);
+  background: #fff;
 }
 .upload:hover, .upload.drag {
   border-color: var(--accent);
@@ -583,26 +583,29 @@ input[type="file"] { display: none; }
 
 /* ─── SPORT HOME ─── */
 .sport-home {
-  max-width: 600px; margin: 0 auto;
+  max-width: 680px; margin: 0 auto;
   padding: 32px 20px 40px;
 }
 .sport-home-hero { margin-bottom: 32px; }
 .sport-home-hero h2 {
-  font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em;
-  color: var(--text); margin-bottom: 6px;
+  font-size: 2.8rem; font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1.1; color: var(--text); margin-bottom: 6px;
 }
-.sport-home-hero p { font-size: 0.9rem; color: var(--muted); }
+.sport-home-hero p { font-size: 1rem; color: #888; }
 
 .sport-section { margin-bottom: 28px; }
 .sport-section-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--muted);
-  margin-bottom: 12px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: #bbb;
+  margin-bottom: 12px; margin-top: 32px;
 }
 .sport-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+@media (max-width: 600px) {
+  .sport-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .sport-card {
   display: flex; align-items: center; gap: 14px;
@@ -617,7 +620,7 @@ input[type="file"] { display: none; }
   position: relative;
 }
 .sport-card:hover {
-  border-color: var(--text);
+  border-color: #0a0a0a;
   box-shadow: 0 2px 12px rgba(0,0,0,.08);
   transform: translateY(-1px);
 }
@@ -954,7 +957,7 @@ input[type="file"] { display: none; }
         <circle cx="13" cy="13" r="2" fill="#00b341"/>
       </svg>
     </div>
-    <h1>Sports AI <em>Coach</em></h1>
+    <h1>aceriq<em>.</em></h1>
     <span style="font-size:11px;color:var(--muted);font-weight:500;margin-left:6px;white-space:nowrap;">powered by Aceriq AI</span>
   </div>
   <div style="display:flex;align-items:center;gap:10px;">
@@ -995,7 +998,7 @@ input[type="file"] { display: none; }
   <div class="sport-home">
     <div class="sport-home-hero">
       <h2>Choose your sport</h2>
-      <p>AI-powered video analysis and tactics</p>
+      <p>Upload match footage. Get instant tactical analysis and personalized coaching notes.</p>
     </div>
 
     <div class="sport-section">
@@ -1094,16 +1097,16 @@ input[type="file"] { display: none; }
     </div>
 
     <!-- NearStream Partner Banner -->
-    <div style="margin:48px 0 8px;padding:16px;background:linear-gradient(135deg,#f0f7ff 0%,#e8f4f0 100%);border-radius:16px;border:1px solid #d0e8f5;display:flex;align-items:center;gap:14px;">
-      <div style="flex-shrink:0;width:44px;height:44px;background:#0a0a0a;border-radius:12px;display:flex;align-items:center;justify-content:center;">
+    <div style="margin:48px 0 8px;padding:16px;background:#0a0a0a;border-radius:16px;display:flex;align-items:center;gap:14px;">
+      <div style="flex-shrink:0;width:44px;height:44px;background:rgba(255,255,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
       </div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:700;color:#00b341;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Capture Better. Analyze Smarter.</div>
-        <div style="font-size:14px;font-weight:700;color:#0a0a0a;margin-bottom:2px;">NearStream VM33 AI Camera</div>
-        <div style="font-size:12px;color:#555;line-height:1.4;">Auto-detect highlights &amp; score moments — then analyze your game here</div>
+        <div style="font-size:12px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Capture Better. Analyze Smarter.</div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:2px;">NearStream VM33 AI Camera</div>
+        <div style="font-size:12px;color:#888;line-height:1.4;">Auto-detect highlights &amp; score moments — then analyze your game here</div>
       </div>
-      <a href="https://www.nearstream.us/all-in-one-streaming-camera-vm33" target="_blank" rel="noopener" onclick="if(window.posthog)posthog.capture('nearstream_clicked')" style="flex-shrink:0;background:#0a0a0a;color:#fff;border-radius:20px;padding:8px 14px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">Shop Now</a>
+      <a href="https://www.nearstream.us/all-in-one-streaming-camera-vm33" target="_blank" rel="noopener" onclick="if(window.posthog)posthog.capture('nearstream_clicked')" style="flex-shrink:0;background:#fff;color:#0a0a0a;border:none;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer;">Shop Now</a>
     </div>
   </div>
 </div>
