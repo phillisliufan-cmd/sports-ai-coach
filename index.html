@@ -145,11 +145,12 @@ body {
 .tabs {
   display: flex;
   background: #fff;
-  padding: 0 40px 0 22px;
+  padding: 0 40px;
   gap: 0;
   border-bottom: 1px solid var(--border);
   overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
+.tabs label:first-child { padding-left: 0; }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
   flex: none; padding: 0 18px; text-align: left;
