@@ -1026,6 +1026,7 @@ input[type="file"] { display: none; }
         </div>
         <div id="acct-menu-manage" style="display:none;border-bottom:1px solid #f0f0f0;">
           <button onclick="openCustomerPortal()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#555;cursor:pointer;font-family:inherit;font-weight:600;">Manage Subscription</button>
+          <button onclick="showCancelModal()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#ef4444;cursor:pointer;font-family:inherit;font-weight:600;">Cancel Subscription</button>
         </div>
         <button onclick="signOut()" style="width:100%;text-align:left;padding:11px 14px;background:none;border:none;font-size:14px;color:#d00;cursor:pointer;font-family:inherit;font-weight:600;">Sign out</button>
       </div>
@@ -2854,7 +2855,22 @@ function renderFreeBanners(remaining) {
 }
 
 async function openCustomerPortal() {
-  showCancelModal();
+  const token = await getAuthToken();
+  if (!token) return;
+  try {
+    const res = await fetch('/api/customer-portal', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (res.ok && data.url) {
+      window.location.href = data.url;
+    } else {
+      toast(data.error || 'Failed to open portal', 'err');
+    }
+  } catch (e) {
+    toast('Network error', 'err');
+  }
 }
 
 async function fetchAndRenderFreeBanners() {
