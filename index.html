@@ -1555,6 +1555,8 @@ input[type="file"] { display: none; }
 
 // Show any JS error visibly on screen (for iOS debugging)
 window.onerror = function(msg, src, line) {
+  // Ignore cross-origin script errors (line 0) from third-party scripts like PostHog/Crisp
+  if (!line || msg === 'Script error.' || msg === 'Script error') return;
   var d = document.createElement('div');
   d.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff3b30;color:#fff;padding:12px 16px;z-index:99999;font-size:13px;font-family:monospace;word-break:break-all;';
   d.textContent = 'JS Error (line ' + line + '): ' + msg;
