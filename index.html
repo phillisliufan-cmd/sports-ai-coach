@@ -145,26 +145,27 @@ body {
 .tabs {
   display: flex;
   background: #fff;
-  padding: 0 24px;
+  padding: 0 40px;
   gap: 0;
   border-bottom: 1px solid var(--border);
   overflow-x: auto; -webkit-overflow-scrolling: touch;
 }
 .tabs::-webkit-scrollbar { display: none; }
 .tab {
-  flex: none; padding: 0 20px; text-align: left;
+  flex: none; padding: 0 18px; text-align: left;
   cursor: pointer;
   font-size: 14px; font-weight: 500; letter-spacing: 0;
-  color: var(--muted); transition: color .15s; line-height: 1;
-  border: none; border-bottom: 2.5px solid transparent;
+  color: #aaa; transition: color .2s; line-height: 1;
+  border: none; border-bottom: 2px solid transparent;
   background: transparent; font-family: inherit;
   -webkit-appearance: none;
   display: flex; flex-direction: row; align-items: center;
-  justify-content: center; gap: 7px;
-  height: 56px; margin-bottom: -1px; white-space: nowrap;
+  justify-content: center; gap: 6px;
+  height: 52px; margin-bottom: -1px; white-space: nowrap;
 }
-.tab:hover { color: var(--text); }
-.tab-ico { display: flex; align-items: center; justify-content: center; }
+.tab:hover { color: #0a0a0a; }
+.tab-ico { display: flex; align-items: center; justify-content: center; opacity: 0.5; transition: opacity .2s; }
+.tab:hover .tab-ico { opacity: 1; }
 
 /* ─── MAIN CONTENT ─── */
 .wrap { padding: 32px 24px; }
@@ -181,10 +182,15 @@ body {
 #r-post:checked ~ #analysis-view .tabs label[for="r-post"],
 #r-live:checked ~ #analysis-view .tabs label[for="r-live"],
 #r-solo:checked ~ #analysis-view .tabs label[for="r-solo"] {
-  color: var(--text);
-  border-bottom-color: var(--text);
-  font-weight: 600;
+  color: #0a0a0a;
+  border-bottom-color: #0a0a0a;
+  font-weight: 700;
 }
+#r-pre:checked ~ #analysis-view .tabs label[for="r-pre"] .tab-ico,
+#r-btw:checked ~ #analysis-view .tabs label[for="r-btw"] .tab-ico,
+#r-post:checked ~ #analysis-view .tabs label[for="r-post"] .tab-ico,
+#r-live:checked ~ #analysis-view .tabs label[for="r-live"] .tab-ico,
+#r-solo:checked ~ #analysis-view .tabs label[for="r-solo"] .tab-ico { opacity: 1; }
 
 /* ─── LIVE CAMERA ─── */
 #live-video {
