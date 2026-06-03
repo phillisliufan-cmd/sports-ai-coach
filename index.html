@@ -607,7 +607,7 @@ input[type="file"] { display: none; }
 }
 .sport-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 0;
-  padding: 22px 24px 26px;
+  padding: 20px 20px 24px;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -629,18 +629,19 @@ input[type="file"] { display: none; }
   border-color: var(--border); box-shadow: none; transform: none;
 }
 .sport-card-ico {
-  font-size: 1.3rem; line-height: 1; flex-shrink: 0;
-  width: 64px; height: 64px;
+  flex-shrink: 0;
+  width: 72px; height: 72px;
   display: flex; align-items: center; justify-content: center;
-  background: #f0f0f0; border-radius: 16px;
-  margin-bottom: 20px;
+  background: #efefef; border-radius: 14px;
+  margin-bottom: 18px;
 }
+.sport-card-ico svg { width: 28px; height: 28px; }
 .sport-card-info { flex: 1; min-width: 0; }
 .sport-card-name {
-  font-size: 18px; font-weight: 700; color: var(--text);
+  font-size: 20px; font-weight: 700; color: var(--text);
   margin-bottom: 5px; letter-spacing: -0.02em;
 }
-.sport-card-desc { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.sport-card-desc { font-size: 14px; color: #888; line-height: 1.4; }
 .sport-card-badge {
   font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
   text-transform: uppercase; color: var(--muted);
