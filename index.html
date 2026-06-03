@@ -966,6 +966,10 @@ input[type="file"] { display: none; }
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Support
     </button>
+    <button onclick="$crisp.push(['do','chat:open'])" style="background:none;border:none;padding:5px 8px;cursor:pointer;font-size:13px;color:#666;font-family:inherit;display:flex;align-items:center;gap:4px;" title="Live Chat">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      Chat
+    </button>
     <button id="signin-btn" onclick="showAuthWall('signin')" style="display:none;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 14px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">Sign in</button>
     <div id="acct-btn" style="display:none;position:relative;">
       <button onclick="toggleAcctMenu()" style="display:flex;align-items:center;gap:6px;background:none;border:1.5px solid #e0e0e0;border-radius:20px;padding:5px 12px 5px 8px;cursor:pointer;font-size:13px;font-weight:600;color:#0a0a0a;font-family:inherit;">
@@ -5290,17 +5294,6 @@ ${langInstr}`;
 
 <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="088423c4-7fe9-4260-bbc9-35b1050b25dc";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
 
-<!-- Custom Crisp chat button -->
-<button id="crisp-custom-btn" onclick="$crisp.push(['do','chat:open'])" style="
-  position:fixed;bottom:80px;right:20px;z-index:99999;
-  background:none;color:#888;border:none;border-radius:6px;
-  padding:8px 12px;font-size:14px;cursor:pointer;
-  display:flex;align-items:center;gap:6px;
-  font-family:inherit;
-">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-  Support
-</button>
 
 <script>
   window.CRISP_READY_TRIGGER = function() {
