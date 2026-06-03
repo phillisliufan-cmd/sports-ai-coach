@@ -5289,5 +5289,23 @@ ${langInstr}`;
 </div>
 
 <script type="text/javascript">window.$crisp=[];window.CRISP_WEBSITE_ID="088423c4-7fe9-4260-bbc9-35b1050b25dc";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();</script>
+
+<!-- Custom Crisp chat button -->
+<button id="crisp-custom-btn" onclick="$crisp.push(['do','chat:open'])" style="
+  position:fixed;bottom:20px;right:20px;z-index:99999;
+  background:#4f8ef7;color:#fff;border:none;border-radius:50px;
+  padding:10px 16px;font-size:14px;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  display:flex;align-items:center;gap:6px;
+">💬 Help</button>
+
+<script>
+  window.CRISP_READY_TRIGGER = function() {
+    $crisp.push(['do', 'chat:hide']);
+    $crisp.push(['on', 'chat:closed', function() {
+      $crisp.push(['do', 'chat:hide']);
+    }]);
+  };
+</script>
 </body>
 </html>
