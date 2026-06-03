@@ -2864,7 +2864,7 @@ function selectSport(sport) {
     b.classList.toggle('active', b.dataset.sport === sport);
   });
   fetchAndRenderFreeBanners();
-  history.pushState({ page: 'sport' }, '');
+  window.history.pushState({ page: 'sport' }, '');
 }
 
 function goHome() {
@@ -2878,7 +2878,7 @@ function goHome() {
 window.addEventListener('popstate', function(e) {
   if (document.getElementById('analysis-view').classList.contains('on')) {
     goHome();
-    history.pushState({ page: 'home' }, '');
+    window.history.pushState({ page: 'home' }, '');
   }
 });
 
