@@ -234,11 +234,11 @@ body {
 .upload {
   display: block;
   border: 1.5px dashed #d0d0d0;
-  border-radius: 18px;
-  padding: 52px 24px;
+  border-radius: 14px;
+  padding: 40px 24px;
   text-align: center;
   cursor: pointer;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   transition: all .2s;
   position: relative;
   background: #fff;
@@ -246,11 +246,11 @@ body {
 .upload:hover, .upload.drag { border-color: #0a0a0a; }
 .upload.loaded { border-color: var(--accent); border-style: solid; }
 .upload-ico {
-  margin-bottom: 16px; display: flex; justify-content: center;
+  margin-bottom: 14px; display: flex; justify-content: center;
 }
-.upload-ico svg { background: #f0f0f0; padding: 14px; border-radius: 16px; width: 56px; height: 56px; }
-.upload-ttl { font-size: 1rem; font-weight: 700; color: var(--text); }
-.upload-sub { font-size: 0.82rem; color: var(--muted); margin-top: 5px; }
+.upload-ico svg { background: #f0f0f0; padding: 12px; border-radius: 12px; width: 48px; height: 48px; }
+.upload-ttl { font-size: 15px; font-weight: 700; color: var(--text); }
+.upload-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .upload-fn { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-top: 6px; }
 
 .btn-ext {
@@ -324,18 +324,18 @@ body {
 /* ─── INPUTS ─── */
 .ig { margin-bottom: 14px; }
 .ig label {
-  display: block; font-size: 13px; font-weight: 700;
-  color: var(--text); margin-bottom: 8px;
+  display: block; font-size: 12px; font-weight: 600;
+  color: #555; margin-bottom: 7px;
   letter-spacing: 0;
 }
 .ig input, .ig select, .ig textarea {
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 16px;
   background: #fff;
   border: 1.5px solid #e8e8e8;
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--text);
-  font-size: 15px;
+  font-size: 14px;
   font-family: inherit;
   transition: border-color .2s, box-shadow .2s;
   -webkit-appearance: none;
@@ -444,9 +444,9 @@ body {
 
 /* ─── ANALYZE BUTTON ─── */
 .btn-go {
-  width: 100%; padding: 15px;
+  width: 100%; padding: 14px;
   background: var(--text);
-  color: #fff; border: none; border-radius: 12px;
+  color: #fff; border: none; border-radius: 10px;
   font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em;
   cursor: pointer; margin-bottom: 20px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -584,20 +584,20 @@ input[type="file"] { display: none; }
 
 /* ─── SPORT HOME ─── */
 .sport-home {
-  max-width: 720px; margin: 0 auto;
-  padding: 48px 28px 64px;
+  max-width: 760px; margin: 0 auto;
+  padding: 56px 32px 72px;
 }
-.sport-home-hero { margin-bottom: 48px; }
+.sport-home-hero { margin-bottom: 52px; }
 .sport-home-hero h2 {
-  font-size: 2.6rem; font-weight: 800; letter-spacing: -0.04em;
-  line-height: 1.08; color: var(--text); margin-bottom: 12px;
+  font-size: 3.4rem; font-weight: 800; letter-spacing: -0.04em;
+  line-height: 1.05; color: #0a0a0a; margin-bottom: 16px;
 }
-.sport-home-hero p { font-size: 1.05rem; color: #666; line-height: 1.6; max-width: 420px; }
+.sport-home-hero p { font-size: 1.05rem; color: #555; line-height: 1.6; max-width: 460px; }
 .sport-home-hero h2 em { font-style: normal; color: var(--accent); }
 
 .sport-section { margin-bottom: 32px; }
 .sport-section-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
   text-transform: uppercase; color: #aaa;
   margin-bottom: 14px; margin-top: 40px;
 }
@@ -609,45 +609,44 @@ input[type="file"] { display: none; }
 @media (max-width: 640px) {
   .sport-grid { grid-template-columns: repeat(2, 1fr); }
   .sport-home { padding: 36px 20px 60px; }
-  .sport-home-hero h2 { font-size: 2.4rem; }
+  .sport-home-hero h2 { font-size: 2.6rem; }
 }
 .sport-card {
   display: flex; flex-direction: column; align-items: flex-start; gap: 0;
-  padding: 16px 16px 18px;
+  padding: 22px 22px 24px;
   background: #fff;
-  border: 1px solid var(--border);
+  border: 1px solid #e8e8e8;
   border-radius: 18px;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: all .15s;
+  transition: border-color .15s, box-shadow .15s;
   position: relative;
 }
 .sport-card:hover {
-  border-color: #0a0a0a;
-  box-shadow: 0 2px 16px rgba(0,0,0,.08);
-  transform: translateY(-1px);
+  border-color: #c0c0c0;
+  box-shadow: 0 2px 14px rgba(0,0,0,.08);
 }
 .sport-card.coming-soon {
   opacity: .45; cursor: default;
 }
 .sport-card.coming-soon:hover {
-  border-color: var(--border); box-shadow: none; transform: none;
+  border-color: #e8e8e8; box-shadow: none;
 }
 .sport-card-ico {
   flex-shrink: 0;
-  width: 46px; height: 46px;
+  width: 44px; height: 44px;
   display: flex; align-items: center; justify-content: center;
-  background: #f0f0f0; border-radius: 10px;
-  margin-bottom: 14px;
+  background: #f2f2f2; border-radius: 10px;
+  margin-bottom: 16px;
 }
 .sport-card-ico svg { width: 20px; height: 20px; }
 .sport-card-info { flex: 1; min-width: 0; }
 .sport-card-name {
-  font-size: 16px; font-weight: 700; color: var(--text);
-  margin-bottom: 3px; letter-spacing: -0.01em;
+  font-size: 20px; font-weight: 700; color: #0a0a0a;
+  margin-bottom: 4px; letter-spacing: -0.02em;
 }
-.sport-card-desc { font-size: 13px; color: #888; line-height: 1.4; }
+.sport-card-desc { font-size: 14px; color: #888; line-height: 1.4; }
 .sport-card-badge {
   font-size: 9px; font-weight: 700; letter-spacing: 0.05em;
   text-transform: uppercase; color: var(--muted);
@@ -1144,9 +1143,9 @@ input[type="file"] { display: none; }
 
   <!-- PRE-MATCH -->
   <div class="panel" id="p-pre">
-    <div style="margin-bottom:28px;">
-      <h2 style="font-size:1.7rem;font-weight:800;letter-spacing:-0.04em;margin-bottom:6px;">Analyze opponent</h2>
-      <p style="font-size:14px;color:#888;">Upload match footage to get tactical insights before your game.</p>
+    <div style="margin-bottom:22px;">
+      <h2 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.03em;margin-bottom:4px;">Analyze opponent</h2>
+      <p style="font-size:13px;color:#888;">Upload match footage to get tactical insights before your game.</p>
     </div>
     <label class="upload" id="up-pre" for="f-pre"
       onclick="if(!getSession()&&getFreeUses()>=FREE_LIMIT){event.preventDefault();showAuthWall('free-limit');}"
