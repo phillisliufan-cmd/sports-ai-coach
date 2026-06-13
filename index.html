@@ -2976,7 +2976,7 @@ function clearBtwFrames() {
 // ═══════════════════════════════════════════════
 //  CLIENT-SIDE VIDEO COMPRESSION
 // ═══════════════════════════════════════════════
-const COMPRESS_THRESHOLD = 40 * 1024 * 1024; // compress files > 40 MB
+const COMPRESS_THRESHOLD = 5 * 1024 * 1024; // compress files > 5 MB
 
 async function compressVideoForUpload(file, onProgress) {
   return new Promise(function(resolve) {
@@ -3005,10 +3005,10 @@ async function compressVideoForUpload(file, onProgress) {
     video.onloadedmetadata = function() {
       if (!isFinite(video.duration) || video.duration <= 0) { fallback(); return; }
 
-      // Target resolution: max 720px wide, keep aspect ratio
+      // Target resolution: max 480px wide, keep aspect ratio
       var vw = video.videoWidth  || 1280;
       var vh = video.videoHeight || 720;
-      var scale = Math.min(720 / vw, 480 / vh, 1);
+      var scale = Math.min(480 / vw, 360 / vh, 1);
       var w = Math.round(vw * scale);
       var h = Math.round(vh * scale);
 
@@ -3033,7 +3033,7 @@ async function compressVideoForUpload(file, onProgress) {
       var stream   = canvas.captureStream(15); // 15 fps is enough for analysis
       var recorder;
       try {
-        recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 800000 });
+        recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 400000 });
       } catch(e) { fallback(); return; }
 
       var chunks = [];
@@ -3074,7 +3074,7 @@ async function compressVideoForUpload(file, onProgress) {
         }, 600);
       };
 
-      video.playbackRate = 4; // compress 4× faster than real-time
+      video.playbackRate = 8; // compress 8× faster than real-time
       drawLoop();
       video.play().catch(fallback);
     };
