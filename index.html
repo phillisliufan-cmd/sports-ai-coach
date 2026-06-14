@@ -2922,7 +2922,7 @@ async function compressVideoForUpload(file, onProgress) {
 
       if (!mime || typeof canvas.captureStream !== 'function') { fallback(); return; }
 
-      var stream   = canvas.captureStream(15); // 15 fps is enough for analysis
+      var stream   = canvas.captureStream(15); // 15 fps — well-supported across browsers
       var recorder;
       try {
         recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 400000 });
@@ -2944,24 +2944,12 @@ async function compressVideoForUpload(file, onProgress) {
 
       recorder.start(500); // collect data every 500ms
 
-      // Draw video frames to canvas with burned-in real timestamp
+      // Draw video frames to canvas
       var drawing = true;
       function drawLoop() {
         if (!drawing) return;
         if (!video.paused && !video.ended) {
           ctx.drawImage(video, 0, 0, w, h);
-          // Burn real timestamp so Gemini reads correct match time
-          var realSec = video.currentTime;
-          var mm = Math.floor(realSec / 60);
-          var ss = Math.floor(realSec % 60);
-          var ts = mm + ':' + (ss < 10 ? '0' : '') + ss;
-          var fontSize = Math.max(11, Math.round(h * 0.06));
-          ctx.font = 'bold ' + fontSize + 'px monospace';
-          var tw = ctx.measureText(ts).width;
-          ctx.fillStyle = 'rgba(0,0,0,0.55)';
-          ctx.fillRect(4, h - fontSize - 8, tw + 8, fontSize + 6);
-          ctx.fillStyle = '#fff';
-          ctx.fillText(ts, 8, h - 6);
         }
         requestAnimationFrame(drawLoop);
       }
@@ -2991,7 +2979,7 @@ async function compressVideoForUpload(file, onProgress) {
         }, 600);
       };
 
-      video.playbackRate = 8; // compress 8× faster than real-time
+      video.playbackRate = 8; // 8× — confirmed working across browsers
       drawLoop();
       video.play().catch(fallback);
     };
@@ -3097,7 +3085,7 @@ Describe the specific patterns and habits you actually saw ${oppLabel} doing. Fo
 
 End with the 2-3 most important things I should focus on in the match.
 
-No bullet points. No section headers. Speak directly to me. No emoji. Under 300 words.`;
+No bullet points. No section headers. Speak directly to me. No emoji. NEVER reference timestamps or time codes (e.g. "at 0:02", "0:45"). Describe situations instead: "when they're at the back", "after a short ball". Under 300 words.`;
   }
 
   if (tab === 'btw') {
@@ -3127,12 +3115,12 @@ ${desc ? 'The opponent is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' 
 
 We're about to start Game ${nextGame}. Structure your response exactly like this:
 
-PART 1 — Output a numbered list of exactly 3 tactical instructions for Game ${nextGame}. Each instruction must be one clear sentence, max 15 words. Format as:
+PART 1 — Output a numbered list of exactly 3 tactical instructions for Game ${nextGame}. Each instruction must be one clear sentence, max 15 words. No timestamps. Format as:
 1. [instruction]
 2. [instruction]
 3. [instruction]
 
-PART 2 — Then talk to me like a coach in the break between games. Describe the specific patterns you saw: what is ${oppLabel} doing that's working against me and exactly how to stop it, what mistake am I repeating and in what situation, what should I do differently. Direct, specific, no fluff. No bullet points. No section headers. No emoji. Under 200 words.
+PART 2 — Then talk to me like a coach in the break between games. Describe the specific patterns you saw: what is ${oppLabel} doing that's working against me and exactly how to stop it, what mistake am I repeating and in what situation, what should I do differently. Direct, specific, no fluff. No bullet points. No section headers. No emoji. NEVER use timestamps or time codes (e.g. "0:02", "at 0:45") — describe situations instead. Under 200 words.
 
 PART 3 — Output a court diagram as a \`\`\`diagram JSON block:
 {
@@ -3159,7 +3147,7 @@ Tell me what you actually saw — not categories, not a checklist. Describe the 
 
 End with 2-3 drills that directly target what you saw. For each drill: what it's called, exactly how to do it, and how many reps.
 
-No bullet points. No section headers. Talk to me directly as the player. No emoji. Under 380 words.
+No bullet points. No section headers. Talk to me directly as the player. No emoji. NEVER use timestamps or time codes (e.g. "at 0:02", "0:45") — describe situations instead. Under 380 words.
 
 ${langInstr}`;
   }
@@ -3182,7 +3170,7 @@ Tell me what actually happened in this match. What patterns did ${oppLabelPost} 
 
 Then tell me: if we play again, what's my game plan and what do I need to practice before that match?
 
-No bullet points. No section headers. Talk to me directly. No emoji. Under 400 words.`;
+No bullet points. No section headers. Talk to me directly. No emoji. NEVER use timestamps or time codes (e.g. "at 0:02", "0:45") — describe situations instead. Under 400 words.`;
 }
 
 // ═══════════════════════════════════════════════
@@ -4838,11 +4826,17 @@ function stripEmoji(str) {
 }
 
 function stripTimestamps(text) {
-  // Remove "at 0:45", "around 1:23", "在0:02", "(2:10)", bare "0:02" etc — works on raw text
-  text = text.replace(/\b(?:at|around|约?在|於|at around)\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?/gi, '');
-  text = text.replace(/\(\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\s*\)/g, '');
-  text = text.replace(/\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?/g, '');
-  // Clean up leftover commas/spaces
+  // Remove preposition + timestamp: "at 0:45", "around 1:23", "在0:02", "在0：02" (full-width colon)
+  text = text.replace(/\b(?:at|around|约?在|於|at around)\s*\d{1,2}[：:]\d{2}(?:\s*[-–]\s*\d{1,2}[：:]\d{2})?/gi, '');
+  // Remove parenthesized timestamps: "(2:10)", "（0：01）"
+  text = text.replace(/[（(]\s*\d{1,2}[：:]\d{2}(?:\s*[-–]\s*\d{1,2}[：:]\d{2})?\s*[）)]/g, '');
+  // Remove bare timestamps with ASCII or full-width colon: "0:02", "1：23", "1:23-1:45"
+  text = text.replace(/\d{1,2}[：:]\d{2}(?:\s*[-–]\s*\d{1,2}[：:]\d{2})?/g, '');
+  // Remove Chinese time formats: "第2秒", "0分02秒", "2秒钟", "第0:02秒"
+  text = text.replace(/第\s*\d+\s*秒/g, '');
+  text = text.replace(/\d+\s*分\s*\d+\s*秒/g, '');
+  text = text.replace(/\d+\s*秒钟?/g, '');
+  // Clean up leftover punctuation/spaces
   text = text.replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').replace(/[ \t]{2,}/g, ' ');
   return text;
 }
