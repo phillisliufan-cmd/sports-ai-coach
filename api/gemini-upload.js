@@ -1,4 +1,4 @@
-export const config = { runtime: 'edge' };
+export const config = { runtime: 'edge', maxDuration: 300 };
 
 const GEMINI_KEY = (process.env.GEMINI_API_KEY       || '').replace(/\s+/g, '');
 const SUPA_URL   = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
