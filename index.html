@@ -3266,7 +3266,7 @@ async function analyzeWithGemini(tab, videoData) {
           const evt = JSON.parse(raw);
           if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
             fullText += evt.delta.text;
-            const displayText = fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim();
+            const displayText = stripTimestamps(fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim());
             outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
           }
         } catch {}
@@ -3893,7 +3893,7 @@ async function analyze(tab) {
           const evt = JSON.parse(raw);
           if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
             fullText += evt.delta.text;
-            const displayText = fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim();
+            const displayText = stripTimestamps(fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim());
             outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
           }
         } catch(_) {}
@@ -4826,21 +4826,19 @@ function stripEmoji(str) {
   return str.replace(/ {2,}/g, ' ');
 }
 
-function stripTimestamps(html) {
-  // Remove timestamp references in any language, e.g. "at 0:45", "在1:23", "(2:10)", "0:01"
-  html = html.replace(/\b(?:at|around|约|在|於)\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\b/gi, '');
-  html = html.replace(/\(\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\s*\)/g, '');
-  html = html.replace(/\b\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\b/g, '');
-  // Clean up leftover punctuation/spaces from removal
-  html = html.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').trim();
-  return html;
+function stripTimestamps(text) {
+  // Remove "at 0:45", "around 1:23", "在0:02", "(2:10)", bare "0:02" etc — works on raw text
+  text = text.replace(/\b(?:at|around|约?在|於|at around)\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?/gi, '');
+  text = text.replace(/\(\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\s*\)/g, '');
+  text = text.replace(/\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?/g, '');
+  // Clean up leftover commas/spaces
+  text = text.replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').replace(/[ \t]{2,}/g, ' ');
+  return text;
 }
 
 function postProcess(html, lang) {
   // Strip any emoji Claude adds to output
   html = stripEmoji(html);
-  // Strip timestamps (video is compressed so they're meaningless)
-  html = stripTimestamps(html);
   // Wrap ordered lists in a green box with language-aware label
   let olCount = 0;
   html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g, (match) => {
