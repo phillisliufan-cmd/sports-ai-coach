@@ -2933,11 +2933,25 @@ async function compressVideoForUpload(file, onProgress) {
 
       recorder.start(500); // collect data every 500ms
 
-      // Draw video frames to canvas
+      // Draw video frames to canvas with burned-in real timestamp
       var drawing = true;
       function drawLoop() {
         if (!drawing) return;
-        if (!video.paused && !video.ended) ctx.drawImage(video, 0, 0, w, h);
+        if (!video.paused && !video.ended) {
+          ctx.drawImage(video, 0, 0, w, h);
+          // Burn real timestamp so Gemini reads correct match time
+          var realSec = video.currentTime;
+          var mm = Math.floor(realSec / 60);
+          var ss = Math.floor(realSec % 60);
+          var ts = mm + ':' + (ss < 10 ? '0' : '') + ss;
+          var fontSize = Math.max(11, Math.round(h * 0.06));
+          ctx.font = 'bold ' + fontSize + 'px monospace';
+          var tw = ctx.measureText(ts).width;
+          ctx.fillStyle = 'rgba(0,0,0,0.55)';
+          ctx.fillRect(4, h - fontSize - 8, tw + 8, fontSize + 6);
+          ctx.fillStyle = '#fff';
+          ctx.fillText(ts, 8, h - 6);
+        }
         requestAnimationFrame(drawLoop);
       }
 
@@ -3052,11 +3066,8 @@ function buildVideoPrompt(tab) {
   const srcTab = tab === 'post' ? 'btw' : tab;
   const vd = videoStore[srcTab];
   let timestampNote = '';
-  if (vd && vd.speedRatio && vd.speedRatio > 1 && vd.originalDuration) {
-    const origMin = Math.floor(vd.originalDuration / 60);
-    const origSec = Math.round(vd.originalDuration % 60);
-    const origStr = origMin > 0 ? `${origMin}m${origSec}s` : `${origSec}s`;
-    timestampNote = `\n\nTIMESTAMP NOTE: This video was compressed at ${vd.speedRatio}x speed for upload. The actual match is ${origStr} long. To report real match timestamps, multiply any video timestamp by ${vd.speedRatio}. For example, if you see something at 0:15 in this video, report it as ${Math.round(15 * vd.speedRatio / 60)}:${String(Math.round(15 * vd.speedRatio) % 60).padStart(2,'0')} in the actual match.`;
+  if (vd && vd.speedRatio && vd.speedRatio > 1) {
+    timestampNote = `\n\nTIMESTAMP NOTE: The real match timestamp is burned into the bottom-left corner of every frame (e.g. "1:23"). Always cite the timestamp shown on the frame, not the video player time.`;
   }
 
   if (tab === 'pre') {
