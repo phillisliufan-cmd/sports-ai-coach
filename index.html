@@ -3103,13 +3103,16 @@ No bullet points. No section headers. Speak directly to me. No emoji. Under 300 
     return `I'm sharing a ${sp.name} match video. ${scoreSummary}
 ${desc ? 'The opponent is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
 
-We're about to start Game ${nextGame}. Talk to me like a coach in the break between games — direct, specific, no fluff.
+We're about to start Game ${nextGame}. Structure your response exactly like this:
 
-Tell me what patterns you saw in the last game. What is ${oppLabel} doing that's working against me, and exactly how do I stop it? What am I doing wrong — describe the specific situation where I'm making the mistake, what the mistake is, and what I should do instead. Then give me 2-3 concrete things to do differently in Game ${nextGame}.
+PART 1 — Output a numbered list of exactly 3 tactical instructions for Game ${nextGame}. Each instruction must be one clear sentence, max 15 words. Format as:
+1. [instruction]
+2. [instruction]
+3. [instruction]
 
-No bullet points. No section headers. Speak directly to me as the player. No emoji. Under 250 words.
+PART 2 — Then talk to me like a coach in the break between games. Describe the specific patterns you saw: what is ${oppLabel} doing that's working against me and exactly how to stop it, what mistake am I repeating and in what situation, what should I do differently. Direct, specific, no fluff. No bullet points. No section headers. No emoji. Under 200 words.
 
-Then output a court diagram as a \`\`\`diagram JSON block showing the key tactical pattern for Game ${nextGame}:
+PART 3 — Output a court diagram as a \`\`\`diagram JSON block:
 {
   "arrows": [{"from":"POSITION","to":"POSITION","style":"solid","color":"blue","label":"Shot name"}],
   "zones":  [{"pos":"ZONE","label":"text","color":"opponent"}]
