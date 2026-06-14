@@ -3002,47 +3002,97 @@ async function doGeminiUpload(tab, file) {
       pgLbl.textContent = 'Uploading video…';
     }
 
-    // ── Step 2: Upload to Gemini via edge function (streaming, no size limit) ─
+    // ── Step 2: Upload to Gemini ─────────────────────────────────────────────
     const token   = await getAuthToken();
     const mimeType = uploadFile.type || 'video/mp4';
 
-    // On iOS, canvas.captureStream is unavailable so we upload the original file.
-    // Large originals on slow connections can take minutes — warn the user.
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const noCompression = isIOS || typeof document.createElement('canvas').captureStream !== 'function';
-    if (noCompression && uploadFile.size > 100 * 1024 * 1024) {
-      pgLbl.textContent = 'Uploading ' + Math.round(uploadFile.size / 1024 / 1024) + ' MB — may take a few minutes…';
-    }
+    let result;
 
-    const result = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.timeout = 280000; // 280s — just under the 300s server timeout
-      xhr.upload.onprogress = function(e) {
-        if (e.lengthComputable) {
-          const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
-          const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
-          pgFill.style.width = pct + '%';
-          pgLbl.textContent = 'Uploading… ' + pct + '%';
-        }
-      };
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch(e) { reject(new Error('Bad response from server')); }
-        } else {
-          try {
-            const d = JSON.parse(xhr.responseText);
-            reject(new Error(d.error || 'Upload failed (' + xhr.status + ')'));
-          } catch { reject(new Error('Upload failed (' + xhr.status + ')')); }
-        }
-      };
-      xhr.onerror = function() { reject(new Error('Network error during upload')); };
-      xhr.ontimeout = function() { reject(new Error('Upload timed out — video may be too large, try a shorter clip')); };
-      xhr.open('POST', '/api/gemini-upload');
-      xhr.setRequestHeader('x-mime-type', mimeType);
-      if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-      xhr.send(uploadFile);
-    });
+    // Vercel functions have a hard 4 MB body limit — for larger files we upload
+    // directly from the browser to Gemini using multipart/form-data, which avoids
+    // CORS preflight issues (form-data is a CORS-safe content-type).
+    if (uploadFile.size > 4 * 1024 * 1024) {
+      pgLbl.textContent = 'Uploading ' + Math.round(uploadFile.size / 1024 / 1024) + ' MB…';
+
+      // Get the Gemini API key (only for authenticated users)
+      const keyRes = await fetch('/api/gemini-key', {
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+      });
+      if (!keyRes.ok) throw new Error('Could not get upload credentials');
+      const { key: geminiKey } = await keyRes.json();
+
+      // Upload directly: browser → Gemini (bypasses Vercel body limit)
+      const formData = new FormData();
+      formData.append('metadata', new Blob(
+        [JSON.stringify({ file: { display_name: 'sports_video' } })],
+        { type: 'application/json' }
+      ));
+      formData.append('file', uploadFile, 'video');
+
+      const upXhr = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = 600000; // 10 min — direct to Google, no Vercel hop
+        xhr.upload.onprogress = function(e) {
+          if (e.lengthComputable) {
+            const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
+            const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
+            pgFill.style.width = pct + '%';
+            pgLbl.textContent = 'Uploading… ' + pct + '%';
+          }
+        };
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch(e) { reject(new Error('Bad response from Gemini')); }
+          } else {
+            reject(new Error('Gemini upload failed (' + xhr.status + ')'));
+          }
+        };
+        xhr.onerror = function() { reject(new Error('Network error — check connection and retry')); };
+        xhr.ontimeout = function() { reject(new Error('Upload timed out — try a shorter clip')); };
+        xhr.open('POST',
+          'https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=multipart&key=' + geminiKey
+        );
+        xhr.send(formData);
+      });
+
+      const uri  = upXhr.file?.uri;
+      const name = upXhr.file?.name;
+      if (!uri) throw new Error('No file URI from Gemini');
+      result = { uri, name, mimeType };
+
+    } else {
+      // Small file — go through Vercel edge function as before
+      result = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.timeout = 60000;
+        xhr.upload.onprogress = function(e) {
+          if (e.lengthComputable) {
+            const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
+            const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
+            pgFill.style.width = pct + '%';
+            pgLbl.textContent = 'Uploading… ' + pct + '%';
+          }
+        };
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch(e) { reject(new Error('Bad response from server')); }
+          } else {
+            try {
+              const d = JSON.parse(xhr.responseText);
+              reject(new Error(d.error || 'Upload failed (' + xhr.status + ')'));
+            } catch { reject(new Error('Upload failed (' + xhr.status + ')')); }
+          }
+        };
+        xhr.onerror = function() { reject(new Error('Network error during upload')); };
+        xhr.ontimeout = function() { reject(new Error('Upload timed out')); };
+        xhr.open('POST', '/api/gemini-upload');
+        xhr.setRequestHeader('x-mime-type', mimeType);
+        if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.send(uploadFile);
+      });
+    }
 
     const up = document.getElementById('up-' + tab);
     const originalDuration = up && up._originalDuration ? up._originalDuration : null;
