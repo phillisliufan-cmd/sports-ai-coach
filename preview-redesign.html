@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aceriq AI — Redesign Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; background: #fff; color: #0a0a0a; -webkit-font-smoothing: antialiased; }
+
+  /* ── NAV ── */
+  .nav {
+    height: 60px; padding: 0 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky; top: 0; background: #fff; z-index: 100;
+  }
+  .nav-logo { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; }
+  .nav-logo span { color: #22c55e; }
+  .nav-center { display: flex; gap: 32px; }
+  .nav-link { font-size: 14px; color: #555; cursor: pointer; text-decoration: none; }
+  .nav-link:hover { color: #0a0a0a; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .btn-outline { border: 1.5px solid #d0d0d0; background: none; border-radius: 50px; padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; color: #0a0a0a; transition: all 0.15s; }
+  .btn-outline:hover { border-color: #0a0a0a; }
+  .btn-solid { border: none; background: #0a0a0a; color: #fff; border-radius: 50px; padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+  .btn-solid:hover { background: #333; }
+
+  /* ── SCREEN LABEL ── */
+  .screen-label { background: #f5f5f5; text-align: center; padding: 10px; font-size: 11px; font-weight: 600; color: #999; letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ══════════════════════════════
+     SCREEN 1 — SPORT HOME
+  ══════════════════════════════ */
+  .sport-home { max-width: 760px; margin: 0 auto; padding: 64px 40px 80px; }
+
+  .home-hero { margin-bottom: 56px; }
+  .home-hero h1 { font-size: 48px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 16px; }
+  .home-hero h1 span { color: #22c55e; }
+  .home-hero p { font-size: 17px; color: #666; max-width: 420px; line-height: 1.6; }
+
+  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #bbb; margin-bottom: 14px; margin-top: 40px; }
+
+  .sport-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+  .sport-card {
+    border: 1.5px solid #ebebeb; border-radius: 16px; padding: 20px;
+    cursor: pointer; text-align: left; background: #fff;
+    transition: all 0.2s; display: flex; flex-direction: column; gap: 12px;
+  }
+  .sport-card:hover { border-color: #0a0a0a; box-shadow: 0 4px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
+  .sport-card-ico {
+    width: 44px; height: 44px; background: #f5f5f5; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sport-card-name { font-size: 14px; font-weight: 700; }
+  .sport-card-desc { font-size: 12px; color: #999; margin-top: 2px; }
+
+  /* ── NearStream ── */
+  .nearstream {
+    margin-top: 56px; padding: 28px 32px;
+    background: #0a0a0a; border-radius: 20px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .ns-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ns-tag { font-size: 10px; font-weight: 700; color: #22c55e; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .ns-title { font-size: 16px; font-weight: 700; color: #fff; }
+  .ns-desc { font-size: 13px; color: #888; margin-top: 3px; }
+  .ns-btn { background: #fff; color: #0a0a0a; border: none; padding: 12px 24px; border-radius: 50px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; margin-left: auto; flex-shrink: 0; }
+
+  /* ══════════════════════════════
+     SCREEN 2 — ANALYSIS PAGE
+  ══════════════════════════════ */
+  .analysis-page { background: #fafafa; min-height: 100vh; }
+
+  /* Sport bar */
+  .sport-bar { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 0 40px; display: flex; align-items: center; gap: 8px; overflow-x: auto; height: 52px; }
+  .sport-bar::-webkit-scrollbar { display: none; }
+  .sport-pill { padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 500; color: #888; cursor: pointer; white-space: nowrap; border: none; background: none; font-family: inherit; }
+  .sport-pill.active { background: #0a0a0a; color: #fff; font-weight: 600; }
+  .sport-pill:hover:not(.active) { background: #f5f5f5; color: #0a0a0a; }
+
+  /* Tabs */
+  .tabs { background: #fff; border-bottom: 1px solid #f0f0f0; padding: 0 40px; display: flex; }
+  .tab { padding: 16px 20px; font-size: 13px; font-weight: 500; color: #aaa; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
+  .tab:hover { color: #0a0a0a; }
+  .tab.active { color: #0a0a0a; border-bottom-color: #0a0a0a; font-weight: 700; }
+
+  /* Content */
+  .analysis-content { max-width: 600px; margin: 0 auto; padding: 48px 40px; }
+
+  .content-heading { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+  .content-sub { font-size: 14px; color: #888; margin-bottom: 32px; }
+
+  /* Upload */
+  .upload-zone {
+    border: 1.5px dashed #d0d0d0; border-radius: 16px;
+    padding: 48px 32px; text-align: center; cursor: pointer;
+    transition: all 0.2s; margin-bottom: 28px; background: #fff;
+  }
+  .upload-zone:hover { border-color: #0a0a0a; background: #fafafa; }
+  .upload-ico-wrap { width: 60px; height: 60px; background: #f5f5f5; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+  .upload-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .upload-hint { font-size: 13px; color: #aaa; }
+
+  /* Form */
+  .form-row { margin-bottom: 20px; }
+  .form-label { font-size: 12px; font-weight: 600; color: #555; display: block; margin-bottom: 8px; letter-spacing: 0.2px; }
+  .form-input {
+    width: 100%; border: 1.5px solid #e8e8e8; border-radius: 10px;
+    padding: 13px 16px; font-size: 14px; font-family: inherit; color: #0a0a0a;
+    background: #fff; outline: none; transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: #0a0a0a; }
+  .form-input::placeholder { color: #c0c0c0; }
+
+  .cta-btn {
+    width: 100%; background: #0a0a0a; color: #fff;
+    border: none; border-radius: 12px; padding: 16px;
+    font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit;
+    transition: all 0.2s; margin-top: 4px; letter-spacing: -0.2px;
+  }
+  .cta-btn:hover { background: #222; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+  /* Notes */
+  .notes-card { background: #fff; border-radius: 14px; margin-top: 24px; border: 1.5px solid #ebebeb; overflow: hidden; }
+  .notes-head { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f5f5f5; }
+  .notes-head-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .notes-badge { background: #f5f5f5; border-radius: 20px; padding: 2px 8px; font-size: 11px; color: #aaa; font-weight: 600; }
+  .notes-empty { padding: 36px 20px; text-align: center; color: #ccc; font-size: 13px; }
+
+  .sep { height: 1px; background: #f0f0f0; margin: 60px 0; }
+</style>
+</head>
+<body>
+
+<div class="screen-label">SCREEN 1 — Home / Choose Sport</div>
+
+<!-- NAV -->
+<div class="nav">
+  <div class="nav-logo">aceriq<span>.</span></div>
+  <div class="nav-center">
+    <a class="nav-link">Products</a>
+    <a class="nav-link">Solutions</a>
+    <a class="nav-link">Pricing</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn-outline">Sign in</button>
+    <button class="btn-solid">Get started</button>
+  </div>
+</div>
+
+<!-- SPORT HOME -->
+<div class="sport-home">
+  <div class="home-hero">
+    <h1>Your AI sports<br>coach<span>.</span></h1>
+    <p>Upload match footage. Get instant tactical analysis and personalized coaching notes.</p>
+  </div>
+
+  <div class="section-label">Racket Sports</div>
+  <div class="sport-grid">
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="9" rx="6" ry="7"/><line x1="10" y1="16" x2="10" y2="21"/><line x1="4" y1="9" x2="16" y2="9"/><line x1="10" y1="2" x2="10" y2="16"/></svg>
+      </div>
+      <div><div class="sport-card-name">Tennis</div><div class="sport-card-desc">Serve, rally & net play</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="3"/><line x1="12" y1="9" x2="12" y2="21"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+      </div>
+      <div><div class="sport-card-name">Badminton</div><div class="sport-card-desc">Attack & defense patterns</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+      </div>
+      <div><div class="sport-card-name">Table Tennis</div><div class="sport-card-desc">Spin, speed & placement</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+      </div>
+      <div><div class="sport-card-name">Squash</div><div class="sport-card-desc">Court positioning & tactics</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="10" cy="9" rx="6" ry="7"/><line x1="10" y1="16" x2="10" y2="21"/><circle cx="7" cy="7" r="1" fill="#0a0a0a" stroke="none"/><circle cx="10" cy="6" r="1" fill="#0a0a0a" stroke="none"/><circle cx="13" cy="7" r="1" fill="#0a0a0a" stroke="none"/></svg>
+      </div>
+      <div><div class="sport-card-name">Pickleball</div><div class="sport-card-desc">Dinking, thirds & placement</div></div>
+    </button>
+  </div>
+
+  <div class="section-label">Team Sports</div>
+  <div class="sport-grid">
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3 C7 6 7 18 12 21"/><path d="M12 3 C17 6 17 18 12 21"/></svg>
+      </div>
+      <div><div class="sport-card-name">Basketball</div><div class="sport-card-desc">Plays & zone defense</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <div><div class="sport-card-name">Soccer</div><div class="sport-card-desc">Formation & pressing</div></div>
+    </button>
+    <button class="sport-card">
+      <div class="sport-card-ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3 L5 18 Q5 21 9 21 L17 21"/><line x1="2" y1="21" x2="20" y2="21"/></svg>
+      </div>
+      <div><div class="sport-card-name">Ice Hockey</div><div class="sport-card-desc">Zone entries & lines</div></div>
+    </button>
+  </div>
+
+  <div class="nearstream">
+    <div class="ns-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
+    </div>
+    <div>
+      <div class="ns-tag">Partner</div>
+      <div class="ns-title">NearStream VM33 AI Camera</div>
+      <div class="ns-desc">Auto-capture highlights — then analyze them here</div>
+    </div>
+    <button class="ns-btn">Shop Now →</button>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="sep"></div>
+<div class="screen-label">SCREEN 2 — Analysis (Pre-Match)</div>
+
+<!-- ANALYSIS PAGE -->
+<div class="analysis-page">
+  <div class="nav">
+    <div class="nav-logo">aceriq<span>.</span></div>
+    <div class="nav-right">
+      <button class="btn-outline" style="font-size:12px;padding:6px 14px;">← Change Sport</button>
+      <button class="btn-outline" style="font-size:12px;padding:6px 14px;">Support</button>
+      <button class="btn-solid" style="font-size:12px;padding:6px 14px;">jxin2577</button>
+    </div>
+  </div>
+
+  <div class="sport-bar">
+    <button class="sport-pill active">Tennis</button>
+    <button class="sport-pill">Badminton</button>
+    <button class="sport-pill">Table Tennis</button>
+    <button class="sport-pill">Squash</button>
+    <button class="sport-pill">Basketball</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+      Pre-Match
+    </div>
+    <div class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
+      Coaching
+    </div>
+    <div class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Post-Match
+    </div>
+    <div class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+      Live
+    </div>
+    <div class="tab">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Solo
+    </div>
+  </div>
+
+  <div class="analysis-content">
+    <div class="content-heading">Analyze opponent</div>
+    <div class="content-sub">Upload match footage to get tactical insights before your game.</div>
+
+    <div class="upload-zone">
+      <div class="upload-ico-wrap">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.553-2.553A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14"/><rect x="3" y="8" width="12" height="8" rx="2"/></svg>
+      </div>
+      <div class="upload-title">Upload match video</div>
+      <div class="upload-hint">MP4, MOV or AVI · up to 500MB</div>
+    </div>
+
+    <div class="form-row">
+      <label class="form-label">Opponent's name</label>
+      <input class="form-input" type="text" placeholder="e.g. Sarah">
+    </div>
+    <div class="form-row">
+      <label class="form-label">How to identify them in the video</label>
+      <input class="form-input" type="text" placeholder="e.g. red shirt, tall, plays on the left side">
+    </div>
+    <div class="form-row">
+      <label class="form-label">Language</label>
+      <select class="form-input"><option>English</option><option>中文</option></select>
+    </div>
+
+    <button class="cta-btn">Analyze opponent</button>
+
+    <div class="notes-card">
+      <div class="notes-head">
+        <div class="notes-head-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Player Notes
+          <span class="notes-badge">0</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      </div>
+      <div class="notes-empty">No analyses saved yet.</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

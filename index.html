@@ -2948,9 +2948,7 @@ async function compressVideoForUpload(file, onProgress) {
       var drawing = true;
       function drawLoop() {
         if (!drawing) return;
-        if (!video.paused && !video.ended) {
-          ctx.drawImage(video, 0, 0, w, h);
-        }
+        ctx.drawImage(video, 0, 0, w, h);
         requestAnimationFrame(drawLoop);
       }
 
