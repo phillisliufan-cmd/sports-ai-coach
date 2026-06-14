@@ -2821,7 +2821,21 @@ function loadVideo(tab, file) {
     file.name + ' — ' + fmtBytes(file.size);
   if (tab !== 'btw') frameStore[tab] = [];
   videoStore[tab] = null; // clear old URI
-  doGeminiUpload(tab, file);
+
+  // Get original duration before compression
+  const tmpVid = document.createElement('video');
+  tmpVid.preload = 'metadata';
+  const tmpUrl = URL.createObjectURL(file);
+  tmpVid.onloadedmetadata = function() {
+    up._originalDuration = isFinite(tmpVid.duration) ? tmpVid.duration : null;
+    URL.revokeObjectURL(tmpUrl);
+    doGeminiUpload(tab, file);
+  };
+  tmpVid.onerror = function() {
+    URL.revokeObjectURL(tmpUrl);
+    doGeminiUpload(tab, file);
+  };
+  tmpVid.src = tmpUrl;
 }
 
 function clearBtwFrames() {
@@ -3009,7 +3023,11 @@ async function doGeminiUpload(tab, file) {
       xhr.send(uploadFile);
     });
 
-    videoStore[tab] = { uri: result.uri, name: result.name, mimeType: result.mimeType || uploadFile.type || 'video/mp4' };
+    const up = document.getElementById('up-' + tab);
+    const originalDuration = up && up._originalDuration ? up._originalDuration : null;
+    const wasCompressed = file.size > COMPRESS_THRESHOLD;
+    const speedRatio = wasCompressed ? 8 : 1;
+    videoStore[tab] = { uri: result.uri, name: result.name, mimeType: result.mimeType || uploadFile.type || 'video/mp4', originalDuration, speedRatio };
     if (window.posthog) posthog.capture('video_uploaded', { tab, sport: currentSport, size_mb: Math.round(uploadFile.size / 1024 / 1024) });
 
     pgFill.style.width = '100%';
@@ -3030,6 +3048,17 @@ async function doGeminiUpload(tab, file) {
 function buildVideoPrompt(tab) {
   const sp = SPORTS[currentSport];
 
+  // Build timestamp context if video was compressed (speed > 1x)
+  const srcTab = tab === 'post' ? 'btw' : tab;
+  const vd = videoStore[srcTab];
+  let timestampNote = '';
+  if (vd && vd.speedRatio && vd.speedRatio > 1 && vd.originalDuration) {
+    const origMin = Math.floor(vd.originalDuration / 60);
+    const origSec = Math.round(vd.originalDuration % 60);
+    const origStr = origMin > 0 ? `${origMin}m${origSec}s` : `${origSec}s`;
+    timestampNote = `\n\nTIMESTAMP NOTE: This video was compressed at ${vd.speedRatio}x speed for upload. The actual match is ${origStr} long. To report real match timestamps, multiply any video timestamp by ${vd.speedRatio}. For example, if you see something at 0:15 in this video, report it as ${Math.round(15 * vd.speedRatio / 60)}:${String(Math.round(15 * vd.speedRatio) % 60).padStart(2,'0')} in the actual match.`;
+  }
+
   if (tab === 'pre') {
     const desc    = document.getElementById('opp-name').value.trim();
     const descVid = document.getElementById('opp-desc').value.trim();
@@ -3048,7 +3077,7 @@ Exactly 3 tactical patterns or shot combinations targeting ${oppLabel}'s weaknes
 **3. GAME PLAN**
 3 concrete instructions: what to do, where to move ${oppLabel}, when to attack.
 
-Under 300 words. Every sentence actionable.`;
+Under 300 words. Every sentence actionable.${timestampNote}`;
   }
 
   if (tab === 'btw') {
@@ -3097,7 +3126,7 @@ Finally output a court diagram as a \`\`\`diagram JSON block:
 Valid positions: ${sp.diagramPositions}
 Valid zones: ${sp.diagramZones} — color "opponent" (red) or "target" (blue)
 
-${langInstr}`;
+${langInstr}${timestampNote}`;
   }
 
   if (tab === 'solo') {
@@ -3127,7 +3156,7 @@ Specific solo drills. For each: name it, describe in 1 sentence, state reps/sets
 
 Under 380 words. Every sentence actionable.
 
-${langInstr}`;
+${langInstr}${timestampNote}`;
   }
 
   // post
@@ -3151,7 +3180,7 @@ Skip non-play moments. Cite approximate timestamps. Refer to opponent as "${oppL
 **5. GAME PLAN FOR THE REMATCH**
 **6. TOP 3 THINGS FOR YOU TO PRACTICE**
 
-Be direct and focused on winning. Reference court zones and shot types.`;
+Be direct and focused on winning. Reference court zones and shot types.${timestampNote}`;
 }
 
 // ═══════════════════════════════════════════════
