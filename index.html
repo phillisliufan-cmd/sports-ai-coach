@@ -3004,9 +3004,22 @@ async function doGeminiUpload(tab, file) {
       pgLbl.textContent = 'Uploading video…';
     }
 
-    // ── Step 2: Upload to Gemini via server ──────────────────────────────
+    // ── Step 2: Get Gemini upload URL from server (tiny request) ────────
     const token = await getAuthToken();
+    const mimeType = uploadFile.type || 'video/mp4';
 
+    const urlRes = await fetch('/api/gemini-upload-url', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { 'Authorization': 'Bearer ' + token } : {}),
+      body: JSON.stringify({ mimeType, fileSize: uploadFile.size }),
+    });
+    if (!urlRes.ok) {
+      const e = await urlRes.json().catch(() => ({}));
+      throw new Error(e.error || 'Failed to get upload URL');
+    }
+    const { uploadUrl } = await urlRes.json();
+
+    // ── Step 3: Upload directly to Gemini (bypasses Vercel size limit) ───
     const result = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.upload.onprogress = function(e) {
@@ -3019,20 +3032,22 @@ async function doGeminiUpload(tab, file) {
       };
       xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch(e) { reject(new Error('Bad response from server')); }
-        } else {
           try {
             const d = JSON.parse(xhr.responseText);
-            reject(new Error(d.error || 'Upload failed (' + xhr.status + ')'));
-          } catch { reject(new Error('Upload failed (' + xhr.status + ')')); }
+            const uri  = d.file?.uri;
+            const name = d.file?.name;
+            if (uri) resolve({ uri, name, mimeType });
+            else reject(new Error('No file URI from Gemini'));
+          } catch(e) { reject(new Error('Bad response from Gemini')); }
+        } else {
+          reject(new Error('Upload failed (' + xhr.status + ')'));
         }
       };
       xhr.onerror = function() { reject(new Error('Network error during upload')); };
 
-      xhr.open('POST', '/api/gemini-upload');
-      xhr.setRequestHeader('x-mime-type', uploadFile.type || 'video/mp4');
-      if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('X-Goog-Upload-Offset', '0');
+      xhr.setRequestHeader('X-Goog-Upload-Command', 'upload, finalize');
       xhr.send(uploadFile);
     });
 
