@@ -3062,14 +3062,6 @@ async function doGeminiUpload(tab, file) {
 function buildVideoPrompt(tab) {
   const sp = SPORTS[currentSport];
 
-  // Build timestamp context if video was compressed (speed > 1x)
-  const srcTab = tab === 'post' ? 'btw' : tab;
-  const vd = videoStore[srcTab];
-  let timestampNote = '';
-  if (vd && vd.speedRatio && vd.speedRatio > 1) {
-    timestampNote = `\n\nTIMESTAMP NOTE: The real match timestamp is burned into the bottom-left corner of every frame (e.g. "1:23"). Always cite the timestamp shown on the frame, not the video player time.`;
-  }
-
   if (tab === 'pre') {
     const desc    = document.getElementById('opp-name').value.trim();
     const descVid = document.getElementById('opp-desc').value.trim();
@@ -3077,7 +3069,7 @@ function buildVideoPrompt(tab) {
     return `I'm sharing a ${sp.name} match video. Scout my opponent so I can beat them.
 ${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}${descVid ? ` Identify them by: ${descVid}.` : ''}
 
-Skip non-play moments. When referencing observations, cite approximate timestamps (e.g., "at 0:45"). Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Max 3 bullets per section. No emoji.
+Skip non-play moments. Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Max 3 bullets per section. No emoji. Do NOT cite timestamps — describe patterns instead (e.g. "repeatedly", "when under pressure", "in the back corners").
 
 **1. KEY WEAKNESSES**
 Top 3 technical or tactical weaknesses of ${oppLabel}. One sentence each.
@@ -3088,7 +3080,7 @@ Exactly 3 tactical patterns or shot combinations targeting ${oppLabel}'s weaknes
 **3. GAME PLAN**
 3 concrete instructions: what to do, where to move ${oppLabel}, when to attack.
 
-Under 300 words. Every sentence actionable.${timestampNote}`;
+Under 300 words. Every sentence actionable.`;
   }
 
   if (tab === 'btw') {
@@ -3118,7 +3110,7 @@ Under 300 words. Every sentence actionable.${timestampNote}`;
 Match scores so far: ${scoreSummary}
 ${desc ? 'The opponent\'s name is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
 
-Skip non-play moments. Cite approximate timestamps. Refer to opponent as "${oppLabel}" and player I coach as "you". Give EXACTLY 3 tactical instructions for Game ${nextGame}.
+Skip non-play moments. Refer to opponent as "${oppLabel}" and player I coach as "you". Give EXACTLY 3 tactical instructions for Game ${nextGame}. Do NOT cite timestamps — describe patterns instead (e.g. "when you're in the back court", "after a long rally", "on your backhand side").
 
 FORMAT:
 1. [First instruction — one sentence, max 18 words]
@@ -3127,7 +3119,7 @@ FORMAT:
 
 Then a "COACH NOTE:" (under 5 sentences total):
 - How ${oppLabel} is winning points + how you counter it
-- One error you are making + the fix (cite timestamp)
+- One error you are making + the fix (describe the situation, not a timestamp)
 
 Finally output a court diagram as a \`\`\`diagram JSON block:
 {
@@ -3148,26 +3140,26 @@ ${langInstr}${timestampNote}`;
     return `I'm sharing a ${sp.name} solo practice video.
 ${focusInstr}
 
-Analyze technique across the video. Skip non-play moments. Cite approximate timestamps. No emoji. Address the player as "you".
+Analyze technique across the video. Skip non-play moments. No emoji. Address the player as "you". Do NOT cite timestamps — describe what you observe (e.g. "on your forehand side", "when you're stretching for the ball", "consistently throughout").
 
 **1. WHAT YOU'RE DOING WELL**
-2-3 specific technical things that look correct. Be precise, cite timestamps.
+2-3 specific technical things that look correct.
 
 **2. KEY TECHNICAL ISSUES**
 Top 3 problems with mechanics, footwork, or positioning. One sentence per issue + one concrete fix.
 
 **3. MOVEMENT & FOOTWORK**
-Court movement: recovery to T, split step, balance. What to fix and how.
+What specific movement errors do you see, and how to fix them.
 
 **4. SHOT MECHANICS**
-The 1-2 most important mechanics issues — racket prep, swing path, follow-through. Give the fix.
+The 1-2 most important mechanics issues — what exactly is wrong and what the fix is.
 
 **5. TOP 3 DRILLS FOR THIS WEEK**
-Specific solo drills. For each: name it, describe in 1 sentence, state reps/sets.
+Specific solo drills targeting what you saw. For each: name it, describe in 1 sentence, state reps/sets.
 
 Under 380 words. Every sentence actionable.
 
-${langInstr}${timestampNote}`;
+${langInstr}`;
   }
 
   // post
@@ -3182,7 +3174,7 @@ Game scores: ${scores}
 ${desc2 ? 'The opponent\'s name is ' + desc2 + '.' : ''}${descVidPost ? ' Identify them by: ' + descVidPost + '.' : ''}
 ${notes ? 'Notes: ' + notes : ''}
 
-Skip non-play moments. Cite approximate timestamps. Refer to opponent as "${oppLabelPost}" and to me as "you". No emoji.
+Skip non-play moments. Refer to opponent as "${oppLabelPost}" and to me as "you". No emoji. Do NOT cite timestamps — describe patterns and situations instead (e.g. "when you were under pressure", "in the back corners", "on your backhand repeatedly").
 
 **1. ${oppLabelPost.toUpperCase()} WEAKNESSES EXPOSED IN THIS MATCH**
 **2. MOMENTS YOU SHOULD HAVE WON MORE POINTS**
