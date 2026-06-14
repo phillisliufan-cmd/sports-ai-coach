@@ -26,7 +26,8 @@ export default async function handler(req, res) {
     const geminiRes = await fetch(uploadUrl, {
       method:  'POST',
       headers: {
-        'X-Goog-Upload-Offset':  offset,
+        'Content-Length':        String(body.length),
+        'X-Goog-Upload-Offset':  String(parseInt(offset, 10)),
         'X-Goog-Upload-Command': isLast ? 'upload, finalize' : 'upload',
       },
       body,
