@@ -3006,8 +3006,17 @@ async function doGeminiUpload(tab, file) {
     const token   = await getAuthToken();
     const mimeType = uploadFile.type || 'video/mp4';
 
+    // On iOS, canvas.captureStream is unavailable so we upload the original file.
+    // Large originals on slow connections can take minutes — warn the user.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const noCompression = isIOS || typeof document.createElement('canvas').captureStream !== 'function';
+    if (noCompression && uploadFile.size > 100 * 1024 * 1024) {
+      pgLbl.textContent = 'Uploading ' + Math.round(uploadFile.size / 1024 / 1024) + ' MB — may take a few minutes…';
+    }
+
     const result = await new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      xhr.timeout = 280000; // 280s — just under the 300s server timeout
       xhr.upload.onprogress = function(e) {
         if (e.lengthComputable) {
           const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
@@ -3028,6 +3037,7 @@ async function doGeminiUpload(tab, file) {
         }
       };
       xhr.onerror = function() { reject(new Error('Network error during upload')); };
+      xhr.ontimeout = function() { reject(new Error('Upload timed out — video may be too large, try a shorter clip')); };
       xhr.open('POST', '/api/gemini-upload');
       xhr.setRequestHeader('x-mime-type', mimeType);
       if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
