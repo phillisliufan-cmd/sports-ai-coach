@@ -3098,7 +3098,7 @@ No bullet points. No section headers. Speak directly to me. No emoji. Under 300 
     const descVid     = document.getElementById('p-style-desc').value.trim();
     const oppLabel    = desc || 'the opponent';
     const btwLang     = langSetting['btw'] || 'en';
-    const langInstr   = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
+    const langInstr   = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only. Keep all player names exactly as written.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
 
     return `I'm sharing a ${sp.name} match video. ${scoreSummary}
 ${desc ? 'The opponent is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
@@ -3127,7 +3127,7 @@ ${langInstr}`;
     const focus     = (document.getElementById('solo-focus') || {}).value || '';
     const focusInstr = focus.trim() ? 'The player wants specific feedback on: ' + focus.trim() + '.' : '';
     const soloLang  = langSetting['solo'] || 'en';
-    const langInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[soloLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
+    const langInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only. Keep all player names exactly as written.' }[soloLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
     return `I'm sharing a ${sp.name} solo practice video.
 ${focusInstr}
 
@@ -3173,11 +3173,11 @@ async function analyzeWithGemini(tab, videoData) {
   const prompt       = buildVideoPrompt(tab);
   const systemPrompt = SPORTS[currentSport].sys +
     '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' +
-    ({ zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
-       ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
-       fr: 'IMPORTANT: Write your entire response in French (Français) only.',
-       de: 'IMPORTANT: Write your entire response in German (Deutsch) only.' }[langSetting[tab]] ||
-      'IMPORTANT: Write your entire response in English only.');
+    ({ zh: 'IMPORTANT: Write your entire response in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.',
+       ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only. Keep all player names exactly as written.',
+       fr: 'IMPORTANT: Write your entire response in French (Français) only. Keep all player names exactly as written.',
+       de: 'IMPORTANT: Write your entire response in German (Deutsch) only. Keep all player names exactly as written.' }[langSetting[tab]] ||
+      'IMPORTANT: Write your entire response in English only. Keep all player names exactly as written.');
 
   const btn     = document.getElementById('go-' + tab);
   const lbl     = btn.querySelector('.btn-lbl');
@@ -3622,7 +3622,7 @@ Keep the entire response under 300 words. No padding, no filler. Every sentence 
     const descVidBtw  = document.getElementById('p-style-desc').value.trim();
     const oppLabelBtw = desc || 'the opponent';
     const btwLang     = langSetting['btw'] || 'en';
-    const btwLangInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
+    const btwLangInstr = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only. Keep all player names exactly as written.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
     const toSendBtw = frameStore['btw'].slice(0, 20);
     const frameIndex = toSendBtw.map((fr, i) => `Frame ${i+1}: ${fmtTime(fr.ts)}`).join(', ');
     return `I have uploaded ${active} video frames from the ${sp.name} game just played. We are about to start Game ${nextGame}.
@@ -3796,11 +3796,11 @@ async function analyze(tab) {
       max_tokens: tab === 'pre' ? 2000 : 4096,
       stream: true,
       system: SPORTS[currentSport].sys + '\n\nDo NOT use any emoji or special symbols in your response. Plain text and markdown only.\n\n' + ({
-        zh: 'IMPORTANT: Write your entire response in Chinese (中文) only.',
-        ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only.',
-        fr: 'IMPORTANT: Write your entire response in French (Français) only.',
-        de: 'IMPORTANT: Write your entire response in German (Deutsch) only.',
-      }[langSetting[tab]] || 'IMPORTANT: Write your entire response in English only.'),
+        zh: 'IMPORTANT: Write your entire response in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.',
+        ja: 'IMPORTANT: Write your entire response in Japanese (日本語) only. Keep all player names exactly as written.',
+        fr: 'IMPORTANT: Write your entire response in French (Français) only. Keep all player names exactly as written.',
+        de: 'IMPORTANT: Write your entire response in German (Deutsch) only. Keep all player names exactly as written.',
+      }[langSetting[tab]] || 'IMPORTANT: Write your entire response in English only. Keep all player names exactly as written.'),
       messages: [{ role: 'user', content: [...imgBlocks, { type: 'text', text: prompt }] }]
     });
 
@@ -4421,7 +4421,7 @@ async function summarizeLive() {
   const liveLang = (document.getElementById('live-lang') || {}).value || 'en';
   const liveOpp  = ((document.getElementById('live-opp') || {}).value || '').trim();
   const oppName  = liveOpp ? liveOpp.split(' ')[0] : 'the opponent';
-  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Reply in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Reply in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Reply in German (Deutsch) only. Keep all player names exactly as written.' }[liveLang] || 'IMPORTANT: Reply in English only.';
 
   const combinedAnalysis = liveAnalysisLog.map((txt, i) => `--- Analysis ${i + 1} ---\n${txt}`).join('\n\n');
 
@@ -4527,7 +4527,7 @@ async function pauseAndAnalyzeLive() {
   const oppName  = liveOpp ? liveOpp.split(' ')[0] : 'the opponent';
   const myDesc   = liveMe  || 'my player';
   const oppDesc  = liveOpp || 'the opponent';
-  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[liveLang] || 'IMPORTANT: Reply in English only.';
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Reply in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Reply in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Reply in German (Deutsch) only. Keep all player names exactly as written.' }[liveLang] || 'IMPORTANT: Reply in English only.';
 
   const prompt = `You are a world-class ${sport} coach with deep knowledge of PSA Tour tactics — the deception of Ramy Ashour, the relentless length of Nick Matthew, the angles of Ali Farag, the physicality of El Shorbagy.
 
@@ -5069,7 +5069,7 @@ async function pauseAndAnalyzeSoloLive() {
   const focus    = ((document.getElementById('solo-live-focus') || {}).value || '').trim();
   const lang     = ((document.getElementById('solo-live-lang') || {}).value || 'en');
   const focusInstr = focus ? `The player is focusing on: ${focus}.` : '';
-  const langInstr  = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[lang] || 'IMPORTANT: Reply in English only.';
+  const langInstr  = { zh: 'IMPORTANT: Reply in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Reply in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Reply in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Reply in German (Deutsch) only. Keep all player names exactly as written.' }[lang] || 'IMPORTANT: Reply in English only.';
 
   const prompt = `You are a world-class ${sport} coach reviewing solo practice footage. There is no opponent — analyze only the player's own technique, movement, and mechanics.
 
@@ -5182,7 +5182,7 @@ async function summarizeSoloLive() {
   btn.textContent = 'Summarizing…';
 
   const lang = ((document.getElementById('solo-live-lang') || {}).value || 'en');
-  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only.', ja: 'IMPORTANT: Reply in Japanese (日本語) only.', fr: 'IMPORTANT: Reply in French (Français) only.', de: 'IMPORTANT: Reply in German (Deutsch) only.' }[lang] || 'IMPORTANT: Reply in English only.';
+  const langInstr = { zh: 'IMPORTANT: Reply in Chinese (中文) only. Keep all player names exactly as written — do not translate or romanize them.', ja: 'IMPORTANT: Reply in Japanese (日本語) only. Keep all player names exactly as written.', fr: 'IMPORTANT: Reply in French (Français) only. Keep all player names exactly as written.', de: 'IMPORTANT: Reply in German (Deutsch) only. Keep all player names exactly as written.' }[lang] || 'IMPORTANT: Reply in English only.';
 
   const combined = soloLiveAnalysisLog.map((txt, i) => `--- Check-in ${i + 1} ---\n${txt}`).join('\n\n');
 
