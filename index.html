@@ -3004,7 +3004,7 @@ async function doGeminiUpload(tab, file) {
       pgLbl.textContent = 'Uploading video…';
     }
 
-    // ── Step 2: Get Gemini upload URL from server (tiny request) ────────
+    // ── Step 2: Get Gemini resumable upload URL from server ──────────────
     const token = await getAuthToken();
     const mimeType = uploadFile.type || 'video/mp4';
 
@@ -3019,37 +3019,42 @@ async function doGeminiUpload(tab, file) {
     }
     const { uploadUrl } = await urlRes.json();
 
-    // ── Step 3: Upload directly to Gemini (bypasses Vercel size limit) ───
-    const result = await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.upload.onprogress = function(e) {
-        if (e.lengthComputable) {
-          const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
-          const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
-          pgFill.style.width = pct + '%';
-          pgLbl.textContent = 'Uploading… ' + pct + '%';
-        }
-      };
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const d = JSON.parse(xhr.responseText);
-            const uri  = d.file?.uri;
-            const name = d.file?.name;
-            if (uri) resolve({ uri, name, mimeType });
-            else reject(new Error('No file URI from Gemini'));
-          } catch(e) { reject(new Error('Bad response from Gemini')); }
-        } else {
-          reject(new Error('Upload failed (' + xhr.status + ')'));
-        }
-      };
-      xhr.onerror = function() { reject(new Error('Network error during upload')); };
+    // ── Step 3: Upload in 3 MB chunks through server (avoids 4.5 MB limit) ─
+    const CHUNK = 3 * 1024 * 1024; // 3 MB = 12 × 256 KB (Gemini alignment)
+    const base  = file.size > COMPRESS_THRESHOLD ? 50 : 0;
+    let offset = 0;
+    let result;
 
-      xhr.open('POST', uploadUrl);
-      xhr.setRequestHeader('X-Goog-Upload-Offset', '0');
-      xhr.setRequestHeader('X-Goog-Upload-Command', 'upload, finalize');
-      xhr.send(uploadFile);
-    });
+    while (offset < uploadFile.size) {
+      const end    = Math.min(offset + CHUNK, uploadFile.size);
+      const isLast = end >= uploadFile.size;
+      const chunk  = uploadFile.slice(offset, end);
+
+      const pct = base + Math.round((end / uploadFile.size) * (100 - base));
+      pgFill.style.width = pct + '%';
+      pgLbl.textContent  = 'Uploading… ' + pct + '%';
+
+      const chunkRes = await fetch('/api/gemini-upload', {
+        method:  'POST',
+        headers: {
+          'Content-Type':    'application/octet-stream',
+          'x-upload-url':    uploadUrl,
+          'x-upload-offset': String(offset),
+          'x-upload-is-last': String(isLast),
+        },
+        body: chunk,
+      });
+      if (!chunkRes.ok) {
+        const e = await chunkRes.json().catch(() => ({}));
+        throw new Error(e.error || 'Upload failed (' + chunkRes.status + ')');
+      }
+
+      if (isLast) {
+        const d = await chunkRes.json();
+        result = { uri: d.uri, name: d.name, mimeType };
+      }
+      offset = end;
+    }
 
     const up = document.getElementById('up-' + tab);
     const originalDuration = up && up._originalDuration ? up._originalDuration : null;
