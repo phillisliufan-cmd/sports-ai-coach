@@ -3066,21 +3066,16 @@ function buildVideoPrompt(tab) {
     const desc    = document.getElementById('opp-name').value.trim();
     const descVid = document.getElementById('opp-desc').value.trim();
     const oppLabel = desc || 'the opponent';
-    return `I'm sharing a ${sp.name} match video. Scout my opponent so I can beat them.
-${desc ? `The opponent's name is ${desc}.` : 'Focus on one player as the opponent.'}${descVid ? ` Identify them by: ${descVid}.` : ''}
+    return `I'm sharing a ${sp.name} match video. I need to scout ${oppLabel} before we play.
+${desc ? `The opponent is ${desc}.` : ''}${descVid ? ` Identify them by: ${descVid}.` : ''}
 
-Skip non-play moments. Analyze ${oppLabel} ONLY. Refer to the player I coach as "you". Max 3 bullets per section. No emoji. Do NOT cite timestamps — describe patterns instead (e.g. "repeatedly", "when under pressure", "in the back corners").
+Watch the video carefully. Then talk to me like a real coach giving a pre-match briefing — not a report, a conversation.
 
-**1. KEY WEAKNESSES**
-Top 3 technical or tactical weaknesses of ${oppLabel}. One sentence each.
+Describe the specific patterns and habits you actually saw ${oppLabel} doing. For each one: what exactly did they do, when did they do it, and precisely what should I do to exploit it. If you saw a weakness in a specific situation, describe that situation. If they have a predictable shot in a certain position, tell me exactly what it is and how to set it up.
 
-**2. HOW TO EXPLOIT THEM**
-Exactly 3 tactical patterns or shot combinations targeting ${oppLabel}'s weaknesses. Start each with "You should…".
+End with the 2-3 most important things I should focus on in the match.
 
-**3. GAME PLAN**
-3 concrete instructions: what to do, where to move ${oppLabel}, when to attack.
-
-Under 300 words. Every sentence actionable.`;
+No bullet points. No section headers. Speak directly to me. No emoji. Under 300 words.`;
   }
 
   if (tab === 'btw') {
@@ -3105,31 +3100,24 @@ Under 300 words. Every sentence actionable.`;
     const btwLang     = langSetting['btw'] || 'en';
     const langInstr   = { zh: 'IMPORTANT: Write the ENTIRE response in Chinese (中文) only.', ja: 'IMPORTANT: Write the ENTIRE response in Japanese (日本語) only.', fr: 'IMPORTANT: Write the ENTIRE response in French (Français) only.', de: 'IMPORTANT: Write the ENTIRE response in German (Deutsch) only.' }[btwLang] || 'IMPORTANT: Write the ENTIRE response in English only.';
 
-    return `I'm sharing a ${sp.name} game video. We are about to start Game ${nextGame}.
+    return `I'm sharing a ${sp.name} match video. ${scoreSummary}
+${desc ? 'The opponent is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
 
-Match scores so far: ${scoreSummary}
-${desc ? 'The opponent\'s name is ' + desc + '.' : ''}${descVid ? ' Identify them by: ' + descVid + '.' : ''}
+We're about to start Game ${nextGame}. Talk to me like a coach in the break between games — direct, specific, no fluff.
 
-Skip non-play moments. Refer to opponent as "${oppLabel}" and player I coach as "you". Give EXACTLY 3 tactical instructions for Game ${nextGame}. Do NOT cite timestamps — describe patterns instead (e.g. "when you're in the back court", "after a long rally", "on your backhand side").
+Tell me what patterns you saw in the last game. What is ${oppLabel} doing that's working against me, and exactly how do I stop it? What am I doing wrong — describe the specific situation where I'm making the mistake, what the mistake is, and what I should do instead. Then give me 2-3 concrete things to do differently in Game ${nextGame}.
 
-FORMAT:
-1. [First instruction — one sentence, max 18 words]
-2. [Second instruction]
-3. [Third instruction]
+No bullet points. No section headers. Speak directly to me as the player. No emoji. Under 250 words.
 
-Then a "COACH NOTE:" (under 5 sentences total):
-- How ${oppLabel} is winning points + how you counter it
-- One error you are making + the fix (describe the situation, not a timestamp)
-
-Finally output a court diagram as a \`\`\`diagram JSON block:
+Then output a court diagram as a \`\`\`diagram JSON block showing the key tactical pattern for Game ${nextGame}:
 {
-  "arrows": [{"from":"POSITION","to":"POSITION","style":"solid","color":"blue","label":"1. Shot name"}],
+  "arrows": [{"from":"POSITION","to":"POSITION","style":"solid","color":"blue","label":"Shot name"}],
   "zones":  [{"pos":"ZONE","label":"text","color":"opponent"}]
 }
 Valid positions: ${sp.diagramPositions}
 Valid zones: ${sp.diagramZones} — color "opponent" (red) or "target" (blue)
 
-${langInstr}${timestampNote}`;
+${langInstr}`;
   }
 
   if (tab === 'solo') {
@@ -3140,24 +3128,13 @@ ${langInstr}${timestampNote}`;
     return `I'm sharing a ${sp.name} solo practice video.
 ${focusInstr}
 
-Analyze technique across the video. Skip non-play moments. No emoji. Address the player as "you". Do NOT cite timestamps — describe what you observe (e.g. "on your forehand side", "when you're stretching for the ball", "consistently throughout").
+Watch the video carefully. Then coach me like a real coach who just watched my practice session.
 
-**1. WHAT YOU'RE DOING WELL**
-2-3 specific technical things that look correct.
+Tell me what you actually saw — not categories, not a checklist. Describe the specific technical flaws: what exactly is my body, racket, or footwork doing wrong, in what situation, and why is it costing me. Then tell me exactly what the correct movement or technique looks like and how to get there. If something looks good, say so briefly but focus on what needs fixing.
 
-**2. KEY TECHNICAL ISSUES**
-Top 3 problems with mechanics, footwork, or positioning. One sentence per issue + one concrete fix.
+End with 2-3 drills that directly target what you saw. For each drill: what it's called, exactly how to do it, and how many reps.
 
-**3. MOVEMENT & FOOTWORK**
-What specific movement errors do you see, and how to fix them.
-
-**4. SHOT MECHANICS**
-The 1-2 most important mechanics issues — what exactly is wrong and what the fix is.
-
-**5. TOP 3 DRILLS FOR THIS WEEK**
-Specific solo drills targeting what you saw. For each: name it, describe in 1 sentence, state reps/sets.
-
-Under 380 words. Every sentence actionable.
+No bullet points. No section headers. Talk to me directly as the player. No emoji. Under 380 words.
 
 ${langInstr}`;
   }
@@ -3168,22 +3145,19 @@ ${langInstr}`;
   const descVidPost = document.getElementById('pm-player-desc').value.trim();
   const oppLabelPost = desc2 || 'the opponent';
   const notes       = document.getElementById('pm-notes').value.trim();
-  return `I'm sharing a ${sp.name} match video I just played. I want to understand how to beat this opponent better next time.
+  return `I'm sharing a ${sp.name} match video I just played against ${oppLabelPost}.
 
 Game scores: ${scores}
-${desc2 ? 'The opponent\'s name is ' + desc2 + '.' : ''}${descVidPost ? ' Identify them by: ' + descVidPost + '.' : ''}
-${notes ? 'Notes: ' + notes : ''}
+${desc2 ? 'The opponent is ' + desc2 + '.' : ''}${descVidPost ? ' Identify them by: ' + descVidPost + '.' : ''}
+${notes ? 'Extra context: ' + notes : ''}
 
-Skip non-play moments. Refer to opponent as "${oppLabelPost}" and to me as "you". No emoji. Do NOT cite timestamps — describe patterns and situations instead (e.g. "when you were under pressure", "in the back corners", "on your backhand repeatedly").
+Watch the match and debrief me like a coach after the game — honest, specific, direct.
 
-**1. ${oppLabelPost.toUpperCase()} WEAKNESSES EXPOSED IN THIS MATCH**
-**2. MOMENTS YOU SHOULD HAVE WON MORE POINTS**
-**3. WHAT WORKED AGAINST ${oppLabelPost.toUpperCase()}**
-**4. HOW ${oppLabelPost.toUpperCase()} BEAT YOU**
-**5. GAME PLAN FOR THE REMATCH**
-**6. TOP 3 THINGS FOR YOU TO PRACTICE**
+Tell me what actually happened in this match. What patterns did ${oppLabelPost} use to beat me or that I struggled against? Describe the specific situations where I lost points and exactly what went wrong — not just "you were out of position" but what position, after what shot, and what I should have done instead. What did I do well that I should keep doing?
 
-Be direct and focused on winning. Reference court zones and shot types.${timestampNote}`;
+Then tell me: if we play again, what's my game plan and what do I need to practice before that match?
+
+No bullet points. No section headers. Talk to me directly. No emoji. Under 400 words.`;
 }
 
 // ═══════════════════════════════════════════════
