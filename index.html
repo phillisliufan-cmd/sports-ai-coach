@@ -4255,7 +4255,7 @@ function openModal(id) {
   document.getElementById('m-name').textContent = entry.name;
   document.getElementById('m-meta').innerHTML =
     `<span class="sb-badge ${badgeCls}">${entry.tabLabel}</span> ${entry.date}`;
-  const cleanEntry = (entry.text || '').replace(/```diagram[\s\S]*?```/g, '').trim();
+  const cleanEntry = stripTimestamps((entry.text || '').replace(/```diagram[\s\S]*?```/g, '').trim());
   document.getElementById('m-ai-text').innerHTML = postProcess(renderMarkdown(cleanEntry));
   document.getElementById('m-note').value = entry.userNote || '';
   document.getElementById('m-bg').className = 'm-bg on';
@@ -4507,7 +4507,7 @@ ${langInstr}`;
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
             fullText += ev.delta.text;
-            summaryBody.innerHTML = renderMarkdown(stripEmoji(fullText));
+            summaryBody.innerHTML = renderMarkdown(stripEmoji(stripTimestamps(fullText)));
           }
         } catch {}
       }
@@ -4619,7 +4619,7 @@ ${langInstr}`;
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
             fullText += ev.delta.text;
-            body.innerHTML = renderMarkdown(stripEmoji(fullText));
+            body.innerHTML = renderMarkdown(stripEmoji(stripTimestamps(fullText)));
           }
         } catch {}
       }
@@ -5169,7 +5169,7 @@ ${langInstr}`;
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
             fullText += ev.delta.text;
-            body.innerHTML = renderMarkdown(stripEmoji(fullText));
+            body.innerHTML = renderMarkdown(stripEmoji(stripTimestamps(fullText)));
           }
         } catch {}
       }
@@ -5270,7 +5270,7 @@ ${langInstr}`;
           const ev = JSON.parse(data);
           if (ev.type === 'content_block_delta' && ev.delta?.text) {
             fullText += ev.delta.text;
-            summaryBody.innerHTML = renderMarkdown(stripEmoji(fullText));
+            summaryBody.innerHTML = renderMarkdown(stripEmoji(stripTimestamps(fullText)));
           }
         } catch {}
       }
