@@ -1,4 +1,4 @@
-// Node.js (Fluid Compute) — no body size limit when streaming, 300s timeout
+// Node.js (Fluid Compute) — no body size limit, 300s timeout
 export const config = { api: { bodyParser: false } };
 
 const GEMINI_KEY = (process.env.GEMINI_API_KEY    || '').replace(/\s+/g, '');
@@ -11,6 +11,15 @@ async function verifyToken(token) {
   });
   if (!r.ok) return null;
   return r.json();
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
 }
 
 export default async function handler(req, res) {
@@ -28,7 +37,10 @@ export default async function handler(req, res) {
   if (!fileSize) return res.status(400).json({ error: 'content-length header required' });
 
   try {
-    // ── Step 1: Start Gemini resumable upload session ─────────────────────
+    // ── Read body ─────────────────────────────────────────────────────────
+    const body = await readBody(req);
+
+    // ── Start Gemini resumable upload session ─────────────────────────────
     const initRes = await fetch(
       `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_KEY}`,
       {
@@ -36,7 +48,7 @@ export default async function handler(req, res) {
         headers: {
           'X-Goog-Upload-Protocol':              'resumable',
           'X-Goog-Upload-Command':               'start',
-          'X-Goog-Upload-Header-Content-Length': fileSize,
+          'X-Goog-Upload-Header-Content-Length': String(body.length),
           'X-Goog-Upload-Header-Content-Type':   mimeType,
           'Content-Type':                        'application/json',
         },
@@ -52,20 +64,15 @@ export default async function handler(req, res) {
     const uploadUrl = initRes.headers.get('x-goog-upload-url');
     if (!uploadUrl) return res.status(502).json({ error: 'No upload URL from Gemini' });
 
-    // ── Step 2: Stream request body directly to Gemini (no buffering) ─────
-    const { Readable } = await import('stream');
-    const bodyStream = Readable.toWeb(req);
-
+    // ── Upload buffer to Gemini ───────────────────────────────────────────
     const uploadRes = await fetch(uploadUrl, {
       method: 'POST',
       headers: {
-        'Content-Length':        fileSize,
+        'Content-Length':        String(body.length),
         'X-Goog-Upload-Offset':  '0',
         'X-Goog-Upload-Command': 'upload, finalize',
       },
-      body: bodyStream,
-      // @ts-ignore duplex required for streaming request body
-      duplex: 'half',
+      body,
     });
 
     if (!uploadRes.ok) {
