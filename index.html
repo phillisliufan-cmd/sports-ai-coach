@@ -3252,7 +3252,7 @@ async function analyzeWithGemini(tab, videoData) {
           const evt = JSON.parse(raw);
           if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
             fullText += evt.delta.text;
-            const displayText = fullText.replace(/```diagram[\s\S]*?```/g, '').trim();
+            const displayText = fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim();
             outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
           }
         } catch {}
@@ -3879,7 +3879,7 @@ async function analyze(tab) {
           const evt = JSON.parse(raw);
           if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
             fullText += evt.delta.text;
-            const displayText = fullText.replace(/```diagram[\s\S]*?```/g, '').trim();
+            const displayText = fullText.replace(/```(?:diagram|json)?\s*\{[\s\S]*?"arrows"[\s\S]*?\}\s*```/g, '').replace(/```diagram[\s\S]*?```/g, '').trim();
             outBody.innerHTML = postProcess(renderMarkdown(displayText), langSetting[tab]);
           }
         } catch(_) {}
@@ -4771,7 +4771,9 @@ function renderCourtDiagram(data, canvas, sport) {
 }
 
 function extractAndRenderDiagram(fullText, tab, sport) {
-  const match = fullText.match(/```diagram\s*([\s\S]*?)```/);
+  // Match ```diagram, ```json, or any ``` block containing arrows/zones JSON
+  const match = fullText.match(/```(?:diagram|json)?\s*(\{[\s\S]*?"arrows"[\s\S]*?\})\s*```/)
+             || fullText.match(/```(?:diagram|json)\s*([\s\S]*?)```/);
   if (!match) return;
   try {
     const data = JSON.parse(match[1].trim());
