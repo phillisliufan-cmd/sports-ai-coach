@@ -3004,57 +3004,37 @@ async function doGeminiUpload(tab, file) {
       pgLbl.textContent = 'Uploading video…';
     }
 
-    // ── Step 2: Get Gemini resumable upload URL from server ──────────────
+    // ── Step 2: Upload to Gemini via server (streaming proxy) ───────────
     const token = await getAuthToken();
     const mimeType = uploadFile.type || 'video/mp4';
 
-    const urlRes = await fetch('/api/gemini-upload-url', {
-      method: 'POST',
-      headers: Object.assign({ 'Content-Type': 'application/json' }, token ? { 'Authorization': 'Bearer ' + token } : {}),
-      body: JSON.stringify({ mimeType, fileSize: uploadFile.size }),
+    const result = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const base = file.size > COMPRESS_THRESHOLD ? 50 : 0;
+          const pct  = base + Math.round((e.loaded / e.total) * (100 - base));
+          pgFill.style.width = pct + '%';
+          pgLbl.textContent = 'Uploading… ' + pct + '%';
+        }
+      };
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch(e) { reject(new Error('Bad response from server')); }
+        } else {
+          try {
+            const d = JSON.parse(xhr.responseText);
+            reject(new Error(d.error || 'Upload failed (' + xhr.status + ')'));
+          } catch { reject(new Error('Upload failed (' + xhr.status + ')')); }
+        }
+      };
+      xhr.onerror = function() { reject(new Error('Network error during upload')); };
+      xhr.open('POST', '/api/gemini-upload');
+      xhr.setRequestHeader('x-mime-type', mimeType);
+      if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.send(uploadFile);
     });
-    if (!urlRes.ok) {
-      const e = await urlRes.json().catch(() => ({}));
-      throw new Error(e.error || 'Failed to get upload URL');
-    }
-    const { uploadUrl } = await urlRes.json();
-
-    // ── Step 3: Upload in 3 MB chunks through server (avoids 4.5 MB limit) ─
-    const CHUNK = 3 * 1024 * 1024; // 3 MB = 12 × 256 KB (Gemini alignment)
-    const base  = file.size > COMPRESS_THRESHOLD ? 50 : 0;
-    let offset = 0;
-    let result;
-
-    while (offset < uploadFile.size) {
-      const end    = Math.min(offset + CHUNK, uploadFile.size);
-      const isLast = end >= uploadFile.size;
-      const chunk  = uploadFile.slice(offset, end);
-
-      const pct = base + Math.round((end / uploadFile.size) * (100 - base));
-      pgFill.style.width = pct + '%';
-      pgLbl.textContent  = 'Uploading… ' + pct + '%';
-
-      const chunkRes = await fetch('/api/gemini-upload', {
-        method:  'POST',
-        headers: {
-          'Content-Type':    'application/octet-stream',
-          'x-upload-url':    uploadUrl,
-          'x-upload-offset': String(offset),
-          'x-upload-is-last': String(isLast),
-        },
-        body: chunk,
-      });
-      if (!chunkRes.ok) {
-        const e = await chunkRes.json().catch(() => ({}));
-        throw new Error(e.error || 'Upload failed (' + chunkRes.status + ')');
-      }
-
-      if (isLast) {
-        const d = await chunkRes.json();
-        result = { uri: d.uri, name: d.name, mimeType };
-      }
-      offset = end;
-    }
 
     const up = document.getElementById('up-' + tab);
     const originalDuration = up && up._originalDuration ? up._originalDuration : null;
