@@ -4826,9 +4826,21 @@ function stripEmoji(str) {
   return str.replace(/ {2,}/g, ' ');
 }
 
+function stripTimestamps(html) {
+  // Remove timestamp references in any language, e.g. "at 0:45", "在1:23", "(2:10)", "0:01"
+  html = html.replace(/\b(?:at|around|约|在|於)\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\b/gi, '');
+  html = html.replace(/\(\s*\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\s*\)/g, '');
+  html = html.replace(/\b\d{1,2}:\d{2}(?:\s*[-–]\s*\d{1,2}:\d{2})?\b/g, '');
+  // Clean up leftover punctuation/spaces from removal
+  html = html.replace(/\s{2,}/g, ' ').replace(/,\s*,/g, ',').replace(/\.\s*\./g, '.').trim();
+  return html;
+}
+
 function postProcess(html, lang) {
   // Strip any emoji Claude adds to output
   html = stripEmoji(html);
+  // Strip timestamps (video is compressed so they're meaningless)
+  html = stripTimestamps(html);
   // Wrap ordered lists in a green box with language-aware label
   let olCount = 0;
   html = html.replace(/(<ol>[\s\S]*?<\/ol>)/g, (match) => {
