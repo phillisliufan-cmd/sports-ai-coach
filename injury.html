@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Injury Check · Aceriq</title>
+<style>
+:root { --red: #d63a1a; --red-light: #fff2ef; --text: #0a0a0a; --muted: #666; --border: #e8e8e8; --surface: #f8f8f8; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: var(--text); min-height: 100dvh; -webkit-font-smoothing: antialiased; }
+
+/* ── AUTH ── */
+#auth-wall { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; align-items: center; justify-content: center; padding: 24px; }
+#auth-wall.hidden { display: none; }
+.auth-input { width: 100%; padding: 13px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; box-sizing: border-box; transition: border-color .15s; }
+.auth-input:focus { border-color: #0a0a0a; }
+.auth-btn-main { width: 100%; padding: 14px; background: #0a0a0a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 12px; }
+
+/* ── LAYOUT ── */
+#app { display: flex; flex-direction: column; min-height: 100dvh; }
+#app.hidden { display: none; }
+
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 50; }
+.back-link { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.header-brand { font-size: 15px; font-weight: 800; color: var(--text); }
+.header-tag { font-size: 11px; font-weight: 700; background: var(--red-light); color: var(--red); padding: 3px 8px; border-radius: 20px; }
+
+.main { flex: 1; padding: 0 16px 48px; max-width: 480px; margin: 0 auto; width: 100%; }
+
+/* ── STEPS ── */
+.step { display: none; }
+.step.active { display: block; }
+
+/* ── STEP 1: DIAGRAM ── */
+.diagram-wrap { display: flex; justify-content: center; margin: 16px 0 8px; position: relative; }
+.body-svg { width: 180px; height: auto; }
+
+/* hotspot circles */
+.hs { cursor: pointer; transition: all .15s; }
+.hs:hover circle, .hs.active circle { fill: var(--red); opacity: 1 !important; }
+.hs circle { fill: var(--red); opacity: 0.18; }
+.hs text { fill: var(--red); font-size: 9px; font-weight: 700; font-family: -apple-system, sans-serif; pointer-events: none; opacity: 0.8; }
+.hs.active circle { opacity: 1; }
+.hs.active text { fill: #fff; }
+
+.diagram-hint { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+/* sub-part panel */
+.subpart-panel { margin-top: 8px; background: var(--surface); border-radius: 16px; padding: 16px; }
+.subpart-panel h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.subpart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sub-btn { padding: 11px 10px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; text-align: left; line-height: 1.3; transition: all .12s; }
+.sub-btn:hover, .sub-btn.sel { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.side-row { display: flex; gap: 8px; margin-top: 10px; }
+.side-btn { flex: 1; padding: 10px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .12s; }
+.side-btn.sel { border-color: var(--red); background: var(--red-light); color: var(--red); }
+
+/* ── STEP 2: DESCRIBE ── */
+.selected-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--red-light); color: var(--red); font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; margin: 16px 0 20px; }
+.field-label { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.field-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; margin-top: -4px; }
+textarea.input-box { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; outline: none; resize: vertical; color: var(--text); min-height: 90px; }
+textarea.input-box:focus { border-color: var(--red); }
+.photo-btn { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border: 1.5px dashed var(--border); border-radius: 12px; background: var(--surface); font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; width: 100%; margin: 10px 0; }
+.photo-preview-wrap { position: relative; display: inline-block; margin: 8px 0; }
+.photo-preview-wrap img { width: 100px; height: 100px; object-fit: cover; border-radius: 10px; border: 1.5px solid var(--border); }
+.photo-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: #333; color: #fff; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.start-btn { width: 100%; padding: 15px; background: var(--red); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 20px; }
+.start-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── STEP 3: CHAT ── */
+.chat-header { display: flex; align-items: center; gap: 8px; padding: 16px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.chat-header .badge { font-size: 12px; font-weight: 700; background: var(--red-light); color: var(--red); padding: 4px 10px; border-radius: 20px; }
+.messages { display: flex; flex-direction: column; gap: 12px; }
+.msg { max-width: 88%; }
+.msg.ai { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-bubble { padding: 12px 14px; border-radius: 16px; font-size: 14px; line-height: 1.55; }
+.msg.ai .msg-bubble { background: var(--surface); border-radius: 4px 16px 16px 16px; }
+.msg.user .msg-bubble { background: var(--text); color: #fff; border-radius: 16px 4px 16px 16px; }
+.msg-typing .msg-bubble { color: var(--muted); font-style: italic; }
+
+.answer-area { display: flex; gap: 8px; margin-top: 16px; align-items: flex-end; }
+.answer-input { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; outline: none; resize: none; min-height: 48px; max-height: 120px; overflow-y: auto; }
+.answer-input:focus { border-color: var(--red); }
+.send-btn { padding: 12px 18px; background: var(--red); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── ASSESSMENT RESULT ── */
+.assessment { background: var(--red-light); border: 1.5px solid #f5c0b2; border-radius: 16px; padding: 20px; margin-top: 20px; }
+.assessment h2 { font-size: 16px; font-weight: 800; margin-bottom: 14px; color: var(--red); }
+.assess-row { margin-bottom: 12px; }
+.assess-row .label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--red); margin-bottom: 3px; }
+.assess-row .val { font-size: 14px; line-height: 1.5; }
+.severity-pill { display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px; }
+.sev-mild { background: #e6f9ed; color: #1a6b2e; }
+.sev-moderate { background: #fff7e6; color: #a05c00; }
+.sev-severe { background: #fef0ed; color: var(--red); }
+.sev-urgent { background: var(--red); color: #fff; animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.75; } }
+.red-flags { background: #fff; border: 1.5px solid #f5c0b2; border-radius: 10px; padding: 12px 14px; margin-top: 4px; font-size: 14px; line-height: 1.6; }
+.disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.5; border-top: 1px solid #f5c0b2; padding-top: 12px; }
+.restart-btn { width: 100%; padding: 13px; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; font-family: inherit; }
+
+/* ── BACK BUTTON (within steps) ── */
+.step-back { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; margin: 14px 0 6px; font-family: inherit; }
+
+/* ── UTIL ── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH WALL ═══ -->
+<div id="auth-wall" class="hidden">
+  <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;">
+    <div style="font-size:19px;font-weight:800;">Aceriq</div>
+    <div style="font-size:21px;font-weight:800;">Sign in to continue</div>
+    <input id="aw-email" class="auth-input" type="email" placeholder="your@email.com">
+    <button class="auth-btn-main" onclick="awSend()">Send Login Link</button>
+    <div id="aw-msg" style="font-size:13px;color:#999;text-align:center;"></div>
+    <div id="aw-step2" class="hidden" style="font-size:14px;color:#555;line-height:1.6;">Check your email — click the link to sign in.</div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app" class="hidden">
+  <div class="header">
+    <a href="/" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      AI Coach
+    </a>
+    <span class="header-brand">Aceriq</span>
+    <span class="header-tag">Injury Check</span>
+  </div>
+
+  <div class="main">
+
+    <!-- ── STEP 1: select body part ── -->
+    <div id="step-1" class="step active">
+      <p class="diagram-hint" style="margin-top:14px;">Tap the area that hurts</p>
+
+      <div class="diagram-wrap">
+        <!-- SVG body with hotspots -->
+        <svg class="body-svg" viewBox="0 0 200 490" xmlns="http://www.w3.org/2000/svg">
+          <!-- ── silhouette ── -->
+          <!-- head -->
+          <ellipse cx="100" cy="40" rx="26" ry="30" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- neck -->
+          <rect x="91" y="68" width="18" height="16" rx="4" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- torso -->
+          <path d="M68 82 Q58 105 60 165 L140 165 Q142 105 132 82 Z" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- lower torso / hips -->
+          <path d="M60 165 Q57 185 65 200 L135 200 Q143 185 140 165 Z" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- left upper arm -->
+          <path d="M70 87 Q50 110 38 165" stroke="#f0ebe5" stroke-width="20" fill="none" stroke-linecap="round"/>
+          <path d="M70 87 Q50 110 38 165" stroke="#d5c8bc" stroke-width="21" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- right upper arm -->
+          <path d="M130 87 Q150 110 162 165" stroke="#f0ebe5" stroke-width="20" fill="none" stroke-linecap="round"/>
+          <path d="M130 87 Q150 110 162 165" stroke="#d5c8bc" stroke-width="21" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- left forearm -->
+          <path d="M38 165 Q22 210 18 248" stroke="#f0ebe5" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path d="M38 165 Q22 210 18 248" stroke="#d5c8bc" stroke-width="17" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- right forearm -->
+          <path d="M162 165 Q178 210 182 248" stroke="#f0ebe5" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path d="M162 165 Q178 210 182 248" stroke="#d5c8bc" stroke-width="17" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- left hand -->
+          <ellipse cx="16" cy="256" rx="10" ry="12" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- right hand -->
+          <ellipse cx="184" cy="256" rx="10" ry="12" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- left thigh -->
+          <path d="M75 200 Q72 265 73 310" stroke="#f0ebe5" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <path d="M75 200 Q72 265 73 310" stroke="#d5c8bc" stroke-width="23" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- right thigh -->
+          <path d="M125 200 Q128 265 127 310" stroke="#f0ebe5" stroke-width="22" fill="none" stroke-linecap="round"/>
+          <path d="M125 200 Q128 265 127 310" stroke="#d5c8bc" stroke-width="23" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- left knee -->
+          <ellipse cx="73" cy="320" rx="14" ry="14" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- right knee -->
+          <ellipse cx="127" cy="320" rx="14" ry="14" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- left shin/calf -->
+          <path d="M73 334 Q70 380 71 420" stroke="#f0ebe5" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path d="M73 334 Q70 380 71 420" stroke="#d5c8bc" stroke-width="17" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- right shin/calf -->
+          <path d="M127 334 Q130 380 129 420" stroke="#f0ebe5" stroke-width="16" fill="none" stroke-linecap="round"/>
+          <path d="M127 334 Q130 380 129 420" stroke="#d5c8bc" stroke-width="17" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- left ankle -->
+          <ellipse cx="70" cy="430" rx="11" ry="12" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- right ankle -->
+          <ellipse cx="130" cy="430" rx="11" ry="12" fill="#f0ebe5" stroke="#d5c8bc" stroke-width="1.5"/>
+          <!-- left foot -->
+          <path d="M64 440 Q55 455 46 462" stroke="#f0ebe5" stroke-width="14" fill="none" stroke-linecap="round"/>
+          <path d="M64 440 Q55 455 46 462" stroke="#d5c8bc" stroke-width="15" fill="none" stroke-linecap="round" opacity=".5"/>
+          <!-- right foot -->
+          <path d="M136 440 Q145 455 154 462" stroke="#f0ebe5" stroke-width="14" fill="none" stroke-linecap="round"/>
+          <path d="M136 440 Q145 455 154 462" stroke="#d5c8bc" stroke-width="15" fill="none" stroke-linecap="round" opacity=".5"/>
+
+          <!-- ── HOTSPOTS ── -->
+          <!-- head/neck -->
+          <g class="hs" data-region="head" onclick="selectRegion('head')">
+            <circle cx="100" cy="50" r="34" opacity=".18"/>
+            <text x="100" y="50" text-anchor="middle" dominant-baseline="middle">Head/Neck</text>
+          </g>
+          <!-- shoulder -->
+          <g class="hs" data-region="shoulder" onclick="selectRegion('shoulder')">
+            <circle cx="100" cy="88" r="36" opacity=".18"/>
+            <text x="100" y="88" text-anchor="middle" dominant-baseline="middle">Shoulder</text>
+          </g>
+          <!-- elbow -->
+          <g class="hs" data-region="elbow" onclick="selectRegion('elbow')">
+            <circle cx="100" cy="160" r="28" opacity=".18"/>
+            <text x="100" y="160" text-anchor="middle" dominant-baseline="middle">Elbow</text>
+          </g>
+          <!-- wrist/hand -->
+          <g class="hs" data-region="wrist" onclick="selectRegion('wrist')">
+            <circle cx="100" cy="250" r="26" opacity=".18"/>
+            <text x="100" y="250" text-anchor="middle" dominant-baseline="middle">Wrist/Hand</text>
+          </g>
+          <!-- chest / upper back -->
+          <g class="hs" data-region="chest" onclick="selectRegion('chest')">
+            <circle cx="100" cy="120" r="28" opacity=".18"/>
+            <text x="100" y="120" text-anchor="middle" dominant-baseline="middle">Chest/Back</text>
+          </g>
+          <!-- lower back / hip -->
+          <g class="hs" data-region="lower_back" onclick="selectRegion('lower_back')">
+            <circle cx="100" cy="183" r="26" opacity=".18"/>
+            <text x="100" y="183" text-anchor="middle" dominant-baseline="middle">Lower Back</text>
+          </g>
+          <!-- hip / groin -->
+          <g class="hs" data-region="hip" onclick="selectRegion('hip')">
+            <circle cx="100" cy="210" r="24" opacity=".18"/>
+            <text x="100" y="210" text-anchor="middle" dominant-baseline="middle">Hip/Groin</text>
+          </g>
+          <!-- thigh -->
+          <g class="hs" data-region="thigh" onclick="selectRegion('thigh')">
+            <circle cx="100" cy="262" r="26" opacity=".18"/>
+            <text x="100" y="262" text-anchor="middle" dominant-baseline="middle">Thigh</text>
+          </g>
+          <!-- knee -->
+          <g class="hs" data-region="knee" onclick="selectRegion('knee')">
+            <circle cx="100" cy="320" r="24" opacity=".18"/>
+            <text x="100" y="320" text-anchor="middle" dominant-baseline="middle">Knee</text>
+          </g>
+          <!-- shin/calf -->
+          <g class="hs" data-region="shin_calf" onclick="selectRegion('shin_calf')">
+            <circle cx="100" cy="378" r="26" opacity=".18"/>
+            <text x="100" y="378" text-anchor="middle" dominant-baseline="middle">Shin/Calf</text>
+          </g>
+          <!-- ankle/achilles -->
+          <g class="hs" data-region="ankle" onclick="selectRegion('ankle')">
+            <circle cx="100" cy="432" r="24" opacity=".18"/>
+            <text x="100" y="432" text-anchor="middle" dominant-baseline="middle">Ankle</text>
+          </g>
+          <!-- foot -->
+          <g class="hs" data-region="foot" onclick="selectRegion('foot')">
+            <circle cx="100" cy="460" r="20" opacity=".18"/>
+            <text x="100" y="460" text-anchor="middle" dominant-baseline="middle">Foot</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- sub-part panel -->
+      <div id="subpart-panel" class="subpart-panel hidden">
+        <h3 id="subpart-title"></h3>
+        <div id="subpart-grid" class="subpart-grid"></div>
+        <div class="side-row hidden" id="side-row">
+          <button class="side-btn" onclick="setSide('left')">Left side</button>
+          <button class="side-btn" onclick="setSide('right')">Right side</button>
+          <button class="side-btn" onclick="setSide('both')">Both</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button onclick="clearSel()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-size:13px;font-weight:600;cursor:pointer;">← Back</button>
+          <button id="next-btn" onclick="goStep(2)" class="hidden" style="flex:2;padding:11px;background:var(--red);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: describe ── -->
+    <div id="step-2" class="step">
+      <button class="step-back" onclick="goStep(1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Change body part
+      </button>
+      <div id="selected-badge" class="selected-badge"></div>
+
+      <div class="field-label">What's happening?</div>
+      <div class="field-sub">Describe symptoms, when it started, what makes it better or worse</div>
+      <textarea id="desc-input" class="input-box" placeholder="e.g. Sharp pain when I stand on my toes, calf feels tight after playing, worse in the morning…"></textarea>
+
+      <div style="margin-top:16px;" class="field-label">Add a photo <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
+      <div class="field-sub">Swelling, bruising, deformity — helpful but not required</div>
+      <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden" onchange="previewPhoto(event)">
+      <button class="photo-btn" onclick="document.getElementById('photo-input').click()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        Take / upload photo
+      </button>
+      <div id="photo-wrap" class="hidden">
+        <div class="photo-preview-wrap">
+          <img id="photo-preview" src="" alt="injury photo">
+          <button class="photo-remove" onclick="removePhoto()">✕</button>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="startAssessment()">Start Assessment →</button>
+    </div>
+
+    <!-- ── STEP 3: AI Q&A ── -->
+    <div id="step-3" class="step">
+      <button class="step-back" onclick="restart()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Start over
+      </button>
+      <div class="chat-header">
+        <span id="chat-badge" class="badge"></span>
+      </div>
+      <div class="messages" id="messages"></div>
+
+      <div class="answer-area" id="answer-area">
+        <textarea id="answer-input" class="answer-input" placeholder="Type your answer…" rows="2"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAnswer();}"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendAnswer()">Send</button>
+      </div>
+
+      <div id="assessment-result" class="hidden"></div>
+      <button class="restart-btn hidden" id="restart-btn" onclick="restart()">Check another injury</button>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── AUTH ──────────────────────────────────────────────────
+const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
+const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
+const SESS_KEY  = 'sac_session';
+
+function getSession() { try { return JSON.parse(localStorage.getItem(SESS_KEY)); } catch { return null; } }
+function setSession(s) { localStorage.setItem(SESS_KEY, JSON.stringify(s)); }
+
+async function getToken() {
+  const s = getSession();
+  if (!s) return null;
+  const exp = s.expires_at || 0;
+  if (exp && (exp - Date.now()/1000) < 300 && s.refresh_token) {
+    const r = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+      body: JSON.stringify({ refresh_token: s.refresh_token })
+    });
+    if (r.ok) { const d = await r.json(); const ns = { ...d, expires_at: Date.now()/1000 + d.expires_in }; setSession(ns); return ns.access_token; }
+    localStorage.removeItem(SESS_KEY); return null;
+  }
+  return s?.access_token || null;
+}
+
+// Handle magic link on load
+(function() {
+  const h = window.location.hash;
+  if (h && h.includes('access_token')) {
+    const p = new URLSearchParams(h.replace('#',''));
+    const at = p.get('access_token'), rt = p.get('refresh_token'), ei = p.get('expires_in');
+    if (at) {
+      fetch(`${SUPA_URL}/auth/v1/user`, { headers: { Authorization: `Bearer ${at}`, apikey: SUPA_ANON } })
+        .then(r => r.json()).then(u => {
+          setSession({ access_token: at, refresh_token: rt, expires_in: ei, expires_at: Date.now()/1000 + parseInt(ei||3600), user: u });
+          window.history.replaceState(null, '', window.location.pathname);
+          init();
+        });
+      return;
+    }
+  }
+  init();
+})();
+
+async function init() {
+  const token = await getToken();
+  if (!token) { document.getElementById('auth-wall').classList.remove('hidden'); return; }
+  document.getElementById('auth-wall').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+}
+
+async function awSend() {
+  const email = document.getElementById('aw-email').value.trim();
+  const msg = document.getElementById('aw-msg');
+  if (!email) { msg.textContent = 'Please enter your email.'; return; }
+  msg.textContent = 'Sending…';
+  const r = await fetch(`${SUPA_URL}/auth/v1/otp`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SUPA_ANON },
+    body: JSON.stringify({ email, create_user: true })
+  });
+  if (r.ok) { msg.textContent = ''; document.getElementById('aw-step2').classList.remove('hidden'); }
+  else { const e = await r.json(); msg.textContent = e.message || 'Error sending link.'; }
+}
+
+// ── BODY REGIONS ─────────────────────────────────────────
+const REGIONS = {
+  head:       { label: 'Head / Neck',      needsSide: false, subs: ['Neck strain / stiffness', 'Whiplash', 'Concussion / head knock', 'Cervical disc pain', 'Headache after impact'] },
+  shoulder:   { label: 'Shoulder',         needsSide: true,  subs: ['Rotator cuff pain', 'Shoulder impingement', 'AC joint sprain', 'Bicep tendon pain', 'Shoulder dislocation / instability'] },
+  elbow:      { label: 'Elbow',            needsSide: true,  subs: ['Tennis elbow (outer elbow)', 'Golfer\'s elbow (inner elbow)', 'Elbow sprain', 'Stress fracture'] },
+  wrist:      { label: 'Wrist / Hand',     needsSide: true,  subs: ['Wrist sprain', 'Wrist tendinitis', 'Finger sprain or jam', 'TFCC (wrist cartilage tear)', 'Stress fracture'] },
+  chest:      { label: 'Chest / Back',     needsSide: false, subs: ['Rib injury (fracture or bruise)', 'Pectoral strain', 'Upper back / trap strain', 'Thoracic spine pain'] },
+  lower_back: { label: 'Lower Back',       needsSide: false, subs: ['Lumbar muscle strain', 'Disc herniation', 'SI joint pain', 'Sciatica (pain into leg)'] },
+  hip:        { label: 'Hip / Groin',      needsSide: true,  subs: ['Hip flexor strain', 'Groin / adductor strain', 'Hip impingement (FAI)', 'Piriformis syndrome', 'Hip labrum tear'] },
+  thigh:      { label: 'Thigh',            needsSide: true,  subs: ['Quadriceps strain', 'Hamstring strain', 'IT band syndrome', 'Adductor (inner thigh) strain'] },
+  knee:       { label: 'Knee',             needsSide: true,  subs: ['Ligament sprain (ACL / MCL / LCL)', 'Meniscus tear', 'Patellar tendon pain (jumper\'s knee)', 'Runner\'s knee (patellofemoral)', 'IT band at knee'] },
+  shin_calf:  { label: 'Shin / Calf',      needsSide: true,  subs: ['Shin splints', 'Calf strain', 'Stress fracture', 'Compartment syndrome'] },
+  ankle:      { label: 'Ankle / Achilles', needsSide: true,  subs: ['Achilles tendinitis', 'Ankle sprain (outer ankle)', 'Ankle sprain (inner ankle)', 'Peroneal tendon pain', 'Achilles rupture'] },
+  foot:       { label: 'Foot',             needsSide: true,  subs: ['Plantar fasciitis (heel / arch)', 'Stress fracture', 'Turf toe (big toe)', 'Sesamoiditis (ball of foot)', 'Heel spur'] }
+};
+
+let selectedRegion = null, selectedSub = null, selectedSide = null;
+let photoBase64 = null, photoMime = null;
+let conversationHistory = [];
+let geminiKey = null;
+let assessmentDone = false;
+
+// ── STEP 1 ────────────────────────────────────────────────
+function selectRegion(region) {
+  selectedRegion = region;
+  selectedSub = null;
+  selectedSide = null;
+  document.querySelectorAll('.hs').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.hs[data-region="${region}"]`).classList.add('active');
+
+  const r = REGIONS[region];
+  document.getElementById('subpart-title').textContent = r.label;
+  const grid = document.getElementById('subpart-grid');
+  grid.innerHTML = '';
+  r.subs.forEach(sub => {
+    const btn = document.createElement('button');
+    btn.className = 'sub-btn';
+    btn.textContent = sub;
+    btn.onclick = () => selectSub(sub, btn);
+    grid.appendChild(btn);
+  });
+
+  const sideRow = document.getElementById('side-row');
+  sideRow.className = r.needsSide ? 'side-row' : 'side-row hidden';
+  sideRow.querySelectorAll('.side-btn').forEach(b => b.classList.remove('sel'));
+
+  document.getElementById('next-btn').classList.add('hidden');
+  document.getElementById('subpart-panel').classList.remove('hidden');
+  document.getElementById('subpart-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function selectSub(sub, btn) {
+  selectedSub = sub;
+  document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  checkNextReady();
+}
+
+function setSide(side) {
+  selectedSide = side;
+  document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('sel'));
+  event.target.classList.add('sel');
+  checkNextReady();
+}
+
+function checkNextReady() {
+  const r = REGIONS[selectedRegion];
+  const ready = selectedSub && (!r.needsSide || selectedSide);
+  document.getElementById('next-btn').classList.toggle('hidden', !ready);
+}
+
+function clearSel() {
+  selectedRegion = null; selectedSub = null; selectedSide = null;
+  document.querySelectorAll('.hs').forEach(el => el.classList.remove('active'));
+  document.getElementById('subpart-panel').classList.add('hidden');
+  document.getElementById('next-btn').classList.add('hidden');
+}
+
+// ── STEP 2 ────────────────────────────────────────────────
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  if (n === 2) {
+    const r = REGIONS[selectedRegion];
+    const sideLabel = selectedSide && selectedSide !== 'both' ? ` (${selectedSide})` : selectedSide === 'both' ? ' (both sides)' : '';
+    document.getElementById('selected-badge').textContent = '📍 ' + selectedSub + sideLabel;
+  }
+  window.scrollTo(0, 0);
+}
+
+function previewPhoto(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    photoBase64 = dataUrl.split(',')[1];
+    photoMime   = file.type;
+    document.getElementById('photo-preview').src = dataUrl;
+    document.getElementById('photo-wrap').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+function removePhoto() {
+  photoBase64 = null; photoMime = null;
+  document.getElementById('photo-preview').src = '';
+  document.getElementById('photo-wrap').classList.add('hidden');
+  document.getElementById('photo-input').value = '';
+}
+
+// ── STEP 3: AI CHAT ───────────────────────────────────────
+async function startAssessment() {
+  const desc = document.getElementById('desc-input').value.trim();
+  goStep(3);
+
+  const r = REGIONS[selectedRegion];
+  const sideLabel = selectedSide && selectedSide !== 'both' ? ` (${selectedSide} side)` : selectedSide === 'both' ? ' (both sides)' : '';
+  document.getElementById('chat-badge').textContent = selectedSub + sideLabel;
+
+  // Fetch key
+  const token = await getToken();
+  const kr = await fetch('/api/gemini-key', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
+  if (!kr.ok) { showMsg('ai', 'Error: could not connect. Please try again.'); return; }
+  geminiKey = (await kr.json()).key;
+
+  // Build system context
+  const sysPrompt = `You are a sports medicine specialist helping an athlete self-assess a potential injury.
+
+Body area selected: ${r.label} → ${selectedSub}${sideLabel}
+Athlete's description: "${desc || 'Not provided'}"
+${photoBase64 ? 'An injury photo has been provided.' : ''}
+
+Your task:
+1. Ask ONE targeted diagnostic question at a time to narrow down the injury. Keep each question short and specific.
+2. After 3–5 exchanges (when you have enough information), output your assessment using EXACTLY this format — no extra text before or after:
+
+ASSESSMENT_START
+DIAGNOSIS: [injury name]
+SEVERITY: [exactly one of: Mild | Moderate | Severe | URGENT]
+WHAT: [1–2 sentences explaining what's happening anatomically]
+NOW: [specific immediate steps for the next 72 hours]
+TIMELINE: [realistic recovery estimate]
+RETURN: [when and how to return to sport]
+FLAGS: [specific symptoms that mean they must see a doctor today]
+ASSESSMENT_END
+
+Start with your FIRST question now. Be direct. Do not introduce yourself.`;
+
+  conversationHistory = [];
+
+  // First turn — include photo if provided
+  const firstUserParts = [];
+  if (photoBase64) firstUserParts.push({ inline_data: { mime_type: photoMime, data: photoBase64 } });
+  const contextText = `${r.label} → ${selectedSub}${sideLabel}. ${desc || 'No description provided.'}`;
+  firstUserParts.push({ text: contextText });
+
+  conversationHistory.push({ role: 'user', parts: firstUserParts });
+
+  showTyping();
+  await callGemini(sysPrompt);
+}
+
+async function sendAnswer() {
+  const input = document.getElementById('answer-input');
+  const answer = input.value.trim();
+  if (!answer || assessmentDone) return;
+  input.value = '';
+
+  showMsg('user', answer);
+  conversationHistory.push({ role: 'user', parts: [{ text: answer }] });
+
+  showTyping();
+  await callGemini(buildSys());
+}
+
+function buildSys() {
+  const r = REGIONS[selectedRegion];
+  const sideLabel = selectedSide && selectedSide !== 'both' ? ` (${selectedSide} side)` : selectedSide === 'both' ? ' (both sides)' : '';
+  return `You are a sports medicine specialist. Continue assessing: ${r.label} → ${selectedSub}${sideLabel}.
+Ask the next diagnostic question OR output your assessment if you have enough info.
+Assessment format (use when ready):
+ASSESSMENT_START
+DIAGNOSIS: ...
+SEVERITY: Mild | Moderate | Severe | URGENT
+WHAT: ...
+NOW: ...
+TIMELINE: ...
+RETURN: ...
+FLAGS: ...
+ASSESSMENT_END`;
+}
+
+async function callGemini(sysPrompt) {
+  try {
+    const body = {
+      system_instruction: { parts: [{ text: sysPrompt }] },
+      contents: conversationHistory,
+      generationConfig: { maxOutputTokens: 1024, temperature: 0.3 }
+    };
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    removeTyping();
+    if (!res.ok) { showMsg('ai', 'Error contacting AI. Please try again.'); return; }
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    conversationHistory.push({ role: 'model', parts: [{ text }] });
+
+    if (text.includes('ASSESSMENT_START')) {
+      parseAndShowAssessment(text);
+    } else {
+      showMsg('ai', text);
+    }
+  } catch(e) {
+    removeTyping();
+    showMsg('ai', 'Connection error. Check your internet and try again.');
+  }
+}
+
+// ── CHAT UI ───────────────────────────────────────────────
+function showMsg(role, text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = `<div class="msg-bubble">${escHtml(text).replace(/\n/g, '<br>')}</div>`;
+  msgs.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai msg-typing'; div.id = 'typing-indicator';
+  div.innerHTML = '<div class="msg-bubble">Thinking…</div>';
+  msgs.appendChild(div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('send-btn').disabled = true;
+}
+function removeTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+  document.getElementById('send-btn').disabled = false;
+}
+
+// ── ASSESSMENT ────────────────────────────────────────────
+function parseAndShowAssessment(text) {
+  assessmentDone = true;
+  document.getElementById('answer-area').classList.add('hidden');
+
+  const get = key => {
+    const m = text.match(new RegExp(key + ':\\s*(.+?)(?=\\n[A-Z]+:|ASSESSMENT_END)', 's'));
+    return m ? m[1].trim() : '';
+  };
+
+  const diagnosis = get('DIAGNOSIS');
+  const severity  = get('SEVERITY').toUpperCase();
+  const what      = get('WHAT');
+  const now       = get('NOW');
+  const timeline  = get('TIMELINE');
+  const ret       = get('RETURN');
+  const flags     = get('FLAGS');
+
+  const sevClass = severity === 'MILD' ? 'sev-mild' : severity === 'MODERATE' ? 'sev-moderate' : severity === 'SEVERE' ? 'sev-severe' : 'sev-urgent';
+  const sevLabel = severity === 'URGENT' ? '🚨 URGENT — see doctor today' : severity.charAt(0) + severity.slice(1).toLowerCase();
+
+  const html = `
+    <div class="assessment">
+      <h2>Assessment</h2>
+      <div class="assess-row">
+        <div class="label">Most likely</div>
+        <div class="val" style="font-weight:700;font-size:15px;">${escHtml(diagnosis)}</div>
+      </div>
+      <div class="assess-row">
+        <div class="label">Severity</div>
+        <span class="severity-pill ${sevClass}">${escHtml(sevLabel)}</span>
+      </div>
+      ${what ? `<div class="assess-row"><div class="label">What's happening</div><div class="val">${escHtml(what)}</div></div>` : ''}
+      ${now ? `<div class="assess-row"><div class="label">Right now (first 72 hrs)</div><div class="val">${escHtml(now).replace(/\n/g,'<br>')}</div></div>` : ''}
+      ${timeline ? `<div class="assess-row"><div class="label">Recovery timeline</div><div class="val">${escHtml(timeline)}</div></div>` : ''}
+      ${ret ? `<div class="assess-row"><div class="label">Return to sport</div><div class="val">${escHtml(ret)}</div></div>` : ''}
+      ${flags ? `<div class="assess-row"><div class="label">🚩 See a doctor if…</div><div class="red-flags">${escHtml(flags).replace(/\n/g,'<br>')}</div></div>` : ''}
+      <div class="disclaimer">⚠️ This is guidance only — not a medical diagnosis. See a sports medicine doctor or physiotherapist for proper evaluation.</div>
+    </div>`;
+
+  const result = document.getElementById('assessment-result');
+  result.innerHTML = html;
+  result.classList.remove('hidden');
+  document.getElementById('restart-btn').classList.remove('hidden');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── RESTART ───────────────────────────────────────────────
+function restart() {
+  selectedRegion = null; selectedSub = null; selectedSide = null;
+  photoBase64 = null; photoMime = null;
+  conversationHistory = []; geminiKey = null; assessmentDone = false;
+
+  document.querySelectorAll('.hs').forEach(el => el.classList.remove('active'));
+  document.getElementById('subpart-panel').classList.add('hidden');
+  document.getElementById('next-btn').classList.add('hidden');
+  document.getElementById('desc-input').value = '';
+  document.getElementById('photo-input').value = '';
+  document.getElementById('photo-wrap').classList.add('hidden');
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('assessment-result').classList.add('hidden');
+  document.getElementById('answer-area').classList.remove('hidden');
+  document.getElementById('restart-btn').classList.add('hidden');
+  document.getElementById('answer-input').value = '';
+
+  goStep(1);
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
