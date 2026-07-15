@@ -21,149 +21,59 @@ body {
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
 }
-
-/* ── AUTH ── */
 #auth-wall { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; align-items: center; justify-content: center; padding: 24px; }
 #auth-wall.hidden { display: none; }
 .auth-input { width: 100%; padding: 13px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 15px; font-family: inherit; outline: none; box-sizing: border-box; transition: border-color .15s; }
 .auth-input:focus { border-color: #0a0a0a; }
 .auth-btn-main { width: 100%; padding: 14px; background: #0a0a0a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 12px; }
-
-/* ── LAYOUT ── */
 #app { display: flex; flex-direction: column; min-height: 100dvh; }
 #app.hidden { display: none; }
-
 .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 50; }
 .back-link { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); text-decoration: none; }
 .header-brand { font-size: 15px; font-weight: 800; color: var(--text); }
 .header-tag { font-size: 11px; font-weight: 700; background: var(--red-light); color: var(--red); padding: 3px 8px; border-radius: 20px; }
-
 .main { flex: 1; padding: 0 16px 48px; max-width: 480px; margin: 0 auto; width: 100%; }
-
-/* ── STEPS ── */
 .step { display: none; }
 .step.active { display: block; }
-
-/* ── STEP 1: ANATOMY DIAGRAM ── */
 .diagram-section { margin: 12px 0 8px; }
 .view-toggle { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
-.view-btn {
-  padding: 7px 24px;
-  border: 1.5px solid var(--border);
-  border-radius: 20px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
-}
-.view-btn.active {
-  border-color: var(--red);
-  background: var(--red-light);
-  color: var(--red);
-}
-
-.diagram-wrap {
-  display: flex;
-  justify-content: center;
-  position: relative;
-  user-select: none;
-}
-
-.body-svg {
-  width: 260px;
-  height: auto;
-  display: block;
-  overflow: visible;
-}
-
-/* muscle group styles */
-.muscle {
-  cursor: pointer;
-  transition: filter .15s;
-}
-.muscle path, .muscle ellipse, .muscle rect {
-  transition: filter .15s;
-}
-.muscle:hover path, .muscle:hover ellipse, .muscle:hover rect {
-  filter: brightness(1.2) drop-shadow(0 0 4px rgba(214,58,26,0.6));
-}
-.muscle.selected path, .muscle.selected ellipse, .muscle.selected rect {
-  filter: brightness(1.35) drop-shadow(0 0 6px rgba(214,58,26,0.9));
-}
-
+.view-btn { padding: 7px 24px; border: 1.5px solid var(--border); border-radius: 20px; background: #fff; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; transition: all .15s; font-family: inherit; }
+.view-btn.active { border-color: var(--red); background: var(--red-light); color: var(--red); }
+.diagram-wrap { display: flex; justify-content: center; position: relative; user-select: none; }
+.diagram-container { position: relative; width: 320px; }
+.body-svg { width: 320px; height: auto; display: block; border-radius: 16px; background: #e8e4e0; }
+.muscle { cursor: pointer; }
+.muscle:hover .m-base { filter: brightness(1.25) drop-shadow(0 0 5px rgba(214,58,26,0.7)); }
+.muscle.selected .m-base { filter: brightness(1.4) drop-shadow(0 0 8px rgba(214,58,26,1)) saturate(1.5); }
+.muscle.dimmed .m-base { filter: brightness(0.7) saturate(0.5); }
 .bone { pointer-events: none; }
-.skin-base { pointer-events: none; }
-
 .diagram-hint { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-
-/* selection panel */
-.muscle-panel {
-  margin-top: 10px;
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 16px;
-  border: 1.5px solid var(--border);
-}
-.muscle-panel.hidden { display: none; }
-.muscle-name {
-  font-size: 16px;
-  font-weight: 800;
-  margin-bottom: 4px;
-  color: var(--text);
-}
-.muscle-sub {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 12px;
-}
-.side-row { display: flex; gap: 8px; margin-bottom: 12px; }
-.side-btn {
-  flex: 1;
-  padding: 9px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  font-size: 13px;
+/* Floating tooltip */
+#muscle-tooltip {
+  position: absolute;
+  background: rgba(10,10,10,0.88);
+  color: #fff;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all .12s;
-  font-family: inherit;
+  padding: 6px 11px;
+  border-radius: 8px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 100;
+  display: none;
+  transform: translateX(-50%);
 }
+.muscle-panel { margin-top: 10px; background: var(--surface); border-radius: 16px; padding: 16px; border: 1.5px solid var(--border); }
+.muscle-panel.hidden { display: none; }
+.muscle-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--text); }
+.muscle-sub { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.side-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.side-btn { flex: 1; padding: 9px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .12s; font-family: inherit; }
 .side-btn.sel { border-color: var(--red); background: var(--red-light); color: var(--red); }
 .panel-btns { display: flex; gap: 8px; margin-top: 4px; }
-.panel-back {
-  flex: 1;
-  padding: 11px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-}
-.panel-next {
-  flex: 2;
-  padding: 11px;
-  background: var(--red);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: inherit;
-  opacity: .5;
-  pointer-events: none;
-  transition: opacity .15s;
-}
+.panel-back { flex: 1; padding: 11px; border: 1.5px solid var(--border); border-radius: 10px; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.panel-next { flex: 2; padding: 11px; background: var(--red); color: #fff; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; opacity: .5; pointer-events: none; transition: opacity .15s; }
 .panel-next.ready { opacity: 1; pointer-events: auto; }
-
-/* ── STEP 2: DESCRIBE ── */
 .selected-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--red-light); color: var(--red); font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 20px; margin: 16px 0 20px; }
 .field-label { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
 .field-sub { font-size: 12px; color: var(--muted); margin-bottom: 10px; margin-top: -4px; }
@@ -175,8 +85,6 @@ textarea.input-box:focus { border-color: var(--red); }
 .photo-remove { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; background: #333; color: #fff; border: none; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .start-btn { width: 100%; padding: 15px; background: var(--red); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; margin-top: 20px; }
 .start-btn:disabled { opacity: .5; cursor: not-allowed; }
-
-/* ── STEP 3: CHAT ── */
 .chat-header { display: flex; align-items: center; gap: 8px; padding: 16px 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
 .chat-header .badge { font-size: 12px; font-weight: 700; background: var(--red-light); color: var(--red); padding: 4px 10px; border-radius: 20px; }
 .messages { display: flex; flex-direction: column; gap: 12px; }
@@ -187,14 +95,11 @@ textarea.input-box:focus { border-color: var(--red); }
 .msg.ai .msg-bubble { background: var(--surface); border-radius: 4px 16px 16px 16px; }
 .msg.user .msg-bubble { background: var(--text); color: #fff; border-radius: 16px 4px 16px 16px; }
 .msg-typing .msg-bubble { color: var(--muted); font-style: italic; }
-
 .answer-area { display: flex; gap: 8px; margin-top: 16px; align-items: flex-end; }
 .answer-input { flex: 1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; outline: none; resize: none; min-height: 48px; max-height: 120px; overflow-y: auto; }
 .answer-input:focus { border-color: var(--red); }
 .send-btn { padding: 12px 18px; background: var(--red); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .send-btn:disabled { opacity: .4; cursor: not-allowed; }
-
-/* ── ASSESSMENT RESULT ── */
 .assessment { background: var(--red-light); border: 1.5px solid #f5c0b2; border-radius: 16px; padding: 20px; margin-top: 20px; }
 .assessment h2 { font-size: 16px; font-weight: 800; margin-bottom: 14px; color: var(--red); }
 .assess-row { margin-bottom: 12px; }
@@ -209,17 +114,36 @@ textarea.input-box:focus { border-color: var(--red); }
 .red-flags { background: #fff; border: 1.5px solid #f5c0b2; border-radius: 10px; padding: 12px 14px; margin-top: 4px; font-size: 14px; line-height: 1.6; }
 .disclaimer { font-size: 11px; color: var(--muted); margin-top: 14px; line-height: 1.5; border-top: 1px solid #f5c0b2; padding-top: 12px; }
 .restart-btn { width: 100%; padding: 13px; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 16px; font-family: inherit; }
-
-/* ── BACK BUTTON (within steps) ── */
 .step-back { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: none; cursor: pointer; padding: 0; margin: 14px 0 6px; font-family: inherit; }
-
-/* ── UTIL ── */
 .hidden { display: none !important; }
+.viewer-wrap { position: relative; margin: 0; border-radius: 12px; overflow: hidden; background: #111; }
+.viewer-loading {
+  position: absolute; inset: 0; z-index: 10;
+  background: #111;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: #999; font-size: 13px; font-weight: 600;
+}
+.viewer-loading.hidden { display: none; }
+.viewer-spinner {
+  width: 28px; height: 28px; border: 2.5px solid rgba(255,255,255,0.15);
+  border-top-color: rgba(255,255,255,0.7); border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.muscle-overlay {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.82); backdrop-filter: blur(6px);
+  color: #fff; font-size: 14px; font-weight: 700;
+  padding: 8px 18px; border-radius: 20px; white-space: nowrap;
+  pointer-events: none; z-index: 20; border: 1px solid rgba(255,255,255,0.15);
+}
+.viewer-hint {
+  text-align: center; font-size: 11px; color: #999; margin-top: 6px; margin-bottom: 0;
+}
 </style>
 </head>
 <body>
 
-<!-- ═══ AUTH WALL ═══ -->
 <div id="auth-wall" class="hidden">
   <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:16px;">
     <div style="font-size:19px;font-weight:800;">Aceriq</div>
@@ -231,7 +155,6 @@ textarea.input-box:focus { border-color: var(--red); }
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
 <div id="app" class="hidden">
   <div class="header">
     <a href="/" class="back-link">
@@ -243,572 +166,22 @@ textarea.input-box:focus { border-color: var(--red); }
   </div>
 
   <div class="main">
-
-    <!-- ── STEP 1: anatomy diagram ── -->
     <div id="step-1" class="step active">
-      <p class="diagram-hint" style="margin-top:12px;">Tap the muscle or structure that hurts</p>
-
-      <div class="view-toggle">
-        <button class="view-btn active" id="btn-front" onclick="showView('front')">Front</button>
-        <button class="view-btn" id="btn-back" onclick="showView('back')">Back</button>
+      <p class="diagram-hint" style="margin-top:12px;margin-bottom:10px;">Drag to rotate · Pinch to zoom · Tap a muscle to select</p>
+      <div class="viewer-wrap">
+        <div class="viewer-loading" id="viewer-loading">
+          <div class="viewer-spinner"></div>
+          <span>Loading 3D model…</span>
+        </div>
+        <iframe id="sf-iframe"
+          allow="autoplay; fullscreen; xr-spatial-tracking"
+          allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
+          frameborder="0"
+          style="width:100%;height:460px;display:block;background:#111;"></iframe>
+        <div id="muscle-overlay" class="muscle-overlay hidden"></div>
       </div>
+      <p class="viewer-hint">Tap a highlighted muscle to select it</p>
 
-      <div class="diagram-wrap">
-        <!-- ══════════════════════════════════════════
-             FRONT VIEW SVG  viewBox 0 0 300 640
-        ══════════════════════════════════════════ -->
-        <svg id="svg-front" class="body-svg" viewBox="0 0 300 640" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <!-- Skin base gradient -->
-            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#e8cdb0;stop-opacity:1"/>
-              <stop offset="50%" style="stop-color:#f5e0c8;stop-opacity:1"/>
-              <stop offset="100%" style="stop-color:#e8cdb0;stop-opacity:1"/>
-            </linearGradient>
-
-            <!-- Muscle gradients — radial for 3D depth -->
-            <radialGradient id="mGrad1" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="mGradL" cx="60%" cy="35%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="mGradC" cx="50%" cy="30%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="mGradLo" cx="50%" cy="60%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-
-            <!-- Tendon/fascia gradient (cream) -->
-            <linearGradient id="tendonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#c8b87a"/>
-              <stop offset="50%" style="stop-color:#e8dca8"/>
-              <stop offset="100%" style="stop-color:#c8b87a"/>
-            </linearGradient>
-            <!-- IT band brownish red -->
-            <radialGradient id="itbGrad" cx="50%" cy="40%" r="65%">
-              <stop offset="0%" style="stop-color:#c0522a"/>
-              <stop offset="100%" style="stop-color:#7a2810"/>
-            </radialGradient>
-            <!-- Bone gradient -->
-            <linearGradient id="boneGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#c8bfa0"/>
-              <stop offset="50%" style="stop-color:#e0d8c0"/>
-              <stop offset="100%" style="stop-color:#c8bfa0"/>
-            </linearGradient>
-          </defs>
-
-          <!-- ══ SKIN / BODY SILHOUETTE BASE ══ -->
-          <!-- Head -->
-          <ellipse cx="150" cy="50" rx="38" ry="44" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Neck -->
-          <rect x="135" y="88" width="30" height="22" rx="6" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Torso -->
-          <path d="M80 105 Q76 108 72 130 Q68 155 70 200 Q70 230 74 248 L226 248 Q230 230 230 200 Q232 155 228 130 Q224 108 220 105 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Shoulders bump L -->
-          <ellipse cx="76" cy="110" rx="20" ry="16" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Shoulders bump R -->
-          <ellipse cx="224" cy="110" rx="20" ry="16" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left upper arm -->
-          <path d="M68 108 Q55 140 50 185 Q48 210 50 225 Q54 230 62 228 Q70 226 72 220 Q74 205 74 185 Q76 150 82 115 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right upper arm -->
-          <path d="M232 108 Q245 140 250 185 Q252 210 250 225 Q246 230 238 228 Q230 226 228 220 Q226 205 226 185 Q224 150 218 115 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left forearm -->
-          <path d="M50 225 Q44 255 36 285 Q32 305 32 318 Q38 325 48 322 Q56 320 58 310 Q62 288 68 258 Q72 238 72 220 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right forearm -->
-          <path d="M250 225 Q256 255 264 285 Q268 305 268 318 Q262 325 252 322 Q244 320 242 310 Q238 288 232 258 Q228 238 228 220 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left hand -->
-          <ellipse cx="40" cy="330" rx="14" ry="18" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right hand -->
-          <ellipse cx="260" cy="330" rx="14" ry="18" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Pelvis -->
-          <path d="M74 248 Q72 280 74 305 Q80 308 98 308 Q120 310 150 310 Q180 310 202 308 Q220 308 226 305 Q228 280 226 248 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left thigh -->
-          <path d="M78 305 Q72 345 72 385 Q72 415 76 435 Q82 445 98 448 Q108 448 112 440 Q118 425 118 395 Q118 360 116 330 Q114 308 102 305 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right thigh -->
-          <path d="M222 305 Q228 345 228 385 Q228 415 224 435 Q218 445 202 448 Q192 448 188 440 Q182 425 182 395 Q182 360 184 330 Q186 308 198 305 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left knee cap area -->
-          <ellipse cx="100" cy="455" rx="22" ry="18" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right knee cap area -->
-          <ellipse cx="200" cy="455" rx="22" ry="18" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left shin/calf -->
-          <path d="M82 470 Q76 510 76 540 Q76 560 80 570 Q88 578 100 578 Q112 578 116 570 Q120 560 120 540 Q120 510 118 475 Q116 462 108 460 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right shin/calf -->
-          <path d="M218 470 Q224 510 224 540 Q224 560 220 570 Q212 578 200 578 Q188 578 184 570 Q180 560 180 540 Q180 510 182 475 Q184 462 192 460 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Left ankle/foot -->
-          <path d="M84 578 Q80 590 78 598 Q72 608 66 612 Q56 614 54 610 Q52 600 62 596 Q70 592 74 580 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <path d="M100 578 Q100 590 98 600 Q88 612 74 614 Q60 614 58 608 Q62 600 72 598 Q82 594 84 578 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <!-- Right ankle/foot -->
-          <path d="M216 578 Q220 590 222 598 Q228 608 234 612 Q244 614 246 610 Q248 600 238 596 Q230 592 226 580 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-          <path d="M200 578 Q200 590 202 600 Q212 612 226 614 Q240 614 242 608 Q238 600 228 598 Q218 594 216 578 Z" fill="url(#skinGrad)" stroke="#d0b898" stroke-width="1"/>
-
-          <!-- ══ BONE LAYER (subtle) ══ -->
-          <!-- Skull outline -->
-          <ellipse class="bone" cx="150" cy="48" rx="34" ry="40" fill="none" stroke="#b8aa88" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.5"/>
-          <!-- Clavicles -->
-          <path class="bone" d="M138 100 Q120 98 104 104 Q92 108 80 110" fill="none" stroke="#b8aa88" stroke-width="1.2" opacity="0.6"/>
-          <path class="bone" d="M162 100 Q180 98 196 104 Q208 108 220 110" fill="none" stroke="#b8aa88" stroke-width="1.2" opacity="0.6"/>
-          <!-- Sternum -->
-          <rect class="bone" x="146" y="106" width="8" height="85" rx="4" fill="url(#boneGrad)" stroke="#b8aa88" stroke-width="0.8" opacity="0.55"/>
-          <!-- Rib cage (5 pairs, curved) -->
-          <path class="bone" d="M146 118 Q118 122 112 130 Q108 138 116 140 Q128 138 146 134" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.45"/>
-          <path class="bone" d="M154 118 Q182 122 188 130 Q192 138 184 140 Q172 138 154 134" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.45"/>
-          <path class="bone" d="M146 134 Q114 138 108 148 Q104 158 113 160 Q126 158 146 152" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.4"/>
-          <path class="bone" d="M154 134 Q186 138 192 148 Q196 158 187 160 Q174 158 154 152" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.4"/>
-          <path class="bone" d="M146 152 Q112 156 106 168 Q102 180 112 182 Q126 180 146 172" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.38"/>
-          <path class="bone" d="M154 152 Q188 156 194 168 Q198 180 188 182 Q174 180 154 172" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.38"/>
-          <path class="bone" d="M146 172 Q112 176 108 188 Q106 198 116 200 Q130 198 146 192" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.35"/>
-          <path class="bone" d="M154 172 Q188 176 192 188 Q194 198 184 200 Q170 198 154 192" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.35"/>
-          <path class="bone" d="M146 192 Q114 196 110 208 Q108 218 118 218 Q132 217 146 210" fill="none" stroke="#b8aa88" stroke-width="0.9" opacity="0.3"/>
-          <path class="bone" d="M154 192 Q186 196 190 208 Q192 218 182 218 Q168 217 154 210" fill="none" stroke="#b8aa88" stroke-width="0.9" opacity="0.3"/>
-          <!-- Pelvis/iliac crest outline -->
-          <path class="bone" d="M88 252 Q80 260 78 278 Q76 295 88 302 Q110 308 150 308 Q190 308 212 302 Q224 295 222 278 Q220 260 212 252" fill="none" stroke="#b8aa88" stroke-width="1.1" opacity="0.5"/>
-          <!-- Left femur -->
-          <path class="bone" d="M100 310 Q96 360 96 400 Q96 430 98 452" fill="none" stroke="#b8aa88" stroke-width="1.5" opacity="0.4"/>
-          <!-- Right femur -->
-          <path class="bone" d="M200 310 Q204 360 204 400 Q204 430 202 452" fill="none" stroke="#b8aa88" stroke-width="1.5" opacity="0.4"/>
-          <!-- Left patella -->
-          <ellipse class="bone" cx="100" cy="456" rx="10" ry="11" fill="url(#boneGrad)" stroke="#b8aa88" stroke-width="1" opacity="0.6"/>
-          <!-- Right patella -->
-          <ellipse class="bone" cx="200" cy="456" rx="10" ry="11" fill="url(#boneGrad)" stroke="#b8aa88" stroke-width="1" opacity="0.6"/>
-          <!-- Left tibia/fibula -->
-          <path class="bone" d="M96 470 Q94 510 94 545 Q94 562 98 572" fill="none" stroke="#b8aa88" stroke-width="1.4" opacity="0.4"/>
-          <path class="bone" d="M108 472 Q110 512 110 545 Q110 562 108 572" fill="none" stroke="#b8aa88" stroke-width="0.9" opacity="0.3"/>
-          <!-- Right tibia/fibula -->
-          <path class="bone" d="M204 470 Q206 510 206 545 Q206 562 202 572" fill="none" stroke="#b8aa88" stroke-width="1.4" opacity="0.4"/>
-          <path class="bone" d="M192 472 Q190 512 190 545 Q190 562 192 572" fill="none" stroke="#b8aa88" stroke-width="0.9" opacity="0.3"/>
-          <!-- Left malleolus -->
-          <ellipse class="bone" cx="90" cy="572" rx="7" ry="6" fill="url(#boneGrad)" stroke="#b8aa88" stroke-width="0.8" opacity="0.55"/>
-          <!-- Right malleolus -->
-          <ellipse class="bone" cx="210" cy="572" rx="7" ry="6" fill="url(#boneGrad)" stroke="#b8aa88" stroke-width="0.8" opacity="0.55"/>
-
-          <!-- ══ FRONT MUSCLES ══ -->
-
-          <!-- SCM (left) — runs from behind ear to clavicle, diagonal strap -->
-          <g class="muscle" data-id="scm" onclick="selectMuscle('scm')">
-            <path d="M136 68 Q130 74 126 85 Q122 96 122 106 Q126 108 130 106 Q134 98 138 86 Q142 76 140 68 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.9"/>
-          </g>
-
-          <!-- Upper trap (front visible portion, left/right of neck) -->
-          <g class="muscle" data-id="trap" onclick="selectMuscle('trap')">
-            <path d="M130 92 Q118 96 102 104 Q88 110 80 116 Q82 122 88 120 Q102 114 118 108 Q132 102 136 95 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <path d="M170 92 Q182 96 198 104 Q212 110 220 116 Q218 122 212 120 Q198 114 182 108 Q168 102 164 95 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Anterior deltoid — fan shape over front of shoulder -->
-          <g class="muscle" data-id="deltoid_ant" onclick="selectMuscle('deltoid_ant')">
-            <!-- Left ant deltoid -->
-            <path d="M76 104 Q64 108 58 120 Q54 130 56 142 Q62 148 70 144 Q76 136 78 124 Q80 114 78 106 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.9"/>
-            <!-- Right ant deltoid -->
-            <path d="M224 104 Q236 108 242 120 Q246 130 244 142 Q238 148 230 144 Q224 136 222 124 Q220 114 222 106 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.9"/>
-          </g>
-
-          <!-- Pectoralis major — fan shape, left and right -->
-          <g class="muscle" data-id="pec_major" onclick="selectMuscle('pec_major')">
-            <!-- Left pec (user's right on front view) — note anatomy: left pec = left side of chest -->
-            <path d="M150 112 Q138 112 124 118 Q112 124 106 134 Q102 144 106 152 Q110 158 118 156 Q128 150 138 140 Q148 132 152 120 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right pec -->
-            <path d="M150 112 Q162 112 176 118 Q188 124 194 134 Q198 144 194 152 Q190 158 182 156 Q172 150 162 140 Q152 132 148 120 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Serratus anterior — finger-like slips on lateral rib cage -->
-          <g class="muscle" data-id="rectus_abd" onclick="selectMuscle('rectus_abd')">
-            <!-- Serratus left -->
-            <path d="M106 152 Q100 162 100 170 Q100 176 104 178" fill="none" stroke="#b83030" stroke-width="2" opacity="0.7"/>
-            <path d="M104 162 Q97 172 97 180 Q97 186 100 188" fill="none" stroke="#b83030" stroke-width="2" opacity="0.6"/>
-            <!-- Serratus right -->
-            <path d="M194 152 Q200 162 200 170 Q200 176 196 178" fill="none" stroke="#b83030" stroke-width="2" opacity="0.7"/>
-            <path d="M196 162 Q203 172 203 180 Q203 186 200 188" fill="none" stroke="#b83030" stroke-width="2" opacity="0.6"/>
-            <!-- Rectus abdominis — vertical columns with tendinous intersections -->
-            <path d="M143 158 Q140 165 140 175 Q140 185 142 192 Q144 198 148 198 Q152 198 154 192 Q156 185 156 175 Q156 165 154 158 Q152 154 148 154 Z" fill="url(#mGradC)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <rect x="141" y="168" width="18" height="1.5" rx="0.5" fill="#6b1010" opacity="0.3"/>
-            <rect x="141" y="180" width="18" height="1.5" rx="0.5" fill="#6b1010" opacity="0.3"/>
-            <rect x="141" y="191" width="18" height="1.5" rx="0.5" fill="#6b1010" opacity="0.3"/>
-          </g>
-
-          <!-- External oblique — wraps from ribs down to hip -->
-          <g class="muscle" data-id="oblique" onclick="selectMuscle('oblique')">
-            <!-- Left oblique -->
-            <path d="M108 154 Q98 168 94 185 Q90 200 90 220 Q90 240 94 248 Q100 252 106 250 Q112 244 114 228 Q116 210 116 192 Q116 174 112 160 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right oblique -->
-            <path d="M192 154 Q202 168 206 185 Q210 200 210 220 Q210 240 206 248 Q200 252 194 250 Q188 244 186 228 Q184 210 184 192 Q184 174 188 160 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Biceps brachii — spindle shape on front of upper arm -->
-          <g class="muscle" data-id="biceps" onclick="selectMuscle('biceps')">
-            <!-- Left biceps -->
-            <path d="M62 128 Q56 140 54 158 Q52 172 54 185 Q56 194 62 196 Q68 196 72 188 Q76 176 76 162 Q76 146 72 134 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right biceps -->
-            <path d="M238 128 Q244 140 246 158 Q248 172 246 185 Q244 194 238 196 Q232 196 228 188 Q224 176 224 162 Q224 146 228 134 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Forearm flexors — anterior forearm, broad at elbow tapering to wrist -->
-          <g class="muscle" data-id="forearm_flex" onclick="selectMuscle('forearm_flex')">
-            <!-- Left -->
-            <path d="M52 224 Q46 244 40 268 Q36 285 36 300 Q40 308 46 306 Q52 302 56 285 Q60 265 62 244 Q64 232 62 222 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right -->
-            <path d="M248 224 Q254 244 260 268 Q264 285 264 300 Q260 308 254 306 Q248 302 244 285 Q240 265 238 244 Q236 232 238 222 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Hip flexors (iliopsoas) — inner hip crease area -->
-          <g class="muscle" data-id="hip_flex" onclick="selectMuscle('hip_flex')">
-            <!-- Left hip flex -->
-            <path d="M116 248 Q110 258 108 270 Q106 282 108 292 Q110 300 116 302 Q122 302 126 294 Q128 284 128 272 Q128 260 124 252 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right hip flex -->
-            <path d="M184 248 Q190 258 192 270 Q194 282 192 292 Q190 300 184 302 Q178 302 174 294 Q172 284 172 272 Q172 260 176 252 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- TFL / IT Band — lateral thigh strip -->
-          <g class="muscle" data-id="tfl_itb" onclick="selectMuscle('tfl_itb')">
-            <!-- Left TFL/ITB -->
-            <path d="M78 298 Q74 320 72 355 Q70 390 72 420 Q72 438 76 448 Q80 452 84 450 Q88 448 90 440 Q92 420 92 388 Q92 354 92 322 Q92 306 88 298 Z" fill="url(#itbGrad)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right TFL/ITB -->
-            <path d="M222 298 Q226 320 228 355 Q230 390 228 420 Q228 438 224 448 Q220 452 216 450 Q212 448 210 440 Q208 420 208 388 Q208 354 208 322 Q208 306 212 298 Z" fill="url(#itbGrad)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Rectus femoris — center of quad, spindle -->
-          <g class="muscle" data-id="rectus_fem" onclick="selectMuscle('rectus_fem')">
-            <!-- Left RF -->
-            <path d="M95 306 Q92 335 92 368 Q92 398 94 428 Q96 444 100 446 Q104 446 107 444 Q110 430 110 400 Q110 368 108 338 Q106 314 102 306 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right RF -->
-            <path d="M205 306 Q208 335 208 368 Q208 398 206 428 Q204 444 200 446 Q196 446 193 444 Q190 430 190 400 Q190 368 192 338 Q194 314 198 306 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Vastus lateralis — outer quad -->
-          <g class="muscle" data-id="vastus_lat" onclick="selectMuscle('vastus_lat')">
-            <!-- Left VL -->
-            <path d="M90 310 Q86 342 84 375 Q82 408 84 432 Q86 444 90 448 Q93 450 96 448 Q98 435 98 408 Q98 375 98 342 Q98 315 96 308 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right VL -->
-            <path d="M210 310 Q214 342 216 375 Q218 408 216 432 Q214 444 210 448 Q207 450 204 448 Q202 435 202 408 Q202 375 202 342 Q202 315 204 308 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Vastus medialis — teardrop at inner lower quad -->
-          <g class="muscle" data-id="vastus_med" onclick="selectMuscle('vastus_med')">
-            <!-- Left VM teardrop -->
-            <path d="M108 395 Q110 410 110 425 Q110 440 106 448 Q102 452 98 450 Q94 446 94 436 Q92 422 94 408 Q96 398 102 394 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right VM teardrop -->
-            <path d="M192 395 Q190 410 190 425 Q190 440 194 448 Q198 452 202 450 Q206 446 206 436 Q208 422 206 408 Q204 398 198 394 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Adductors / groin — inner thigh -->
-          <g class="muscle" data-id="adductor" onclick="selectMuscle('adductor')">
-            <!-- Left adductors -->
-            <path d="M118 305 Q120 335 120 365 Q120 395 118 420 Q116 440 114 448 Q110 450 108 448 Q106 440 106 420 Q106 390 108 360 Q110 330 114 308 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right adductors -->
-            <path d="M182 305 Q180 335 180 365 Q180 395 182 420 Q184 440 186 448 Q190 450 192 448 Q194 440 194 420 Q194 390 192 360 Q190 330 186 308 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Sartorius — diagonal strap across thigh -->
-          <g class="muscle" data-id="sartorius" onclick="selectMuscle('sartorius')">
-            <!-- Left sartorius — runs diagonally from hip to inner knee -->
-            <path d="M122 302 Q118 320 114 345 Q110 368 108 392 Q106 415 108 440 Q110 448 114 448 Q117 448 118 440 Q120 418 122 395 Q125 370 128 345 Q131 320 130 305 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.75"/>
-            <!-- Right sartorius -->
-            <path d="M178 302 Q182 320 186 345 Q190 368 192 392 Q194 415 192 440 Q190 448 186 448 Q183 448 182 440 Q180 418 178 395 Q175 370 172 345 Q169 320 170 305 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.75"/>
-          </g>
-
-          <!-- Patellar tendon — cream colored, below kneecap -->
-          <g class="muscle" data-id="pat_tendon" onclick="selectMuscle('pat_tendon')">
-            <!-- Left patellar tendon -->
-            <rect x="94" y="467" width="12" height="18" rx="5" fill="url(#tendonGrad)" stroke="#b8aa60" stroke-width="0.8" opacity="0.9"/>
-            <!-- Right patellar tendon -->
-            <rect x="194" y="467" width="12" height="18" rx="5" fill="url(#tendonGrad)" stroke="#b8aa60" stroke-width="0.8" opacity="0.9"/>
-          </g>
-
-          <!-- Tibialis anterior — lateral shin -->
-          <g class="muscle" data-id="tib_ant" onclick="selectMuscle('tib_ant')">
-            <!-- Left tib ant -->
-            <path d="M96 484 Q92 508 90 532 Q88 554 90 568 Q92 574 96 574 Q100 574 102 568 Q104 554 104 530 Q104 506 102 484 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right tib ant -->
-            <path d="M204 484 Q208 508 210 532 Q212 554 210 568 Q208 574 204 574 Q200 574 198 568 Q196 554 196 530 Q196 506 198 484 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Peroneals — lateral lower leg -->
-          <g class="muscle" data-id="peroneal" onclick="selectMuscle('peroneal')">
-            <!-- Left peroneals -->
-            <path d="M112 480 Q115 508 116 535 Q116 558 114 570 Q112 576 108 576 Q104 576 103 568 Q102 555 103 532 Q104 508 108 483 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right peroneals -->
-            <path d="M188 480 Q185 508 184 535 Q184 558 186 570 Q188 576 192 576 Q196 576 197 568 Q198 555 197 532 Q196 508 192 483 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Ankle front -->
-          <g class="muscle" data-id="ant_ankle" onclick="selectMuscle('ant_ankle')">
-            <!-- Left ankle -->
-            <path d="M88 570 Q84 578 82 586 Q86 594 94 596 Q100 596 104 592 Q108 586 108 578 Q104 572 98 570 Z" fill="url(#mGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.8"/>
-            <!-- Right ankle -->
-            <path d="M212 570 Q216 578 218 586 Q214 594 206 596 Q200 596 196 592 Q192 586 192 578 Q196 572 202 570 Z" fill="url(#mGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.8"/>
-          </g>
-
-        </svg>
-
-        <!-- ══════════════════════════════════════════
-             BACK VIEW SVG  viewBox 0 0 300 640
-        ══════════════════════════════════════════ -->
-        <svg id="svg-back" class="body-svg hidden" viewBox="0 0 300 640" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="skinGradB" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#e0c8a8;stop-opacity:1"/>
-              <stop offset="50%" style="stop-color:#edd5b8;stop-opacity:1"/>
-              <stop offset="100%" style="stop-color:#e0c8a8;stop-opacity:1"/>
-            </linearGradient>
-            <radialGradient id="bmGrad1" cx="40%" cy="35%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="bmGradL" cx="60%" cy="35%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="bmGradC" cx="50%" cy="30%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <radialGradient id="bmGradLo" cx="50%" cy="65%" r="65%">
-              <stop offset="0%" style="stop-color:#e84848"/>
-              <stop offset="100%" style="stop-color:#8b1a1a"/>
-            </radialGradient>
-            <linearGradient id="achillesGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#c8b87a"/>
-              <stop offset="50%" style="stop-color:#eedca8"/>
-              <stop offset="100%" style="stop-color:#c8b87a"/>
-            </linearGradient>
-            <radialGradient id="bitbGrad" cx="50%" cy="40%" r="65%">
-              <stop offset="0%" style="stop-color:#c0522a"/>
-              <stop offset="100%" style="stop-color:#7a2810"/>
-            </radialGradient>
-            <linearGradient id="boneGradB" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#c8bfa0"/>
-              <stop offset="50%" style="stop-color:#e0d8c0"/>
-              <stop offset="100%" style="stop-color:#c8bfa0"/>
-            </linearGradient>
-          </defs>
-
-          <!-- ══ BODY SILHOUETTE BASE (back) ══ -->
-          <!-- Head back -->
-          <ellipse cx="150" cy="50" rx="38" ry="44" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Neck back -->
-          <rect x="135" y="88" width="30" height="22" rx="6" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Torso back -->
-          <path d="M80 105 Q76 108 72 130 Q68 155 70 200 Q70 230 74 248 L226 248 Q230 230 230 200 Q232 155 228 130 Q224 108 220 105 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Shoulder bumps -->
-          <ellipse cx="76" cy="110" rx="20" ry="16" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <ellipse cx="224" cy="110" rx="20" ry="16" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left upper arm back -->
-          <path d="M68 108 Q55 140 50 185 Q48 210 50 225 Q54 230 62 228 Q70 226 72 220 Q74 205 74 185 Q76 150 82 115 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right upper arm back -->
-          <path d="M232 108 Q245 140 250 185 Q252 210 250 225 Q246 230 238 228 Q230 226 228 220 Q226 205 226 185 Q224 150 218 115 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left forearm back -->
-          <path d="M50 225 Q44 255 36 285 Q32 305 32 318 Q38 325 48 322 Q56 320 58 310 Q62 288 68 258 Q72 238 72 220 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right forearm back -->
-          <path d="M250 225 Q256 255 264 285 Q268 305 268 318 Q262 325 252 322 Q244 320 242 310 Q238 288 232 258 Q228 238 228 220 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left hand back -->
-          <ellipse cx="40" cy="330" rx="14" ry="18" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right hand back -->
-          <ellipse cx="260" cy="330" rx="14" ry="18" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Pelvis back -->
-          <path d="M74 248 Q72 280 74 305 Q80 308 98 308 Q120 310 150 310 Q180 310 202 308 Q220 308 226 305 Q228 280 226 248 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left thigh back -->
-          <path d="M78 305 Q72 345 72 385 Q72 415 76 435 Q82 445 98 448 Q108 448 112 440 Q118 425 118 395 Q118 360 116 330 Q114 308 102 305 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right thigh back -->
-          <path d="M222 305 Q228 345 228 385 Q228 415 224 435 Q218 445 202 448 Q192 448 188 440 Q182 425 182 395 Q182 360 184 330 Q186 308 198 305 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left knee back -->
-          <ellipse cx="100" cy="455" rx="22" ry="18" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right knee back -->
-          <ellipse cx="200" cy="455" rx="22" ry="18" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left calf back -->
-          <path d="M82 470 Q76 510 76 540 Q76 560 80 570 Q88 578 100 578 Q112 578 116 570 Q120 560 120 540 Q120 510 118 475 Q116 462 108 460 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right calf back -->
-          <path d="M218 470 Q224 510 224 540 Q224 560 220 570 Q212 578 200 578 Q188 578 184 570 Q180 560 180 540 Q180 510 182 475 Q184 462 192 460 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Left foot back -->
-          <path d="M80 578 Q76 592 72 602 Q66 612 60 614 Q50 614 50 608 Q56 602 64 598 Q72 594 76 578 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <path d="M100 578 Q100 594 98 604 Q90 614 76 614 Q62 614 58 608 Q64 600 74 598 Q84 594 86 578 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <!-- Right foot back -->
-          <path d="M220 578 Q224 592 228 602 Q234 612 240 614 Q250 614 250 608 Q244 602 236 598 Q228 594 224 578 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-          <path d="M200 578 Q200 594 202 604 Q210 614 224 614 Q238 614 242 608 Q236 600 226 598 Q216 594 214 578 Z" fill="url(#skinGradB)" stroke="#c8b090" stroke-width="1"/>
-
-          <!-- ══ BONE LAYER back ══ -->
-          <ellipse class="bone" cx="150" cy="48" rx="34" ry="40" fill="none" stroke="#b8aa88" stroke-width="0.8" stroke-dasharray="3,2" opacity="0.4"/>
-          <!-- Spine -->
-          <path class="bone" d="M150 95 L150 248" stroke="#b8aa88" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
-          <!-- Scapula L -->
-          <path class="bone" d="M104 108 Q96 120 94 138 Q94 152 100 158 Q108 162 116 156 Q124 148 126 134 Q128 118 120 108 Z" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.4"/>
-          <!-- Scapula R -->
-          <path class="bone" d="M196 108 Q204 120 206 138 Q206 152 200 158 Q192 162 184 156 Q176 148 174 134 Q172 118 180 108 Z" fill="none" stroke="#b8aa88" stroke-width="1" opacity="0.4"/>
-          <!-- Iliac crest -->
-          <path class="bone" d="M86 252 Q80 262 78 278 Q76 295 88 304 Q110 310 150 310 Q190 310 212 304 Q224 295 222 278 Q220 262 214 252" fill="none" stroke="#b8aa88" stroke-width="1.1" opacity="0.5"/>
-          <!-- Left femur back -->
-          <path class="bone" d="M100 310 Q96 360 96 400 Q96 430 98 452" fill="none" stroke="#b8aa88" stroke-width="1.5" opacity="0.4"/>
-          <!-- Right femur back -->
-          <path class="bone" d="M200 310 Q204 360 204 400 Q204 430 202 452" fill="none" stroke="#b8aa88" stroke-width="1.5" opacity="0.4"/>
-          <!-- Left tibia back -->
-          <path class="bone" d="M96 472 Q94 512 94 546 Q94 562 98 574" fill="none" stroke="#b8aa88" stroke-width="1.4" opacity="0.4"/>
-          <!-- Right tibia back -->
-          <path class="bone" d="M204 472 Q206 512 206 546 Q206 562 202 574" fill="none" stroke="#b8aa88" stroke-width="1.4" opacity="0.4"/>
-          <!-- Heel bones -->
-          <ellipse class="bone" cx="90" cy="606" rx="10" ry="8" fill="url(#boneGradB)" stroke="#b8aa88" stroke-width="0.8" opacity="0.5"/>
-          <ellipse class="bone" cx="210" cy="606" rx="10" ry="8" fill="url(#boneGradB)" stroke="#b8aa88" stroke-width="0.8" opacity="0.5"/>
-
-          <!-- ══ BACK MUSCLES ══ -->
-
-          <!-- Full trapezius — large diamond shape covering upper back -->
-          <g class="muscle" data-id="trap" onclick="selectMuscle('trap')">
-            <path d="M150 90 Q130 98 110 110 Q90 122 82 136 Q78 150 84 162 Q92 170 106 166 Q122 158 136 144 Q148 132 150 118 Q152 132 164 144 Q178 158 194 166 Q208 170 216 162 Q222 150 218 136 Q210 122 190 110 Q170 98 150 90 Z" fill="url(#bmGradC)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Lower trap extension -->
-            <path d="M136 144 Q128 158 124 172 Q120 186 122 200 Q128 206 136 202 Q144 196 148 182 Q150 168 150 154 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.75"/>
-            <path d="M164 144 Q172 158 176 172 Q180 186 178 200 Q172 206 164 202 Q156 196 152 182 Q150 168 150 154 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.75"/>
-          </g>
-
-          <!-- Posterior deltoid -->
-          <g class="muscle" data-id="deltoid_post" onclick="selectMuscle('deltoid_post')">
-            <!-- Left post deltoid -->
-            <path d="M76 104 Q64 110 58 124 Q54 136 58 150 Q64 156 72 150 Q78 140 80 126 Q80 114 78 106 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right post deltoid -->
-            <path d="M224 104 Q236 110 242 124 Q246 136 242 150 Q236 156 228 150 Q222 140 220 126 Q220 114 222 106 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Infraspinatus / rotator cuff — over scapula -->
-          <g class="muscle" data-id="infraspinatus" onclick="selectMuscle('infraspinatus')">
-            <!-- Left infraspinatus -->
-            <path d="M96 126 Q88 134 86 146 Q84 158 90 164 Q98 168 108 162 Q116 154 118 142 Q118 130 112 124 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right infraspinatus -->
-            <path d="M204 126 Q212 134 214 146 Q216 158 210 164 Q202 168 192 162 Q184 154 182 142 Q182 130 188 124 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Rhomboids — between scapulae, upper back middle -->
-          <g class="muscle" data-id="rhomboid" onclick="selectMuscle('rhomboid')">
-            <path d="M138 120 Q130 130 128 142 Q128 154 132 162 Q138 166 150 166 Q162 166 168 162 Q172 154 172 142 Q170 130 162 120 Q156 116 150 116 Z" fill="url(#bmGradC)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Teres major -->
-          <g class="muscle" data-id="lats" onclick="selectMuscle('lats')">
-            <!-- Also includes teres major shape, clicking goes to lats -->
-            <!-- Left teres major -->
-            <path d="M84 148 Q80 156 80 165 Q80 172 84 176 Q88 178 92 174 Q96 168 96 158 Q96 150 92 146 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right teres major -->
-            <path d="M216 148 Q220 156 220 165 Q220 172 216 176 Q212 178 208 174 Q204 168 204 158 Q204 150 208 146 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Latissimus dorsi — large fan covering mid/lower back -->
-          <g class="muscle" data-id="lats" onclick="selectMuscle('lats')">
-            <!-- Left lat — fan from lower back, up to armpit -->
-            <path d="M82 165 Q76 185 74 210 Q72 230 74 248 Q80 252 90 250 Q100 244 106 232 Q112 218 112 200 Q112 182 108 168 Q100 158 92 158 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.87"/>
-            <!-- Right lat -->
-            <path d="M218 165 Q224 185 226 210 Q228 230 226 248 Q220 252 210 250 Q200 244 194 232 Q188 218 188 200 Q188 182 192 168 Q200 158 208 158 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.87"/>
-          </g>
-
-          <!-- Triceps — posterior upper arm, horseshoe shape -->
-          <g class="muscle" data-id="triceps" onclick="selectMuscle('triceps')">
-            <!-- Left triceps -->
-            <path d="M62 130 Q56 148 54 168 Q52 185 54 200 Q56 210 62 214 Q68 216 74 210 Q78 198 78 180 Q78 160 74 142 Q70 130 66 128 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Right triceps -->
-            <path d="M238 130 Q244 148 246 168 Q248 185 246 200 Q244 210 238 214 Q232 216 226 210 Q222 198 222 180 Q222 160 226 142 Q230 130 234 128 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-          </g>
-
-          <!-- Forearm extensors — posterior forearm -->
-          <g class="muscle" data-id="forearm_ext" onclick="selectMuscle('forearm_ext')">
-            <!-- Left extensors -->
-            <path d="M54 222 Q48 244 42 268 Q38 288 38 305 Q42 312 48 310 Q54 306 58 288 Q62 268 64 246 Q66 230 62 222 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.84"/>
-            <!-- Right extensors -->
-            <path d="M246 222 Q252 244 258 268 Q262 288 262 305 Q258 312 252 310 Q246 306 242 288 Q238 268 236 246 Q234 230 238 222 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.84"/>
-          </g>
-
-          <!-- Erector spinae — two columns along spine -->
-          <g class="muscle" data-id="erector" onclick="selectMuscle('erector')">
-            <!-- Left erector -->
-            <path d="M140 170 Q136 192 134 215 Q132 232 134 248 Q136 254 141 254 Q146 254 148 248 Q150 232 150 212 Q150 192 148 172 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right erector -->
-            <path d="M160 170 Q164 192 166 215 Q168 232 166 248 Q164 254 159 254 Q154 254 152 248 Q150 232 150 212 Q150 192 152 172 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Gluteus medius — upper outer buttock -->
-          <g class="muscle" data-id="glute_med" onclick="selectMuscle('glute_med')">
-            <!-- Left glute med -->
-            <path d="M78 254 Q74 268 74 282 Q74 296 80 304 Q88 310 98 308 Q108 304 112 292 Q114 280 110 268 Q106 258 96 252 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.86"/>
-            <!-- Right glute med -->
-            <path d="M222 254 Q226 268 226 282 Q226 296 220 304 Q212 310 202 308 Q192 304 188 292 Q186 280 190 268 Q194 258 204 252 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.86"/>
-          </g>
-
-          <!-- Gluteus maximus — large rounded buttock -->
-          <g class="muscle" data-id="glute_max" onclick="selectMuscle('glute_max')">
-            <!-- Left glute max -->
-            <path d="M80 278 Q74 295 74 312 Q74 328 80 340 Q88 350 102 352 Q116 350 122 338 Q128 324 126 308 Q124 292 116 280 Q108 270 94 268 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.9"/>
-            <!-- Right glute max -->
-            <path d="M220 278 Q226 295 226 312 Q226 328 220 340 Q212 350 198 352 Q184 350 178 338 Q172 324 174 308 Q176 292 184 280 Q192 270 206 268 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.9"/>
-          </g>
-
-          <!-- IT band posterior — lateral thigh strip -->
-          <g class="muscle" data-id="itb_post" onclick="selectMuscle('itb_post')">
-            <!-- Left ITB post -->
-            <path d="M78 348 Q74 372 72 405 Q72 430 74 448 Q76 454 80 454 Q84 454 86 448 Q88 430 88 405 Q88 372 86 350 Z" fill="url(#bitbGrad)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right ITB post -->
-            <path d="M222 348 Q226 372 228 405 Q228 430 226 448 Q224 454 220 454 Q216 454 214 448 Q212 430 212 405 Q212 372 214 350 Z" fill="url(#bitbGrad)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-          <!-- Biceps femoris (lateral hamstring) -->
-          <g class="muscle" data-id="biceps_fem" onclick="selectMuscle('biceps_fem')">
-            <!-- Left BF -->
-            <path d="M90 356 Q86 385 84 415 Q82 438 84 452 Q86 460 92 460 Q98 460 100 452 Q102 438 102 415 Q102 385 100 358 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.87"/>
-            <!-- Right BF -->
-            <path d="M210 356 Q214 385 216 415 Q218 438 216 452 Q214 460 208 460 Q202 460 200 452 Q198 438 198 415 Q198 385 200 358 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.87"/>
-          </g>
-
-          <!-- Semitendinosus (medial hamstring) -->
-          <g class="muscle" data-id="semitend" onclick="selectMuscle('semitend')">
-            <!-- Left semitend -->
-            <path d="M108 355 Q110 384 110 415 Q110 440 108 454 Q106 460 102 460 Q100 460 100 452 Q100 438 100 416 Q100 386 104 357 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Right semitend -->
-            <path d="M192 355 Q190 384 190 415 Q190 440 192 454 Q194 460 198 460 Q200 460 200 452 Q200 438 200 416 Q200 386 196 357 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-          </g>
-
-          <!-- Gastrocnemius (two heads — diamond shape) -->
-          <g class="muscle" data-id="gastroc" onclick="selectMuscle('gastroc')">
-            <!-- Left gastroc -->
-            <!-- Medial head -->
-            <path d="M98 468 Q94 488 92 510 Q90 528 92 545 Q94 554 98 556 Q102 556 104 550 Q106 536 106 516 Q106 494 104 472 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <!-- Lateral head -->
-            <path d="M112 468 Q116 488 118 510 Q120 528 118 545 Q116 554 112 556 Q108 556 106 550 Q104 536 104 516 Q104 494 106 472 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <!-- Raphe line -->
-            <path d="M104 470 L104 548" stroke="#6b1010" stroke-width="0.8" opacity="0.3"/>
-            <!-- Right gastroc -->
-            <path d="M202 468 Q198 488 196 510 Q194 528 196 545 Q198 554 202 556 Q206 556 208 550 Q210 536 210 516 Q210 494 208 472 Z" fill="url(#bmGradL)" stroke="#6b1010" stroke-width="0.5" opacity="0.88"/>
-            <path d="M188 468 Q184 488 182 510 Q180 528 182 545 Q184 554 188 556 Q192 556 194 550 Q196 536 196 516 Q196 494 194 472 Z" fill="url(#bmGrad1)" stroke="#6b1010" stroke-width="0.5" opacity="0.85"/>
-            <path d="M196 470 L196 548" stroke="#6b1010" stroke-width="0.8" opacity="0.3"/>
-          </g>
-
-          <!-- Soleus — beneath gastroc, wider at base -->
-          <g class="muscle" data-id="soleus" onclick="selectMuscle('soleus')">
-            <!-- Left soleus -->
-            <path d="M90 546 Q88 556 88 566 Q88 572 92 576 Q96 578 100 576 Q106 574 108 568 Q110 560 110 552 Q108 548 104 546 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.84"/>
-            <!-- Right soleus -->
-            <path d="M210 546 Q212 556 212 566 Q212 572 208 576 Q204 578 200 576 Q194 574 192 568 Q190 560 190 552 Q192 548 196 546 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.84"/>
-          </g>
-
-          <!-- Achilles tendon — prominent cream/yellow cord -->
-          <g class="muscle" data-id="achilles" onclick="selectMuscle('achilles')">
-            <!-- Left achilles -->
-            <path d="M97 576 Q94 586 93 596 Q93 605 96 610 Q100 614 104 610 Q107 604 107 596 Q107 586 104 576 Z" fill="url(#achillesGrad)" stroke="#b8aa60" stroke-width="0.8" opacity="0.95"/>
-            <!-- Right achilles -->
-            <path d="M203 576 Q206 586 207 596 Q207 605 204 610 Q200 614 196 610 Q193 604 193 596 Q193 586 196 576 Z" fill="url(#achillesGrad)" stroke="#b8aa60" stroke-width="0.8" opacity="0.95"/>
-          </g>
-
-          <!-- Plantar / heel -->
-          <g class="muscle" data-id="plantar" onclick="selectMuscle('plantar')">
-            <!-- Left heel/plantar -->
-            <path d="M86 608 Q82 612 80 616 Q82 622 90 622 Q100 622 106 618 Q108 614 106 610 Q100 608 92 608 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-            <!-- Right heel/plantar -->
-            <path d="M214 608 Q218 612 220 616 Q218 622 210 622 Q200 622 194 618 Q192 614 194 610 Q200 608 208 608 Z" fill="url(#bmGradLo)" stroke="#6b1010" stroke-width="0.5" opacity="0.82"/>
-          </g>
-
-        </svg>
-      </div><!-- /diagram-wrap -->
-
-      <p class="diagram-hint">Tap a highlighted muscle to select it</p>
-
-      <!-- Muscle selection panel -->
       <div id="muscle-panel" class="muscle-panel hidden">
         <div class="muscle-name" id="muscle-name"></div>
         <div class="muscle-sub" id="muscle-sub"></div>
@@ -822,21 +195,17 @@ textarea.input-box:focus { border-color: var(--red); }
           <button class="panel-next" id="panel-next" onclick="goStep(2)">Continue to Assessment →</button>
         </div>
       </div>
-
     </div><!-- /step-1 -->
 
-    <!-- ── STEP 2: describe ── -->
     <div id="step-2" class="step">
       <button class="step-back" onclick="goStep(1)">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Change body part
       </button>
       <div id="selected-badge" class="selected-badge"></div>
-
       <div class="field-label">What's happening?</div>
       <div class="field-sub">Describe symptoms, when it started, what makes it better or worse</div>
       <textarea id="desc-input" class="input-box" placeholder="e.g. Sharp pain when I stand on my toes, calf feels tight after playing, worse in the morning…"></textarea>
-
       <div style="margin-top:16px;" class="field-label">Add a photo <span style="font-weight:400;color:var(--muted);">(optional)</span></div>
       <div class="field-sub">Swelling, bruising, deformity — helpful but not required</div>
       <input type="file" id="photo-input" accept="image/*" capture="environment" class="hidden" onchange="previewPhoto(event)">
@@ -850,11 +219,9 @@ textarea.input-box:focus { border-color: var(--red); }
           <button class="photo-remove" onclick="removePhoto()">&#x2715;</button>
         </div>
       </div>
-
       <button class="start-btn" onclick="startAssessment()">Start Assessment →</button>
     </div>
 
-    <!-- ── STEP 3: AI Q&A ── -->
     <div id="step-3" class="step">
       <button class="step-back" onclick="restart()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -864,13 +231,11 @@ textarea.input-box:focus { border-color: var(--red); }
         <span id="chat-badge" class="badge"></span>
       </div>
       <div class="messages" id="messages"></div>
-
       <div class="answer-area" id="answer-area">
         <textarea id="answer-input" class="answer-input" placeholder="Type your answer…" rows="2"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAnswer();}"></textarea>
         <button class="send-btn" id="send-btn" onclick="sendAnswer()">Send</button>
       </div>
-
       <div id="assessment-result" class="hidden"></div>
       <button class="restart-btn hidden" id="restart-btn" onclick="restart()">Check another injury</button>
     </div>
@@ -879,7 +244,6 @@ textarea.input-box:focus { border-color: var(--red); }
 </div><!-- /app -->
 
 <script>
-// ── AUTH ──────────────────────────────────────────────────
 const SUPA_URL  = 'https://wrtmopfvbiifmzwyrasu.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydG1vcGZ2YmlpZm16d3lyYXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MTg0NzMsImV4cCI6MjA5NTM5NDQ3M30.r9o1jQ07Yn-YDAEh-JouDGPjYKIaEbjwjQNnE8sUCCE';
 const SESS_KEY  = 'sac_session';
@@ -902,7 +266,6 @@ async function getToken() {
   return s?.access_token || null;
 }
 
-// Handle magic link on load
 (function() {
   const h = window.location.hash;
   if (h && h.includes('access_token')) {
@@ -926,6 +289,7 @@ async function init() {
   if (!token) { document.getElementById('auth-wall').classList.remove('hidden'); return; }
   document.getElementById('auth-wall').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  loadSketchfab();
 }
 
 async function awSend() {
@@ -941,87 +305,177 @@ async function awSend() {
   else { const e = await r.json(); msg.textContent = e.message || 'Error sending link.'; }
 }
 
-// ── ANATOMY MAP ───────────────────────────────────────────
 const ANATOMY_MAP = {
-  scm:          { label: 'Sternocleidomastoid',          needs_side: true,  region: 'head',       sub: 'Neck strain / stiffness' },
-  trap:         { label: 'Trapezius',                    needs_side: false, region: 'chest',      sub: 'Upper back / trap strain' },
-  deltoid_ant:  { label: 'Anterior Deltoid',             needs_side: true,  region: 'shoulder',   sub: 'Shoulder impingement' },
-  pec_major:    { label: 'Pectoralis Major',             needs_side: true,  region: 'chest',      sub: 'Pectoral strain' },
-  biceps:       { label: 'Biceps Brachii',               needs_side: true,  region: 'shoulder',   sub: 'Bicep tendon pain' },
-  forearm_flex: { label: 'Forearm Flexors',              needs_side: true,  region: 'elbow',      sub: "Golfer's elbow (inner)" },
-  rectus_abd:   { label: 'Rectus Abdominis',             needs_side: false, region: 'chest',      sub: 'Rib injury (fracture or bruise)' },
-  oblique:      { label: 'External Oblique',             needs_side: true,  region: 'chest',      sub: 'Rib injury (fracture or bruise)' },
-  hip_flex:     { label: 'Hip Flexors (Iliopsoas)',      needs_side: true,  region: 'hip',        sub: 'Hip flexor strain' },
-  tfl_itb:      { label: 'TFL / IT Band',                needs_side: true,  region: 'thigh',      sub: 'IT band syndrome' },
-  rectus_fem:   { label: 'Rectus Femoris (Quad)',        needs_side: true,  region: 'thigh',      sub: 'Quadriceps strain' },
-  vastus_lat:   { label: 'Vastus Lateralis (Quad)',      needs_side: true,  region: 'thigh',      sub: 'Quadriceps strain' },
-  vastus_med:   { label: 'Vastus Medialis (Quad)',       needs_side: true,  region: 'knee',       sub: "Runner's knee (patellofemoral)" },
-  adductor:     { label: 'Adductors / Groin',            needs_side: true,  region: 'hip',        sub: 'Groin / adductor strain' },
-  sartorius:    { label: 'Sartorius',                    needs_side: true,  region: 'thigh',      sub: 'Adductor (inner thigh) strain' },
-  pat_tendon:   { label: 'Patellar Tendon',              needs_side: true,  region: 'knee',       sub: "Patellar tendon pain (jumper's knee)" },
-  tib_ant:      { label: 'Tibialis Anterior',            needs_side: true,  region: 'shin_calf',  sub: 'Shin splints' },
-  peroneal:     { label: 'Peroneal Muscles',             needs_side: true,  region: 'ankle',      sub: 'Peroneal tendon pain' },
-  ant_ankle:    { label: 'Ankle Joint (front)',          needs_side: true,  region: 'ankle',      sub: 'Ankle sprain (outer ankle)' },
-  deltoid_post: { label: 'Posterior Deltoid',            needs_side: true,  region: 'shoulder',   sub: 'Rotator cuff pain' },
-  infraspinatus:{ label: 'Infraspinatus / Rotator Cuff',needs_side: true,  region: 'shoulder',   sub: 'Rotator cuff pain' },
-  rhomboid:     { label: 'Rhomboids',                    needs_side: false, region: 'chest',      sub: 'Upper back / trap strain' },
-  lats:         { label: 'Latissimus Dorsi',             needs_side: true,  region: 'chest',      sub: 'Upper back / trap strain' },
-  triceps:      { label: 'Triceps',                      needs_side: true,  region: 'elbow',      sub: 'Tennis elbow (outer elbow)' },
-  forearm_ext:  { label: 'Forearm Extensors',            needs_side: true,  region: 'elbow',      sub: 'Tennis elbow (outer elbow)' },
-  erector:      { label: 'Erector Spinae',               needs_side: true,  region: 'lower_back', sub: 'Lumbar muscle strain' },
-  glute_med:    { label: 'Gluteus Medius',               needs_side: true,  region: 'hip',        sub: 'Hip impingement (FAI)' },
-  glute_max:    { label: 'Gluteus Maximus',              needs_side: true,  region: 'hip',        sub: 'Hip flexor strain' },
-  itb_post:     { label: 'IT Band (lateral)',            needs_side: true,  region: 'thigh',      sub: 'IT band syndrome' },
-  biceps_fem:   { label: 'Biceps Femoris (Hamstring)',   needs_side: true,  region: 'thigh',      sub: 'Hamstring strain' },
-  semitend:     { label: 'Semitendinosus (Hamstring)',   needs_side: true,  region: 'thigh',      sub: 'Hamstring strain' },
-  gastroc:      { label: 'Gastrocnemius',                needs_side: true,  region: 'shin_calf',  sub: 'Calf strain' },
-  soleus:       { label: 'Soleus',                       needs_side: true,  region: 'shin_calf',  sub: 'Calf strain' },
-  achilles:     { label: 'Achilles Tendon',              needs_side: true,  region: 'ankle',      sub: 'Achilles tendinitis' },
-  plantar:      { label: 'Plantar Fascia / Heel',        needs_side: true,  region: 'foot',       sub: 'Plantar fasciitis (heel / arch)' },
+  scm:          { label: 'Sternocleidomastoid',           needs_side: true,  region: 'head',       sub: 'Neck strain / stiffness' },
+  trap_upper:   { label: 'Upper Trapezius',               needs_side: false, region: 'chest',      sub: 'Upper back / trap strain' },
+  deltoid_ant:  { label: 'Anterior Deltoid',              needs_side: true,  region: 'shoulder',   sub: 'Shoulder impingement' },
+  pec_major:    { label: 'Pectoralis Major',              needs_side: true,  region: 'chest',      sub: 'Pectoral strain' },
+  serratus:     { label: 'Serratus Anterior',             needs_side: true,  region: 'chest',      sub: 'Rib injury (fracture or bruise)' },
+  biceps:       { label: 'Biceps Brachii',                needs_side: true,  region: 'shoulder',   sub: 'Bicep tendon pain' },
+  forearm_flex: { label: 'Forearm Flexors',               needs_side: true,  region: 'elbow',      sub: "Golfer's elbow (inner)" },
+  rectus_abd:   { label: 'Rectus Abdominis',              needs_side: false, region: 'chest',      sub: 'Core / abdominal strain' },
+  oblique:      { label: 'External Oblique',              needs_side: true,  region: 'chest',      sub: 'Rib injury (fracture or bruise)' },
+  hip_flex:     { label: 'Hip Flexors',                   needs_side: true,  region: 'hip',        sub: 'Hip flexor strain' },
+  tfl_itb:      { label: 'TFL / IT Band',                 needs_side: true,  region: 'thigh',      sub: 'IT band syndrome' },
+  rectus_fem:   { label: 'Rectus Femoris',                needs_side: true,  region: 'thigh',      sub: 'Quadriceps strain' },
+  vastus_lat:   { label: 'Vastus Lateralis',              needs_side: true,  region: 'thigh',      sub: 'Quadriceps strain' },
+  vastus_med:   { label: 'Vastus Medialis',               needs_side: true,  region: 'knee',       sub: "Runner's knee (patellofemoral)" },
+  adductor:     { label: 'Adductors / Groin',             needs_side: true,  region: 'hip',        sub: 'Groin / adductor strain' },
+  sartorius:    { label: 'Sartorius',                     needs_side: true,  region: 'thigh',      sub: 'Adductor (inner thigh) strain' },
+  pat_tendon:   { label: 'Patellar Tendon',               needs_side: true,  region: 'knee',       sub: "Patellar tendon pain (jumper's knee)" },
+  tib_ant:      { label: 'Tibialis Anterior',             needs_side: true,  region: 'shin_calf',  sub: 'Shin splints' },
+  peroneal:     { label: 'Peroneal Muscles',              needs_side: true,  region: 'ankle',      sub: 'Peroneal tendon pain' },
+  trap_back:    { label: 'Trapezius',                     needs_side: false, region: 'chest',      sub: 'Upper back / trap strain' },
+  deltoid_post: { label: 'Posterior Deltoid',             needs_side: true,  region: 'shoulder',   sub: 'Rotator cuff pain' },
+  infraspinatus:{ label: 'Infraspinatus / Rotator Cuff', needs_side: true,  region: 'shoulder',   sub: 'Rotator cuff pain' },
+  rhomboid:     { label: 'Rhomboids',                     needs_side: false, region: 'chest',      sub: 'Upper back / trap strain' },
+  teres_major:  { label: 'Teres Major',                   needs_side: true,  region: 'shoulder',   sub: 'Rotator cuff pain' },
+  lats:         { label: 'Latissimus Dorsi',              needs_side: true,  region: 'chest',      sub: 'Upper back / trap strain' },
+  triceps:      { label: 'Triceps',                       needs_side: true,  region: 'elbow',      sub: 'Tennis elbow (outer elbow)' },
+  forearm_ext:  { label: 'Forearm Extensors',             needs_side: true,  region: 'elbow',      sub: 'Tennis elbow (outer elbow)' },
+  erector:      { label: 'Erector Spinae',                needs_side: true,  region: 'lower_back', sub: 'Lumbar muscle strain' },
+  glute_med:    { label: 'Gluteus Medius',                needs_side: true,  region: 'hip',        sub: 'Hip impingement (FAI)' },
+  glute_max:    { label: 'Gluteus Maximus',               needs_side: true,  region: 'hip',        sub: 'Hip flexor strain' },
+  itb_post:     { label: 'IT Band (lateral)',             needs_side: true,  region: 'thigh',      sub: 'IT band syndrome' },
+  biceps_fem:   { label: 'Biceps Femoris (Hamstring)',    needs_side: true,  region: 'thigh',      sub: 'Hamstring strain' },
+  semitend:     { label: 'Semitendinosus (Hamstring)',    needs_side: true,  region: 'thigh',      sub: 'Hamstring strain' },
+  gastroc:      { label: 'Gastrocnemius',                 needs_side: true,  region: 'shin_calf',  sub: 'Calf strain' },
+  soleus:       { label: 'Soleus',                        needs_side: true,  region: 'shin_calf',  sub: 'Calf strain' },
+  achilles:     { label: 'Achilles Tendon',               needs_side: true,  region: 'ankle',      sub: 'Achilles tendinitis' },
+  plantar_heel: { label: 'Plantar Fascia / Heel',         needs_side: true,  region: 'foot',       sub: 'Plantar fasciitis (heel / arch)' },
 };
 
-// Also keep REGIONS for backward-compat with AI system prompt logic
 const REGION_LABELS = {
   head: 'Head / Neck', shoulder: 'Shoulder', elbow: 'Elbow', wrist: 'Wrist / Hand',
   chest: 'Chest / Back', lower_back: 'Lower Back', hip: 'Hip / Groin',
   thigh: 'Thigh', knee: 'Knee', shin_calf: 'Shin / Calf', ankle: 'Ankle / Achilles', foot: 'Foot'
 };
 
-// ── STATE ─────────────────────────────────────────────────
 let selectedMuscleId = null;
 let selectedSide = null;
 let photoBase64 = null, photoMime = null;
 let conversationHistory = [];
 let geminiKey = null;
 let assessmentDone = false;
-let currentView = 'front';
 
-// ── VIEW TOGGLE ───────────────────────────────────────────
-function showView(v) {
-  currentView = v;
-  document.getElementById('svg-front').classList.toggle('hidden', v !== 'front');
-  document.getElementById('svg-back').classList.toggle('hidden', v !== 'back');
-  document.getElementById('btn-front').classList.toggle('active', v === 'front');
-  document.getElementById('btn-back').classList.toggle('active', v === 'back');
-  // clear selection when switching views
-  clearMuscle();
+// ── Sketchfab 3D Viewer ──────────────────────────────────────────
+const SF_MODEL = '7ea21567ff9942bf9511e2d99efe85d9';
+let sfNodeMap = {};
+
+function loadSketchfab() {
+  const s = document.createElement('script');
+  s.src = 'https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js';
+  s.onload = initSfViewer;
+  s.onerror = () => {
+    const el = document.getElementById('viewer-loading');
+    el.innerHTML = '<span style="color:#c66">Failed to load 3D model</span>';
+  };
+  document.head.appendChild(s);
 }
 
-// ── MUSCLE SELECTION ──────────────────────────────────────
-function selectMuscle(id) {
-  // deselect previous
-  document.querySelectorAll('.muscle.selected').forEach(el => el.classList.remove('selected'));
+function initSfViewer() {
+  const iframe = document.getElementById('sf-iframe');
+  const client = new window.Sketchfab(iframe);
+  client.init(SF_MODEL, {
+    success(api) {
+      api.start();
+      api.addEventListener('viewerready', () => {
+        document.getElementById('viewer-loading').classList.add('hidden');
+        api.getSceneGraph((err, graph) => {
+          if (!err) buildSfNodeMap(graph, sfNodeMap);
+        });
+        api.addEventListener('click', info => {
+          if (info.instanceID == null) return;
+          const node = sfNodeMap[info.instanceID];
+          if (!node) return;
+          const muscleId = meshToMuscleId(node.name);
+          if (muscleId) {
+            selectMuscle(muscleId);
+          } else if (node.name && !/^(root|scene|body|skin|skeleton|bone|spine|object|mesh|node|group|armature|\d)/i.test(node.name)) {
+            showMeshOverlay(node.name);
+          }
+        });
+      });
+    },
+    error() {
+      document.getElementById('viewer-loading').innerHTML = '<span style="color:#c66">3D model unavailable</span>';
+    },
+    autostart: 1,
+    preload: 1,
+    ui_infos: 0,
+    ui_help: 0,
+    ui_controls: 1,
+    ui_annotations: 0,
+  });
+}
 
+function buildSfNodeMap(node, map) {
+  if (node.instanceID != null) map[node.instanceID] = node;
+  (node.children || []).forEach(c => buildSfNodeMap(c, map));
+}
+
+function meshToMuscleId(name) {
+  const n = (name || '').toLowerCase().replace(/[_\-]/g, ' ');
+  if (/achilles/.test(n)) return 'achilles';
+  if (/gastrocnemius/.test(n)) return 'gastroc';
+  if (/soleus/.test(n)) return 'soleus';
+  if (/tibialis anterior/.test(n)) return 'tib_ant';
+  if (/peroneal|fibularis/.test(n)) return 'peroneal';
+  if (/biceps femoris/.test(n)) return 'biceps_fem';
+  if (/semitendinosus|semimembranosus/.test(n)) return 'semitend';
+  if (/rectus femoris/.test(n)) return 'rectus_fem';
+  if (/vastus lateralis/.test(n)) return 'vastus_lat';
+  if (/vastus medialis/.test(n)) return 'vastus_med';
+  if (/vastus intermedius/.test(n)) return 'rectus_fem';
+  if (/adductor|gracilis/.test(n)) return 'adductor';
+  if (/sartorius/.test(n)) return 'sartorius';
+  if (/patellar tendon|ligamentum patellae/.test(n)) return 'pat_tendon';
+  if (/gluteus maximus/.test(n)) return 'glute_max';
+  if (/gluteus medius|gluteus minimus/.test(n)) return 'glute_med';
+  if (/erector spinae|iliocostalis|longissimus|spinalis/.test(n)) return 'erector';
+  if (/latissimus dorsi/.test(n)) return 'lats';
+  if (/trapezius/.test(n)) return /lower|mid/.test(n) ? 'trap_back' : 'trap_upper';
+  if (/infraspinatus/.test(n)) return 'infraspinatus';
+  if (/teres/.test(n)) return 'teres_major';
+  if (/rhomboid/.test(n)) return 'rhomboid';
+  if (/posterior deltoid|deltoid.*post/.test(n)) return 'deltoid_post';
+  if (/anterior deltoid|deltoid.*ant/.test(n)) return 'deltoid_ant';
+  if (/deltoid/.test(n)) return 'deltoid_ant';
+  if (/pectoralis major|pectoralis/.test(n)) return 'pec_major';
+  if (/serratus/.test(n)) return 'serratus';
+  if (/biceps brachii/.test(n)) return 'biceps';
+  if (/biceps/.test(n) && !/femoris/.test(n)) return 'biceps';
+  if (/triceps/.test(n)) return 'triceps';
+  if (/extensor carpi|extensor digit|brachioradialis|anconeus/.test(n)) return 'forearm_ext';
+  if (/flexor carpi|flexor digit|pronator|brachialis/.test(n)) return 'forearm_flex';
+  if (/rectus abdominis/.test(n)) return 'rectus_abd';
+  if (/oblique|obliquus/.test(n)) return 'oblique';
+  if (/iliopsoas|iliacus|psoas|hip flexor/.test(n)) return 'hip_flex';
+  if (/tensor fasciae|iliotibial/.test(n)) return 'tfl_itb';
+  if (/sternocleidomastoid/.test(n)) return 'scm';
+  if (/plantar fascia/.test(n)) return 'plantar_heel';
+  return null;
+}
+
+function showMeshOverlay(name) {
+  const el = document.getElementById('muscle-overlay');
+  el.textContent = name;
+  el.classList.remove('hidden');
+  clearTimeout(window._sfOverlayTimer);
+  window._sfOverlayTimer = setTimeout(() => el.classList.add('hidden'), 2500);
+}
+
+function selectMuscle(id) {
   selectedMuscleId = id;
   selectedSide = null;
 
-  // highlight all muscle groups with this id in current svg
-  const svgId = currentView === 'front' ? 'svg-front' : 'svg-back';
-  const svg = document.getElementById(svgId);
-  svg.querySelectorAll(`.muscle[data-id="${id}"]`).forEach(el => el.classList.add('selected'));
-
   const info = ANATOMY_MAP[id];
   if (!info) return;
+
+  const overlay = document.getElementById('muscle-overlay');
+  overlay.textContent = info.label;
+  overlay.classList.remove('hidden');
+  clearTimeout(window._sfOverlayTimer);
 
   document.getElementById('muscle-name').textContent = info.label;
   document.getElementById('muscle-sub').textContent = info.sub;
@@ -1053,25 +507,22 @@ function setMuscleSide(side) {
 function clearMuscle() {
   selectedMuscleId = null;
   selectedSide = null;
-  document.querySelectorAll('.muscle.selected').forEach(el => el.classList.remove('selected'));
   document.getElementById('muscle-panel').classList.add('hidden');
+  document.getElementById('muscle-overlay').classList.add('hidden');
 }
 
-// ── STEP NAVIGATION ───────────────────────────────────────
 function goStep(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById('step-' + n).classList.add('active');
   if (n === 2) {
     const info = ANATOMY_MAP[selectedMuscleId] || {};
     const sideLabel = selectedSide && selectedSide !== 'N/A' && selectedSide !== 'both'
-      ? ` (${selectedSide})`
-      : selectedSide === 'both' ? ' (both sides)' : '';
+      ? ` (${selectedSide})` : selectedSide === 'both' ? ' (both sides)' : '';
     document.getElementById('selected-badge').innerHTML = '&#x1F4CD; ' + (info.label || '') + sideLabel;
   }
   window.scrollTo(0, 0);
 }
 
-// ── PHOTO ─────────────────────────────────────────────────
 function previewPhoto(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -1092,18 +543,15 @@ function removePhoto() {
   document.getElementById('photo-input').value = '';
 }
 
-// ── STEP 3: AI CHAT ───────────────────────────────────────
 async function startAssessment() {
   const desc = document.getElementById('desc-input').value.trim();
   goStep(3);
-
   const info = ANATOMY_MAP[selectedMuscleId] || {};
   const regionLabel = REGION_LABELS[info.region] || info.region || '';
   const sideLabel = selectedSide && selectedSide !== 'N/A' && selectedSide !== 'both'
     ? ` (${selectedSide} side)` : selectedSide === 'both' ? ' (both sides)' : '';
   document.getElementById('chat-badge').textContent = info.label + sideLabel;
 
-  // Fetch Gemini key
   const token = await getToken();
   const kr = await fetch('/api/gemini-key', { headers: token ? { Authorization: 'Bearer ' + token } : {} });
   if (!kr.ok) { showMsg('ai', 'Error: could not connect. Please try again.'); return; }
@@ -1133,11 +581,9 @@ ASSESSMENT_END
 Start with your FIRST question now. Be direct. Do not introduce yourself.`;
 
   conversationHistory = [];
-
   const firstUserParts = [];
   if (photoBase64) firstUserParts.push({ inline_data: { mime_type: photoMime, data: photoBase64 } });
-  const contextText = `${regionLabel} → ${info.label}${sideLabel}. ${desc || 'No description provided.'}`;
-  firstUserParts.push({ text: contextText });
+  firstUserParts.push({ text: `${regionLabel} → ${info.label}${sideLabel}. ${desc || 'No description provided.'}` });
   conversationHistory.push({ role: 'user', parts: firstUserParts });
 
   showTyping();
@@ -1149,10 +595,8 @@ async function sendAnswer() {
   const answer = input.value.trim();
   if (!answer || assessmentDone) return;
   input.value = '';
-
   showMsg('user', answer);
   conversationHistory.push({ role: 'user', parts: [{ text: answer }] });
-
   showTyping();
   await callGemini(buildSys());
 }
@@ -1192,7 +636,6 @@ async function callGemini(sysPrompt) {
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     conversationHistory.push({ role: 'model', parts: [{ text }] });
-
     if (text.includes('ASSESSMENT_START')) {
       parseAndShowAssessment(text);
     } else {
@@ -1204,7 +647,6 @@ async function callGemini(sysPrompt) {
   }
 }
 
-// ── CHAT UI ───────────────────────────────────────────────
 function showMsg(role, text) {
   const msgs = document.getElementById('messages');
   const div = document.createElement('div');
@@ -1213,7 +655,6 @@ function showMsg(role, text) {
   msgs.appendChild(div);
   div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-
 function showTyping() {
   const msgs = document.getElementById('messages');
   const div = document.createElement('div');
@@ -1229,16 +670,13 @@ function removeTyping() {
   document.getElementById('send-btn').disabled = false;
 }
 
-// ── ASSESSMENT ────────────────────────────────────────────
 function parseAndShowAssessment(text) {
   assessmentDone = true;
   document.getElementById('answer-area').classList.add('hidden');
-
   const get = key => {
     const m = text.match(new RegExp(key + ':\\s*(.+?)(?=\\n[A-Z]+:|ASSESSMENT_END)', 's'));
     return m ? m[1].trim() : '';
   };
-
   const diagnosis = get('DIAGNOSIS');
   const severity  = get('SEVERITY').toUpperCase();
   const what      = get('WHAT');
@@ -1246,21 +684,13 @@ function parseAndShowAssessment(text) {
   const timeline  = get('TIMELINE');
   const ret       = get('RETURN');
   const flags     = get('FLAGS');
-
-  const sevClass = severity === 'MILD' ? 'sev-mild' : severity === 'MODERATE' ? 'sev-moderate' : severity === 'SEVERE' ? 'sev-severe' : 'sev-urgent';
-  const sevLabel = severity === 'URGENT' ? 'URGENT — see doctor today' : severity.charAt(0) + severity.slice(1).toLowerCase();
-
+  const sevClass  = severity === 'MILD' ? 'sev-mild' : severity === 'MODERATE' ? 'sev-moderate' : severity === 'SEVERE' ? 'sev-severe' : 'sev-urgent';
+  const sevLabel  = severity === 'URGENT' ? 'URGENT — see doctor today' : severity.charAt(0) + severity.slice(1).toLowerCase();
   const html = `
     <div class="assessment">
       <h2>Assessment</h2>
-      <div class="assess-row">
-        <div class="label">Most likely</div>
-        <div class="val" style="font-weight:700;font-size:15px;">${escHtml(diagnosis)}</div>
-      </div>
-      <div class="assess-row">
-        <div class="label">Severity</div>
-        <span class="severity-pill ${sevClass}">${escHtml(sevLabel)}</span>
-      </div>
+      <div class="assess-row"><div class="label">Most likely</div><div class="val" style="font-weight:700;font-size:15px;">${escHtml(diagnosis)}</div></div>
+      <div class="assess-row"><div class="label">Severity</div><span class="severity-pill ${sevClass}">${escHtml(sevLabel)}</span></div>
       ${what ? `<div class="assess-row"><div class="label">What's happening</div><div class="val">${escHtml(what)}</div></div>` : ''}
       ${now ? `<div class="assess-row"><div class="label">Right now (first 72 hrs)</div><div class="val">${escHtml(now).replace(/\n/g,'<br>')}</div></div>` : ''}
       ${timeline ? `<div class="assess-row"><div class="label">Recovery timeline</div><div class="val">${escHtml(timeline)}</div></div>` : ''}
@@ -1268,7 +698,6 @@ function parseAndShowAssessment(text) {
       ${flags ? `<div class="assess-row"><div class="label">See a doctor if…</div><div class="red-flags">${escHtml(flags).replace(/\n/g,'<br>')}</div></div>` : ''}
       <div class="disclaimer">This is guidance only — not a medical diagnosis. See a sports medicine doctor or physiotherapist for proper evaluation.</div>
     </div>`;
-
   const result = document.getElementById('assessment-result');
   result.innerHTML = html;
   result.classList.remove('hidden');
@@ -1276,14 +705,12 @@ function parseAndShowAssessment(text) {
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── RESTART ───────────────────────────────────────────────
 function restart() {
   selectedMuscleId = null; selectedSide = null;
   photoBase64 = null; photoMime = null;
   conversationHistory = []; geminiKey = null; assessmentDone = false;
-
-  document.querySelectorAll('.muscle.selected').forEach(el => el.classList.remove('selected'));
   document.getElementById('muscle-panel').classList.add('hidden');
+  document.getElementById('muscle-overlay').classList.add('hidden');
   document.getElementById('desc-input').value = '';
   document.getElementById('photo-input').value = '';
   document.getElementById('photo-wrap').classList.add('hidden');
@@ -1292,7 +719,6 @@ function restart() {
   document.getElementById('answer-area').classList.remove('hidden');
   document.getElementById('restart-btn').classList.add('hidden');
   document.getElementById('answer-input').value = '';
-
   goStep(1);
 }
 
