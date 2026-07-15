@@ -140,6 +140,8 @@ textarea.input-box:focus { border-color: var(--red); }
 .viewer-hint {
   text-align: center; font-size: 11px; color: #999; margin-top: 6px; margin-bottom: 0;
 }
+.quick-btn { padding: 6px 11px; border: 1.5px solid var(--border); border-radius: 20px; background: #fff; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; font-family: inherit; transition: all .12s; white-space: nowrap; }
+.quick-btn:hover, .quick-btn.sel { border-color: var(--red); background: var(--red-light); color: var(--red); }
 </style>
 </head>
 <body>
@@ -180,9 +182,40 @@ textarea.input-box:focus { border-color: var(--red); }
           style="width:100%;height:460px;display:block;background:#111;"></iframe>
         <div id="muscle-overlay" class="muscle-overlay hidden"></div>
       </div>
-      <p class="viewer-hint">Tap a highlighted muscle to select it</p>
+      <p class="viewer-hint">Tap a muscle in the 3D model · Or select below for bones / ligaments</p>
 
-      <div id="muscle-panel" class="muscle-panel hidden">
+      <!-- Manual selector for bones & ligaments (not clickable in muscle model) -->
+      <div style="margin-top:14px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-bottom:8px;">韧带 / Ligaments</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+          <button class="quick-btn" onclick="selectMuscle('acl')">ACL 前交叉韧带</button>
+          <button class="quick-btn" onclick="selectMuscle('pcl')">PCL 后交叉韧带</button>
+          <button class="quick-btn" onclick="selectMuscle('mcl')">MCL 内侧副韧带</button>
+          <button class="quick-btn" onclick="selectMuscle('lcl')">LCL 外侧副韧带</button>
+          <button class="quick-btn" onclick="selectMuscle('meniscus')">半月板</button>
+          <button class="quick-btn" onclick="selectMuscle('ankle_lig')">踝关节韧带</button>
+          <button class="quick-btn" onclick="selectMuscle('labrum_hip')">髋臼唇</button>
+          <button class="quick-btn" onclick="selectMuscle('labrum_shldr')">肩关节唇</button>
+          <button class="quick-btn" onclick="selectMuscle('ucl_elbow')">肘内侧韧带 UCL</button>
+          <button class="quick-btn" onclick="selectMuscle('wrist_lig')">腕关节韧带</button>
+        </div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#999;margin-bottom:8px;">骨头 / Bones</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <button class="quick-btn" onclick="selectMuscle('patella')">髌骨</button>
+          <button class="quick-btn" onclick="selectMuscle('tibia_bone')">胫骨</button>
+          <button class="quick-btn" onclick="selectMuscle('fibula_bone')">腓骨</button>
+          <button class="quick-btn" onclick="selectMuscle('metatarsal')">跖骨</button>
+          <button class="quick-btn" onclick="selectMuscle('calcaneus')">跟骨</button>
+          <button class="quick-btn" onclick="selectMuscle('femur_bone')">股骨</button>
+          <button class="quick-btn" onclick="selectMuscle('clavicle')">锁骨</button>
+          <button class="quick-btn" onclick="selectMuscle('rib_bone')">肋骨</button>
+          <button class="quick-btn" onclick="selectMuscle('spine_bone')">脊椎</button>
+          <button class="quick-btn" onclick="selectMuscle('wrist_bone')">腕骨/舟骨</button>
+          <button class="quick-btn" onclick="selectMuscle('humerus_bone')">肱骨</button>
+        </div>
+      </div>
+
+      <div id="muscle-panel" class="muscle-panel hidden" style="margin-top:14px;">
         <div class="muscle-name" id="muscle-name"></div>
         <div class="muscle-sub" id="muscle-sub"></div>
         <div class="side-row hidden" id="muscle-side-row">
@@ -343,6 +376,31 @@ const ANATOMY_MAP = {
   soleus:       { label: 'Soleus',                        needs_side: true,  region: 'shin_calf',  sub: 'Calf strain' },
   achilles:     { label: 'Achilles Tendon',               needs_side: true,  region: 'ankle',      sub: 'Achilles tendinitis' },
   plantar_heel: { label: 'Plantar Fascia / Heel',         needs_side: true,  region: 'foot',       sub: 'Plantar fasciitis (heel / arch)' },
+
+  // ── Ligaments & Cartilage ──────────────────────────────────────
+  acl:          { label: 'ACL (前交叉韧带)',               needs_side: true,  region: 'knee',       sub: 'ACL tear / sprain' },
+  pcl:          { label: 'PCL (后交叉韧带)',               needs_side: true,  region: 'knee',       sub: 'PCL tear / sprain' },
+  mcl:          { label: 'MCL (内侧副韧带)',               needs_side: true,  region: 'knee',       sub: 'MCL sprain' },
+  lcl:          { label: 'LCL (外侧副韧带)',               needs_side: true,  region: 'knee',       sub: 'LCL sprain' },
+  meniscus:     { label: 'Meniscus (半月板)',              needs_side: true,  region: 'knee',       sub: 'Meniscus tear' },
+  ankle_lig:    { label: 'Ankle Ligaments (踝关节韧带)',   needs_side: true,  region: 'ankle',      sub: 'Ankle sprain (ligament)' },
+  labrum_hip:   { label: 'Hip Labrum (髋臼唇)',           needs_side: true,  region: 'hip',        sub: 'Hip labrum tear / impingement' },
+  labrum_shldr: { label: 'Shoulder Labrum (肩关节唇)',    needs_side: true,  region: 'shoulder',   sub: 'Shoulder labrum / SLAP tear' },
+  ucl_elbow:    { label: 'UCL / Elbow Ligament (肘内侧韧带)', needs_side: true, region: 'elbow',   sub: 'UCL sprain (thrower\'s elbow)' },
+  wrist_lig:    { label: 'Wrist Ligaments (腕关节韧带)',  needs_side: true,  region: 'wrist',      sub: 'Wrist sprain / ligament' },
+
+  // ── Bones ──────────────────────────────────────────────────────
+  patella:      { label: 'Patella (髌骨)',                needs_side: true,  region: 'knee',       sub: 'Patella fracture / dislocation' },
+  tibia_bone:   { label: 'Tibia (胫骨)',                  needs_side: true,  region: 'shin_calf',  sub: 'Tibia stress fracture / shin splints' },
+  fibula_bone:  { label: 'Fibula (腓骨)',                 needs_side: true,  region: 'ankle',      sub: 'Fibula stress fracture / ankle fracture' },
+  calcaneus:    { label: 'Calcaneus (跟骨)',              needs_side: true,  region: 'foot',       sub: 'Heel bone stress fracture' },
+  metatarsal:   { label: 'Metatarsals (跖骨)',            needs_side: true,  region: 'foot',       sub: 'Metatarsal stress fracture' },
+  femur_bone:   { label: 'Femur (股骨)',                  needs_side: true,  region: 'thigh',      sub: 'Femoral stress fracture / hip fracture' },
+  clavicle:     { label: 'Clavicle (锁骨)',               needs_side: true,  region: 'shoulder',   sub: 'Clavicle fracture' },
+  rib_bone:     { label: 'Ribs (肋骨)',                   needs_side: true,  region: 'chest',      sub: 'Rib fracture / contusion' },
+  spine_bone:   { label: 'Spine / Vertebra (脊椎)',       needs_side: false, region: 'lower_back', sub: 'Vertebral stress fracture / disc injury' },
+  wrist_bone:   { label: 'Wrist / Scaphoid (腕骨)',       needs_side: true,  region: 'wrist',      sub: 'Wrist / scaphoid fracture' },
+  humerus_bone: { label: 'Humerus (肱骨)',                needs_side: true,  region: 'shoulder',   sub: 'Humerus fracture / stress fracture' },
 };
 
 const REGION_LABELS = {
@@ -454,6 +512,32 @@ function meshToMuscleId(name) {
   if (/tensor fasciae|iliotibial/.test(n)) return 'tfl_itb';
   if (/sternocleidomastoid/.test(n)) return 'scm';
   if (/plantar fascia/.test(n)) return 'plantar_heel';
+
+  // Ligaments & cartilage
+  if (/anterior cruciate|acl/.test(n)) return 'acl';
+  if (/posterior cruciate|pcl/.test(n)) return 'pcl';
+  if (/medial collateral|mcl/.test(n)) return 'mcl';
+  if (/lateral collateral|lcl/.test(n)) return 'lcl';
+  if (/meniscus|menisci/.test(n)) return 'meniscus';
+  if (/ankle.*ligament|atfl|cfl|deltoid ligament/.test(n)) return 'ankle_lig';
+  if (/acetabular labrum|hip labrum/.test(n)) return 'labrum_hip';
+  if (/glenoid labrum|shoulder labrum|slap/.test(n)) return 'labrum_shldr';
+  if (/ulnar collateral|ucl/.test(n) && !/knee/.test(n)) return 'ucl_elbow';
+  if (/wrist.*ligament|carpal ligament|scapholunate/.test(n)) return 'wrist_lig';
+
+  // Bones
+  if (/patella/.test(n) && !/tendon/.test(n)) return 'patella';
+  if (/tibia/.test(n) && !/anterior/.test(n)) return 'tibia_bone';
+  if (/fibula/.test(n) && !/peroneal|fibularis/.test(n)) return 'fibula_bone';
+  if (/calcaneus|calcaneal/.test(n) && !/tendon/.test(n)) return 'calcaneus';
+  if (/metatarsal/.test(n)) return 'metatarsal';
+  if (/femur|femoral/.test(n) && !/femoris/.test(n)) return 'femur_bone';
+  if (/clavicle/.test(n)) return 'clavicle';
+  if (/rib(?:s)?\b/.test(n) && !/serratus/.test(n)) return 'rib_bone';
+  if (/vertebr|lumbar.*disc|cervical.*disc|disc herniation|spine/.test(n)) return 'spine_bone';
+  if (/scaphoid|carpal|wrist.*bone/.test(n)) return 'wrist_bone';
+  if (/humerus|humeral/.test(n)) return 'humerus_bone';
+
   return null;
 }
 
@@ -471,6 +555,10 @@ function selectMuscle(id) {
 
   const info = ANATOMY_MAP[id];
   if (!info) return;
+
+  // Highlight selected quick-btn
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('sel'));
+  document.querySelectorAll(`.quick-btn[onclick="selectMuscle('${id}')"]`).forEach(b => b.classList.add('sel'));
 
   const overlay = document.getElementById('muscle-overlay');
   overlay.textContent = info.label;
@@ -507,6 +595,7 @@ function setMuscleSide(side) {
 function clearMuscle() {
   selectedMuscleId = null;
   selectedSide = null;
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('muscle-panel').classList.add('hidden');
   document.getElementById('muscle-overlay').classList.add('hidden');
 }
