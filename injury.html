@@ -169,20 +169,96 @@ textarea.input-box:focus { border-color: var(--red); }
 
   <div class="main">
     <div id="step-1" class="step active">
-      <p class="diagram-hint" style="margin-top:12px;margin-bottom:10px;">Drag to rotate · Pinch to zoom · Tap a muscle to select</p>
-      <div class="viewer-wrap">
-        <div class="viewer-loading" id="viewer-loading">
-          <div class="viewer-spinner"></div>
-          <span>Loading 3D model…</span>
-        </div>
-        <iframe id="sf-iframe"
-          allow="autoplay; fullscreen; xr-spatial-tracking"
-          allowfullscreen mozallowfullscreen="true" webkitallowfullscreen="true"
-          frameborder="0"
-          style="width:100%;height:460px;display:block;background:#111;"></iframe>
+      <p class="diagram-hint" style="margin-top:12px;margin-bottom:8px;">点击受伤部位 · Tap the area that hurts</p>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btn-front" onclick="showBodyView('front')">Front</button>
+        <button class="view-btn" id="btn-back" onclick="showBodyView('back')">Back</button>
+      </div>
+      <div class="body-viewer">
+        <img id="img-front" class="body-img"
+          src="https://upload.wikimedia.org/wikipedia/commons/9/94/Bougle%2C_Human_muscular_system%2C_anterior-ca.svg"
+          alt="Human muscular system anterior">
+        <img id="img-back" class="body-img hidden"
+          src="https://upload.wikimedia.org/wikipedia/commons/8/87/Bougle%2C_Human_muscular_system%2C_posterior-ca.svg"
+          alt="Human muscular system posterior">
+        <!-- FRONT hotspot SVG (viewBox 100×160 matches 1821×2908 ratio ≈1:1.6) -->
+        <svg id="hs-front" class="body-hotspot" viewBox="0 0 100 160" preserveAspectRatio="none">
+          <ellipse class="hotspot" data-id="scm"         cx="50" cy="15" rx="7"  ry="5"  onclick="selectMuscle('scm')"/>
+          <ellipse class="hotspot" data-id="deltoid_ant" cx="30" cy="30" rx="8"  ry="7"  onclick="selectMuscle('deltoid_ant')"/>
+          <ellipse class="hotspot" data-id="deltoid_ant" cx="70" cy="30" rx="8"  ry="7"  onclick="selectMuscle('deltoid_ant')"/>
+          <ellipse class="hotspot" data-id="pec_major"   cx="40" cy="37" rx="8"  ry="7"  onclick="selectMuscle('pec_major')"/>
+          <ellipse class="hotspot" data-id="pec_major"   cx="60" cy="37" rx="8"  ry="7"  onclick="selectMuscle('pec_major')"/>
+          <ellipse class="hotspot" data-id="serratus"    cx="33" cy="45" rx="5"  ry="6"  onclick="selectMuscle('serratus')"/>
+          <ellipse class="hotspot" data-id="serratus"    cx="67" cy="45" rx="5"  ry="6"  onclick="selectMuscle('serratus')"/>
+          <ellipse class="hotspot" data-id="rectus_abd"  cx="50" cy="52" rx="6"  ry="10" onclick="selectMuscle('rectus_abd')"/>
+          <ellipse class="hotspot" data-id="oblique"     cx="37" cy="52" rx="6"  ry="9"  onclick="selectMuscle('oblique')"/>
+          <ellipse class="hotspot" data-id="oblique"     cx="63" cy="52" rx="6"  ry="9"  onclick="selectMuscle('oblique')"/>
+          <ellipse class="hotspot" data-id="biceps"      cx="27" cy="46" rx="5"  ry="10" onclick="selectMuscle('biceps')"/>
+          <ellipse class="hotspot" data-id="biceps"      cx="73" cy="46" rx="5"  ry="10" onclick="selectMuscle('biceps')"/>
+          <ellipse class="hotspot" data-id="forearm_flex" cx="20" cy="64" rx="5" ry="10" onclick="selectMuscle('forearm_flex')"/>
+          <ellipse class="hotspot" data-id="forearm_flex" cx="80" cy="64" rx="5" ry="10" onclick="selectMuscle('forearm_flex')"/>
+          <ellipse class="hotspot" data-id="hip_flex"    cx="43" cy="69" rx="6"  ry="5"  onclick="selectMuscle('hip_flex')"/>
+          <ellipse class="hotspot" data-id="hip_flex"    cx="57" cy="69" rx="6"  ry="5"  onclick="selectMuscle('hip_flex')"/>
+          <ellipse class="hotspot" data-id="tfl_itb"     cx="34" cy="75" rx="5"  ry="7"  onclick="selectMuscle('tfl_itb')"/>
+          <ellipse class="hotspot" data-id="tfl_itb"     cx="66" cy="75" rx="5"  ry="7"  onclick="selectMuscle('tfl_itb')"/>
+          <ellipse class="hotspot" data-id="adductor"    cx="46" cy="83" rx="4"  ry="10" onclick="selectMuscle('adductor')"/>
+          <ellipse class="hotspot" data-id="adductor"    cx="54" cy="83" rx="4"  ry="10" onclick="selectMuscle('adductor')"/>
+          <ellipse class="hotspot" data-id="rectus_fem"  cx="40" cy="88" rx="6"  ry="12" onclick="selectMuscle('rectus_fem')"/>
+          <ellipse class="hotspot" data-id="rectus_fem"  cx="60" cy="88" rx="6"  ry="12" onclick="selectMuscle('rectus_fem')"/>
+          <ellipse class="hotspot" data-id="vastus_med"  cx="43" cy="100" rx="5" ry="4"  onclick="selectMuscle('vastus_med')"/>
+          <ellipse class="hotspot" data-id="vastus_med"  cx="57" cy="100" rx="5" ry="4"  onclick="selectMuscle('vastus_med')"/>
+          <ellipse class="hotspot" data-id="pat_tendon"  cx="41" cy="106" rx="5" ry="4"  onclick="selectMuscle('pat_tendon')"/>
+          <ellipse class="hotspot" data-id="pat_tendon"  cx="59" cy="106" rx="5" ry="4"  onclick="selectMuscle('pat_tendon')"/>
+          <ellipse class="hotspot" data-id="tib_ant"     cx="39" cy="118" rx="4" ry="10" onclick="selectMuscle('tib_ant')"/>
+          <ellipse class="hotspot" data-id="tib_ant"     cx="61" cy="118" rx="4" ry="10" onclick="selectMuscle('tib_ant')"/>
+          <ellipse class="hotspot" data-id="peroneal"    cx="44" cy="118" rx="3" ry="9"  onclick="selectMuscle('peroneal')"/>
+          <ellipse class="hotspot" data-id="peroneal"    cx="56" cy="118" rx="3" ry="9"  onclick="selectMuscle('peroneal')"/>
+          <ellipse class="hotspot" data-id="plantar_heel" cx="39" cy="140" rx="6" ry="4" onclick="selectMuscle('plantar_heel')"/>
+          <ellipse class="hotspot" data-id="plantar_heel" cx="61" cy="140" rx="6" ry="4" onclick="selectMuscle('plantar_heel')"/>
+        </svg>
+        <!-- BACK hotspot SVG -->
+        <svg id="hs-back" class="body-hotspot hidden" viewBox="0 0 100 160" preserveAspectRatio="none">
+          <ellipse class="hotspot" data-id="trap_upper"   cx="42" cy="22" rx="10" ry="6"  onclick="selectMuscle('trap_upper')"/>
+          <ellipse class="hotspot" data-id="trap_upper"   cx="58" cy="22" rx="10" ry="6"  onclick="selectMuscle('trap_upper')"/>
+          <ellipse class="hotspot" data-id="deltoid_post" cx="29" cy="30" rx="8"  ry="7"  onclick="selectMuscle('deltoid_post')"/>
+          <ellipse class="hotspot" data-id="deltoid_post" cx="71" cy="30" rx="8"  ry="7"  onclick="selectMuscle('deltoid_post')"/>
+          <ellipse class="hotspot" data-id="rhomboid"     cx="50" cy="35" rx="8"  ry="6"  onclick="selectMuscle('rhomboid')"/>
+          <ellipse class="hotspot" data-id="infraspinatus" cx="38" cy="39" rx="8" ry="7"  onclick="selectMuscle('infraspinatus')"/>
+          <ellipse class="hotspot" data-id="infraspinatus" cx="62" cy="39" rx="8" ry="7"  onclick="selectMuscle('infraspinatus')"/>
+          <ellipse class="hotspot" data-id="teres_major"  cx="33" cy="44" rx="5"  ry="5"  onclick="selectMuscle('teres_major')"/>
+          <ellipse class="hotspot" data-id="teres_major"  cx="67" cy="44" rx="5"  ry="5"  onclick="selectMuscle('teres_major')"/>
+          <ellipse class="hotspot" data-id="lats"         cx="34" cy="56" rx="8"  ry="13" onclick="selectMuscle('lats')"/>
+          <ellipse class="hotspot" data-id="lats"         cx="66" cy="56" rx="8"  ry="13" onclick="selectMuscle('lats')"/>
+          <ellipse class="hotspot" data-id="triceps"      cx="25" cy="46" rx="5"  ry="10" onclick="selectMuscle('triceps')"/>
+          <ellipse class="hotspot" data-id="triceps"      cx="75" cy="46" rx="5"  ry="10" onclick="selectMuscle('triceps')"/>
+          <ellipse class="hotspot" data-id="forearm_ext"  cx="19" cy="64" rx="5"  ry="10" onclick="selectMuscle('forearm_ext')"/>
+          <ellipse class="hotspot" data-id="forearm_ext"  cx="81" cy="64" rx="5"  ry="10" onclick="selectMuscle('forearm_ext')"/>
+          <ellipse class="hotspot" data-id="trap_back"    cx="40" cy="44" rx="7"  ry="8"  onclick="selectMuscle('trap_back')"/>
+          <ellipse class="hotspot" data-id="trap_back"    cx="60" cy="44" rx="7"  ry="8"  onclick="selectMuscle('trap_back')"/>
+          <ellipse class="hotspot" data-id="erector"      cx="44" cy="62" rx="5"  ry="16" onclick="selectMuscle('erector')"/>
+          <ellipse class="hotspot" data-id="erector"      cx="56" cy="62" rx="5"  ry="16" onclick="selectMuscle('erector')"/>
+          <ellipse class="hotspot" data-id="glute_med"    cx="36" cy="77" rx="8"  ry="6"  onclick="selectMuscle('glute_med')"/>
+          <ellipse class="hotspot" data-id="glute_med"    cx="64" cy="77" rx="8"  ry="6"  onclick="selectMuscle('glute_med')"/>
+          <ellipse class="hotspot" data-id="glute_max"    cx="40" cy="86" rx="9"  ry="8"  onclick="selectMuscle('glute_max')"/>
+          <ellipse class="hotspot" data-id="glute_max"    cx="60" cy="86" rx="9"  ry="8"  onclick="selectMuscle('glute_max')"/>
+          <ellipse class="hotspot" data-id="itb_post"     cx="32" cy="96" rx="4"  ry="12" onclick="selectMuscle('itb_post')"/>
+          <ellipse class="hotspot" data-id="itb_post"     cx="68" cy="96" rx="4"  ry="12" onclick="selectMuscle('itb_post')"/>
+          <ellipse class="hotspot" data-id="biceps_fem"   cx="41" cy="96" rx="7"  ry="12" onclick="selectMuscle('biceps_fem')"/>
+          <ellipse class="hotspot" data-id="biceps_fem"   cx="59" cy="96" rx="7"  ry="12" onclick="selectMuscle('biceps_fem')"/>
+          <ellipse class="hotspot" data-id="semitend"     cx="45" cy="96" rx="4"  ry="12" onclick="selectMuscle('semitend')"/>
+          <ellipse class="hotspot" data-id="semitend"     cx="55" cy="96" rx="4"  ry="12" onclick="selectMuscle('semitend')"/>
+          <ellipse class="hotspot" data-id="gastroc"      cx="41" cy="118" rx="6" ry="10" onclick="selectMuscle('gastroc')"/>
+          <ellipse class="hotspot" data-id="gastroc"      cx="59" cy="118" rx="6" ry="10" onclick="selectMuscle('gastroc')"/>
+          <ellipse class="hotspot" data-id="soleus"       cx="41" cy="128" rx="5" ry="8"  onclick="selectMuscle('soleus')"/>
+          <ellipse class="hotspot" data-id="soleus"       cx="59" cy="128" rx="5" ry="8"  onclick="selectMuscle('soleus')"/>
+          <ellipse class="hotspot" data-id="achilles"     cx="41" cy="138" rx="3" ry="6"  onclick="selectMuscle('achilles')"/>
+          <ellipse class="hotspot" data-id="achilles"     cx="59" cy="138" rx="3" ry="6"  onclick="selectMuscle('achilles')"/>
+          <ellipse class="hotspot" data-id="plantar_heel" cx="41" cy="146" rx="5" ry="4"  onclick="selectMuscle('plantar_heel')"/>
+          <ellipse class="hotspot" data-id="plantar_heel" cx="59" cy="146" rx="5" ry="4"  onclick="selectMuscle('plantar_heel')"/>
+        </svg>
         <div id="muscle-overlay" class="muscle-overlay hidden"></div>
       </div>
-      <p class="viewer-hint">Tap a muscle in the 3D model · Or select below for bones / ligaments</p>
+      <p class="viewer-hint">Tap diagram or use buttons below for bones &amp; ligaments</p>
 
       <!-- Manual selector for bones & ligaments (not clickable in muscle model) -->
       <div style="margin-top:14px;">
@@ -322,7 +398,6 @@ async function init() {
   if (!token) { document.getElementById('auth-wall').classList.remove('hidden'); return; }
   document.getElementById('auth-wall').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  loadSketchfab();
 }
 
 async function awSend() {
@@ -416,137 +491,18 @@ let conversationHistory = [];
 let geminiKey = null;
 let assessmentDone = false;
 
-// ── Sketchfab 3D Viewer ──────────────────────────────────────────
-const SF_MODEL = '7ea21567ff9942bf9511e2d99efe85d9';
-let sfNodeMap = {};
+// ── Body View Toggle ─────────────────────────────────────────────
+let currentBodyView = 'front';
 
-function loadSketchfab() {
-  const s = document.createElement('script');
-  s.src = 'https://static.sketchfab.com/api/sketchfab-viewer-1.12.1.js';
-  s.onload = initSfViewer;
-  s.onerror = () => {
-    const el = document.getElementById('viewer-loading');
-    el.innerHTML = '<span style="color:#c66">Failed to load 3D model</span>';
-  };
-  document.head.appendChild(s);
-}
-
-function initSfViewer() {
-  const iframe = document.getElementById('sf-iframe');
-  const client = new window.Sketchfab(iframe);
-  client.init(SF_MODEL, {
-    success(api) {
-      api.start();
-      api.addEventListener('viewerready', () => {
-        document.getElementById('viewer-loading').classList.add('hidden');
-        api.getSceneGraph((err, graph) => {
-          if (!err) buildSfNodeMap(graph, sfNodeMap);
-        });
-        api.addEventListener('click', info => {
-          if (info.instanceID == null) return;
-          const node = sfNodeMap[info.instanceID];
-          if (!node) return;
-          const muscleId = meshToMuscleId(node.name);
-          if (muscleId) {
-            selectMuscle(muscleId);
-          } else if (node.name && !/^(root|scene|body|skin|skeleton|bone|spine|object|mesh|node|group|armature|\d)/i.test(node.name)) {
-            showMeshOverlay(node.name);
-          }
-        });
-      });
-    },
-    error() {
-      document.getElementById('viewer-loading').innerHTML = '<span style="color:#c66">3D model unavailable</span>';
-    },
-    autostart: 1,
-    preload: 1,
-    ui_infos: 0,
-    ui_help: 0,
-    ui_controls: 1,
-    ui_annotations: 0,
-  });
-}
-
-function buildSfNodeMap(node, map) {
-  if (node.instanceID != null) map[node.instanceID] = node;
-  (node.children || []).forEach(c => buildSfNodeMap(c, map));
-}
-
-function meshToMuscleId(name) {
-  const n = (name || '').toLowerCase().replace(/[_\-]/g, ' ');
-  if (/achilles/.test(n)) return 'achilles';
-  if (/gastrocnemius/.test(n)) return 'gastroc';
-  if (/soleus/.test(n)) return 'soleus';
-  if (/tibialis anterior/.test(n)) return 'tib_ant';
-  if (/peroneal|fibularis/.test(n)) return 'peroneal';
-  if (/biceps femoris/.test(n)) return 'biceps_fem';
-  if (/semitendinosus|semimembranosus/.test(n)) return 'semitend';
-  if (/rectus femoris/.test(n)) return 'rectus_fem';
-  if (/vastus lateralis/.test(n)) return 'vastus_lat';
-  if (/vastus medialis/.test(n)) return 'vastus_med';
-  if (/vastus intermedius/.test(n)) return 'rectus_fem';
-  if (/adductor|gracilis/.test(n)) return 'adductor';
-  if (/sartorius/.test(n)) return 'sartorius';
-  if (/patellar tendon|ligamentum patellae/.test(n)) return 'pat_tendon';
-  if (/gluteus maximus/.test(n)) return 'glute_max';
-  if (/gluteus medius|gluteus minimus/.test(n)) return 'glute_med';
-  if (/erector spinae|iliocostalis|longissimus|spinalis/.test(n)) return 'erector';
-  if (/latissimus dorsi/.test(n)) return 'lats';
-  if (/trapezius/.test(n)) return /lower|mid/.test(n) ? 'trap_back' : 'trap_upper';
-  if (/infraspinatus/.test(n)) return 'infraspinatus';
-  if (/teres/.test(n)) return 'teres_major';
-  if (/rhomboid/.test(n)) return 'rhomboid';
-  if (/posterior deltoid|deltoid.*post/.test(n)) return 'deltoid_post';
-  if (/anterior deltoid|deltoid.*ant/.test(n)) return 'deltoid_ant';
-  if (/deltoid/.test(n)) return 'deltoid_ant';
-  if (/pectoralis major|pectoralis/.test(n)) return 'pec_major';
-  if (/serratus/.test(n)) return 'serratus';
-  if (/biceps brachii/.test(n)) return 'biceps';
-  if (/biceps/.test(n) && !/femoris/.test(n)) return 'biceps';
-  if (/triceps/.test(n)) return 'triceps';
-  if (/extensor carpi|extensor digit|brachioradialis|anconeus/.test(n)) return 'forearm_ext';
-  if (/flexor carpi|flexor digit|pronator|brachialis/.test(n)) return 'forearm_flex';
-  if (/rectus abdominis/.test(n)) return 'rectus_abd';
-  if (/oblique|obliquus/.test(n)) return 'oblique';
-  if (/iliopsoas|iliacus|psoas|hip flexor/.test(n)) return 'hip_flex';
-  if (/tensor fasciae|iliotibial/.test(n)) return 'tfl_itb';
-  if (/sternocleidomastoid/.test(n)) return 'scm';
-  if (/plantar fascia/.test(n)) return 'plantar_heel';
-
-  // Ligaments & cartilage
-  if (/anterior cruciate|acl/.test(n)) return 'acl';
-  if (/posterior cruciate|pcl/.test(n)) return 'pcl';
-  if (/medial collateral|mcl/.test(n)) return 'mcl';
-  if (/lateral collateral|lcl/.test(n)) return 'lcl';
-  if (/meniscus|menisci/.test(n)) return 'meniscus';
-  if (/ankle.*ligament|atfl|cfl|deltoid ligament/.test(n)) return 'ankle_lig';
-  if (/acetabular labrum|hip labrum/.test(n)) return 'labrum_hip';
-  if (/glenoid labrum|shoulder labrum|slap/.test(n)) return 'labrum_shldr';
-  if (/ulnar collateral|ucl/.test(n) && !/knee/.test(n)) return 'ucl_elbow';
-  if (/wrist.*ligament|carpal ligament|scapholunate/.test(n)) return 'wrist_lig';
-
-  // Bones
-  if (/patella/.test(n) && !/tendon/.test(n)) return 'patella';
-  if (/tibia/.test(n) && !/anterior/.test(n)) return 'tibia_bone';
-  if (/fibula/.test(n) && !/peroneal|fibularis/.test(n)) return 'fibula_bone';
-  if (/calcaneus|calcaneal/.test(n) && !/tendon/.test(n)) return 'calcaneus';
-  if (/metatarsal/.test(n)) return 'metatarsal';
-  if (/femur|femoral/.test(n) && !/femoris/.test(n)) return 'femur_bone';
-  if (/clavicle/.test(n)) return 'clavicle';
-  if (/rib(?:s)?\b/.test(n) && !/serratus/.test(n)) return 'rib_bone';
-  if (/vertebr|lumbar.*disc|cervical.*disc|disc herniation|spine/.test(n)) return 'spine_bone';
-  if (/scaphoid|carpal|wrist.*bone/.test(n)) return 'wrist_bone';
-  if (/humerus|humeral/.test(n)) return 'humerus_bone';
-
-  return null;
-}
-
-function showMeshOverlay(name) {
-  const el = document.getElementById('muscle-overlay');
-  el.textContent = name;
-  el.classList.remove('hidden');
-  clearTimeout(window._sfOverlayTimer);
-  window._sfOverlayTimer = setTimeout(() => el.classList.add('hidden'), 2500);
+function showBodyView(v) {
+  currentBodyView = v;
+  document.getElementById('img-front').classList.toggle('hidden', v !== 'front');
+  document.getElementById('img-back').classList.toggle('hidden', v !== 'back');
+  document.getElementById('hs-front').classList.toggle('hidden', v !== 'front');
+  document.getElementById('hs-back').classList.toggle('hidden', v !== 'back');
+  document.getElementById('btn-front').classList.toggle('active', v === 'front');
+  document.getElementById('btn-back').classList.toggle('active', v === 'back');
+  clearMuscle();
 }
 
 function selectMuscle(id) {
@@ -556,6 +512,10 @@ function selectMuscle(id) {
   const info = ANATOMY_MAP[id];
   if (!info) return;
 
+  // Highlight hotspot ellipses
+  document.querySelectorAll('.hotspot.selected').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll(`.hotspot[data-id="${id}"]`).forEach(el => el.classList.add('selected'));
+
   // Highlight selected quick-btn
   document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('sel'));
   document.querySelectorAll(`.quick-btn[onclick="selectMuscle('${id}')"]`).forEach(b => b.classList.add('sel'));
@@ -563,7 +523,6 @@ function selectMuscle(id) {
   const overlay = document.getElementById('muscle-overlay');
   overlay.textContent = info.label;
   overlay.classList.remove('hidden');
-  clearTimeout(window._sfOverlayTimer);
 
   document.getElementById('muscle-name').textContent = info.label;
   document.getElementById('muscle-sub').textContent = info.sub;
@@ -595,6 +554,7 @@ function setMuscleSide(side) {
 function clearMuscle() {
   selectedMuscleId = null;
   selectedSide = null;
+  document.querySelectorAll('.hotspot.selected').forEach(el => el.classList.remove('selected'));
   document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('sel'));
   document.getElementById('muscle-panel').classList.add('hidden');
   document.getElementById('muscle-overlay').classList.add('hidden');
